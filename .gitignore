@@ -1,0 +1,31 @@
+# Veri ve model dosyaları
+data/
+*.zip
+*.tif
+*.tiff
+*.pt
+*.pth
+*.ckpt
+*.onnx
+checkpoints/
+runs/
+wandb/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Ortam ve sırlar
+.env
+.env.*
+!.env.example
+
+# Editör ve sistem
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
