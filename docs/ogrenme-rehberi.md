@@ -175,8 +175,20 @@ korumamız gereken çıktılarda **rasterio**.
 ### 3.1 İçerik
 
 **BRIGHT**, Tokyo Üniversitesi ve ortaklarının hazırladığı, ESSD dergisinde 2025'te yayımlanan açık bir veri
-setidir. Dünyanın farklı yerlerinden **14 afet olayı** içerir: depremler (Türkiye, Fas, Haiti/Les Cayes, Japonya/
-Noto, Myanmar...), seller, orman yangınları, kasırgalar, bir yanardağ (La Palma) ve savaş hasarı (Ukrayna).
+setidir. Dünyanın farklı yerlerinden **14 afet olayı** içerir:
+
+| Tür | Olaylar |
+|---|---|
+| Deprem | Türkiye, Fas, Haiti (Les Cayes), Japonya (Noto) |
+| Patlama | Bata (Ekvator Ginesi), Beyrut |
+| Yanardağ | Kongo, La Palma |
+| Orman yangını | Hawaii, Marshall (ABD) |
+| Kasırga | Meksika, Myanmar |
+| Sel | Libya |
+| Savaş | Ukrayna |
+
+Türkiye dışarıda kalınca eğitimde yalnız **üç deprem** kalıyor. Model hasarı büyük ölçüde başka afet türlerinden
+öğreniyor.
 
 | Özellik | Değer |
 |---|---|
@@ -549,13 +561,19 @@ piksel değerinden bir ortalama çıkarılır ve bir standart sapmaya bölünür
 
 - **Optik:** ImageNet'in ortalama ve standart sapmaları. Kodlayıcı ImageNet'le ön eğitildiği için girdinin ona
   benzer istatistiklere sahip olması gerekir.
-- **SAR:** Eğitim kümesinin (13 olay) kendi ortalama ve standart sapması. İki bağımsız kaynak 0–1 ölçeğinde yaklaşık
-  0,22 ortalama ve 0,15–0,18 standart sapma veriyor.
+- **SAR (öneri, [ADR-0004](adr/0004-sar-girdisi.md)):** Resmî kodla aynı biçim. Tek bantlı SAR görüntüsü üç kez yan
+  yana konup 3 kanallı yapılır ve optikle aynı ImageNet istatistikleriyle normalize edilir. Fiziksel olarak garip
+  görünür (radarın ImageNet fotoğraflarıyla ilgisi yok), ama 41,28 bu biçimle elde edildi ve SAR kodlayıcısı
+  ImageNet ağırlıklarıyla başladığı için 3 kanal bekliyor. Ağ, ilk katmanlarında bu ölçeğe kendisi uyum sağlıyor.
 
-**Neden yalnız eğitim kümesi?** Türkiye görüntülerini istatistik hesabına katsaydık, Türkiye hakkında bir bilgi
-(etiketsiz de olsa) modelin girdisine sızmış olurdu. Bu küçük gibi görünen bir **sızıntıdır** ve kural 1 bunu
-yasaklar. Türkiye'nin istatistikleriyle yeniden ölçeklemenin ne değiştirdiği, ayrı bir deney olarak (Y3, Bölüm
-12.3) ve ayrı bir tabloda ölçülecek.
+Faz 0'da kod okunana kadar tasarım, SAR'ı eğitim kümesinin kendi istatistikleriyle normalize etmeyi öngörüyordu.
+Bu, "ChangeMamba'yı olduğu gibi eğit" ilkesinden sessiz bir sapma olurdu. Şimdi bu fikir fikir havuzunda (A3)
+duruyor ve Faz 4'te kısa bir provada ölçülecek.
+
+**Neden Türkiye'nin istatistikleri hiç kullanılmıyor?** Türkiye görüntülerini herhangi bir istatistik hesabına
+katsaydık, Türkiye hakkında bir bilgi (etiketsiz de olsa) modelin girdisine sızmış olurdu. Bu küçük gibi görünen
+bir **sızıntıdır** ve kural 1 bunu yasaklar. Türkiye'nin istatistikleriyle yeniden ölçeklemenin ne değiştirdiği,
+ayrı bir deney olarak (Y3, Bölüm 12.3) ve ayrı bir tabloda ölçülecek.
 
 ### 7.4 Kayıp fonksiyonu: CE + Lovász
 
@@ -940,7 +958,7 @@ yüzden ana eğitimden önce toplam 1–1,5 saat süren 11 kontrol var. Her biri
 | 4 | Başlangıç kayıpları: hasar başlığında ln 4 ≈ 1,386, bina başlığında ln 2 ≈ 0,693 | Yanlış kayıp kurulumu, bozuk etiket |
 | 5 | Artırım kapalıyken 8 kare 300–500 adımda ezberlenmeli | Modelin öğrenemiyor olması (bağlantı hatası, yanlış lr) |
 | 6 | SAR sıfırlanınca hasar çıktısı değişmeli | SAR dalının modele hiç bağlanmamış olması |
-| 7 | Metrik uç durumları: kusursuz tahmin 1,0, hep arka plan yaklaşık 0,21 | Metrik kodu hatası |
+| 7 | Metrik uç durumları: kusursuz tahmin 1,0, hep arka plan = arka plan oranı / 4 (~0,21) | Metrik kodu hatası |
 | 8 | 200 adımda hız, tepe VRAM ve CU projeksiyonu | Bütçeyi aşacak bir eğitim |
 | 9 | 2× lr ile 500 adımda p90 gradyan normu | Gradyan kırpma eşiği |
 | 10 | 60. adımda süreç öldürülür, devam testi yapılır | Eksik kayıt durumu |
@@ -956,7 +974,9 @@ farklıysa bir şeyler yanlış kurulmuştur.
 öğrenme mekanizmasında bir kopukluk vardır. Andrej Karpathy'nin "eğitim tarifi"nden gelen klasik bir kontrol.
 
 **Kapı 7 neden 0,21?** Model her yere arka plan derse arka plan IoU'su yüksek (yaklaşık 0,85), diğer üç sınıfın
-IoU'su 0 olur; ortalama yaklaşık 0,21 eder. Metrik kodu bu değeri vermiyorsa hatalıdır.
+IoU'su 0 olur. Arka plan IoU'su tam olarak arka plan piksellerinin oranına eşittir (her piksel arka plan
+tahmin edildiği için); mIoU bu oranın dörtte biri olur. Oran 0,85 civarındaysa yaklaşık 0,21 eder. Beklenen değer
+sabit değil, doğrulama kümesinin etiket dağılımından hesaplanır. Metrik kodu bu değeri vermiyorsa hatalıdır.
 
 Sonuçlar `preflight.json` dosyasına yazılır. Hepsi geçmeden ana eğitim başlamaz.
 
