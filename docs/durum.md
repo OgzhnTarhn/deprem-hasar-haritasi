@@ -6,8 +6,22 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 |---|---|---|
 | Araştırma ve tasarım | Bitti (6 Kasım 2026) | `reports/` (üç rapor), `docs/tasarim.md` sürüm 3, `docs/fazlar.md` sürüm 2, `docs/fikir-havuzu.md` |
 | 0. Belgeler ve protokol taslağı | Bitti (6 Kasım 2026) | `docs/adr/` (0001–0006), `docs/protokol.md` 0.1, `docs/veri-lisans.md`, `docs/riskler.md`, `docs/sar-temelleri.md` |
-| 1. Depo iskeleti | Sırada | |
-| 2–9 | Bekliyor | |
+| 1. Depo iskeleti | Bitti (6 Kasım 2026) | `src/hasar/` paketi, `configs/ana.yaml`, sonuç şeması, Türkiye guard'ı, model sözleşmesi, CI; 125 kısa test (~3 sn) |
+| 2. Veri katmanı | Sırada | |
+| 3–9 | Bekliyor | |
+
+## Faz 1'de kurulanlar
+
+- **Paket:** `uv` projesi (Python ≥3.10), torch ve timm `train` ekstrasında ve sabitlenmemiş (Colab'ın kurulu
+  sürümleri). Alt paketler: `data`, `models`, `train`, `eval`, `analysis`, `preflight`.
+- **Yapılandırma:** `hasar.config` dondurulmuş dataclass'lar; `configs/ana.yaml` varsayılanların tamamını açık
+  yazar. `config_hash` sıralı JSON'un sha256'sının ilk 12 hanesi; `run_id = <deney>-<hash>`.
+- **Sonuç şeması:** `hasar.results` metrik etiketi olmayan ya da tanınmayan etiketli kaydı yazmaz (kural 4–5).
+- **Guard:** `hasar.guard.require_turkey_access` yalnız HEAD `protokol-kilidi` etiketindeyse ve çalışma ağacı
+  temizse `TurkeyAccess` verir (kural 1).
+- **Model sözleşmesi:** her model `{"loc": B×2×H×W, "clf": B×4×H×W}` döndürür; `registry` adla kurar.
+- **Üçüncü taraf:** BRIGHT `standard_ML` bölme listeleri sabit commit'ten (`third_party/bright/SOURCE.md`).
+- **Not:** `.gitignore`'daki `data/` kuralı `src/hasar/data`'yı da yutuyordu; kök klasöre bağlandı (`/data/`).
 
 ## Faz 0'da ölçülen ve öğrenilenler
 
