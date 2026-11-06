@@ -1,0 +1,167 @@
+{
+ "kind": "research",
+ "question": "Bitisik binalarin bagli bilesende birlesme orani; karisik sinifli bilesen payi (13 olay)",
+ "source": "BRIGHT target.zip (Turkiye haric) ve cvprw26_trainval_instance_labels.zip (Turkiye haric)",
+ "connectivity": 8,
+ "instance_label_events": [
+  "bata-explosion",
+  "beirut-explosion",
+  "congo-volcano",
+  "haiti-earthquake",
+  "hawaii-wildfire",
+  "la_palma-volcano",
+  "libya-flood",
+  "marshall-wildfire",
+  "morocco-earthquake",
+  "noto-earthquake"
+ ],
+ "overall": {
+  "cc_per_instance": 0.613,
+  "mixed_px_frac": 0.0589
+ },
+ "events": {
+  "bata-explosion": {
+   "tiles": 107,
+   "components": 7459,
+   "building_px": 6241285,
+   "mixed_px": 77138,
+   "inst_tiles": 93,
+   "inst": 7420,
+   "inst_cc": 6220,
+   "cc_per_instance": 0.838,
+   "mixed_px_frac": 0.0124
+  },
+  "beirut-explosion": {
+   "tiles": 133,
+   "components": 10777,
+   "building_px": 43844642,
+   "mixed_px": 459122,
+   "inst_tiles": 116,
+   "inst": 22242,
+   "inst_cc": 9326,
+   "cc_per_instance": 0.419,
+   "mixed_px_frac": 0.0105
+  },
+  "congo-volcano": {
+   "tiles": 123,
+   "components": 15615,
+   "building_px": 8361695,
+   "mixed_px": 34603,
+   "inst_tiles": 108,
+   "inst": 16603,
+   "inst_cc": 13779,
+   "cc_per_instance": 0.83,
+   "mixed_px_frac": 0.0041
+  },
+  "haiti-earthquake": {
+   "tiles": 73,
+   "components": 7758,
+   "building_px": 9931282,
+   "mixed_px": 802972,
+   "inst_tiles": 63,
+   "inst": 15656,
+   "inst_cc": 7008,
+   "cc_per_instance": 0.448,
+   "mixed_px_frac": 0.0809
+  },
+  "hawaii-wildfire": {
+   "tiles": 65,
+   "components": 3657,
+   "building_px": 7870613,
+   "mixed_px": 113192,
+   "inst_tiles": 56,
+   "inst": 3534,
+   "inst_cc": 3241,
+   "cc_per_instance": 0.917,
+   "mixed_px_frac": 0.0144
+  },
+  "la_palma-volcano": {
+   "tiles": 933,
+   "components": 21486,
+   "building_px": 80462598,
+   "mixed_px": 3346511,
+   "inst_tiles": 836,
+   "inst": 29835,
+   "inst_cc": 19478,
+   "cc_per_instance": 0.653,
+   "mixed_px_frac": 0.0416
+  },
+  "libya-flood": {
+   "tiles": 124,
+   "components": 4555,
+   "building_px": 24374904,
+   "mixed_px": 2618293,
+   "inst_tiles": 109,
+   "inst": 9601,
+   "inst_cc": 3991,
+   "cc_per_instance": 0.416,
+   "mixed_px_frac": 0.1074
+  },
+  "marshall-wildfire": {
+   "tiles": 77,
+   "components": 8226,
+   "building_px": 5372185,
+   "mixed_px": 966,
+   "inst_tiles": 69,
+   "inst": 7600,
+   "inst_cc": 7467,
+   "cc_per_instance": 0.983,
+   "mixed_px_frac": 0.0002
+  },
+  "mexico-hurricane": {
+   "tiles": 212,
+   "components": 6315,
+   "building_px": 26462283,
+   "mixed_px": 4834837,
+   "inst_tiles": 0,
+   "inst": 0,
+   "inst_cc": 0,
+   "cc_per_instance": null,
+   "mixed_px_frac": 0.1827
+  },
+  "morocco-earthquake": {
+   "tiles": 567,
+   "components": 2889,
+   "building_px": 12188459,
+   "mixed_px": 818355,
+   "inst_tiles": 508,
+   "inst": 5790,
+   "inst_cc": 2602,
+   "cc_per_instance": 0.449,
+   "mixed_px_frac": 0.0671
+  },
+  "myanmar-hurricane": {
+   "tiles": 126,
+   "components": 8424,
+   "building_px": 6913666,
+   "mixed_px": 212762,
+   "inst_tiles": 0,
+   "inst": 0,
+   "inst_cc": 0,
+   "cc_per_instance": null,
+   "mixed_px_frac": 0.0308
+  },
+  "noto-earthquake": {
+   "tiles": 79,
+   "components": 4231,
+   "building_px": 4862030,
+   "mixed_px": 1121263,
+   "inst_tiles": 70,
+   "inst": 6981,
+   "inst_cc": 3629,
+   "cc_per_instance": 0.52,
+   "mixed_px_frac": 0.2306
+  },
+  "ukraine-conflict": {
+   "tiles": 513,
+   "components": 43871,
+   "building_px": 67937291,
+   "mixed_px": 3509910,
+   "inst_tiles": 0,
+   "inst": 0,
+   "inst_cc": 0,
+   "cc_per_instance": null,
+   "mixed_px_frac": 0.0517
+  }
+ }
+}

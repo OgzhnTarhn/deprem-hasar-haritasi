@@ -1,0 +1,1120 @@
+{
+ "kind": "research",
+ "question": "A1 fizibilitesi: Sentinel-1 SLC oncesi/sonrasi ciftleri (ASF)",
+ "window_days": {
+  "pre": 36,
+  "post": 24
+ },
+ "events": {
+  "bata-explosion": {
+   "center_lon": 9.80992,
+   "center_lat": 1.81927,
+   "extent_deg": [
+    9.7845,
+    1.7927,
+    9.8407,
+    1.8442
+   ],
+   "date": "2021-03-07",
+   "pre_scenes": 6,
+   "post_scenes": 4,
+   "tracks": [
+    {
+     "track": 51,
+     "pre_dates": [
+      "2021-02-10",
+      "2021-02-22",
+      "2021-03-06"
+     ],
+     "post_dates": [
+      "2021-03-18",
+      "2021-03-30"
+     ],
+     "first_post_days": 11,
+     "coherence_ok": true
+    },
+    {
+     "track": 132,
+     "pre_dates": [
+      "2021-02-03",
+      "2021-02-15",
+      "2021-02-27"
+     ],
+     "post_dates": [
+      "2021-03-11",
+      "2021-03-23"
+     ],
+     "first_post_days": 4,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 4
+  },
+  "beirut-explosion": {
+   "center_lon": 35.51238,
+   "center_lat": 33.88514,
+   "extent_deg": [
+    35.4704,
+    33.864,
+    35.5481,
+    33.9066
+   ],
+   "date": "2020-08-04",
+   "pre_scenes": 26,
+   "post_scenes": 18,
+   "tracks": [
+    {
+     "track": 14,
+     "pre_dates": [
+      "2020-06-30",
+      "2020-07-06",
+      "2020-07-12",
+      "2020-07-18",
+      "2020-07-24",
+      "2020-07-30"
+     ],
+     "post_dates": [
+      "2020-08-05",
+      "2020-08-11",
+      "2020-08-17",
+      "2020-08-23"
+     ],
+     "first_post_days": 1,
+     "coherence_ok": true
+    },
+    {
+     "track": 21,
+     "pre_dates": [
+      "2020-07-01",
+      "2020-07-07",
+      "2020-07-13",
+      "2020-07-25",
+      "2020-07-31"
+     ],
+     "post_dates": [
+      "2020-08-06",
+      "2020-08-12",
+      "2020-08-18",
+      "2020-08-24"
+     ],
+     "first_post_days": 2,
+     "coherence_ok": true
+    },
+    {
+     "track": 87,
+     "pre_dates": [
+      "2020-06-29",
+      "2020-07-05",
+      "2020-07-11",
+      "2020-07-17",
+      "2020-07-23",
+      "2020-07-29"
+     ],
+     "post_dates": [
+      "2020-08-04",
+      "2020-08-10",
+      "2020-08-16",
+      "2020-08-22"
+     ],
+     "first_post_days": 0,
+     "coherence_ok": true
+    },
+    {
+     "track": 94,
+     "pre_dates": [
+      "2020-06-30",
+      "2020-07-06",
+      "2020-07-12",
+      "2020-07-18",
+      "2020-07-24",
+      "2020-07-30"
+     ],
+     "post_dates": [
+      "2020-08-05",
+      "2020-08-11",
+      "2020-08-17",
+      "2020-08-23"
+     ],
+     "first_post_days": 1,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 0
+  },
+  "congo-volcano": {
+   "center_lon": 29.24131,
+   "center_lat": -1.6328,
+   "extent_deg": [
+    29.2183,
+    -1.6573,
+    29.2552,
+    -1.6173
+   ],
+   "date": "2021-05-22",
+   "pre_scenes": 9,
+   "post_scenes": 11,
+   "tracks": [
+    {
+     "track": 21,
+     "pre_dates": [
+      "2021-04-27",
+      "2021-05-09",
+      "2021-05-21"
+     ],
+     "post_dates": [
+      "2021-05-27",
+      "2021-06-02",
+      "2021-06-08",
+      "2021-06-14"
+     ],
+     "first_post_days": 5,
+     "coherence_ok": true
+    },
+    {
+     "track": 174,
+     "pre_dates": [
+      "2021-04-19",
+      "2021-04-25",
+      "2021-05-01",
+      "2021-05-07",
+      "2021-05-13",
+      "2021-05-19"
+     ],
+     "post_dates": [
+      "2021-05-25",
+      "2021-05-31",
+      "2021-06-06",
+      "2021-06-12"
+     ],
+     "first_post_days": 3,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 3
+  },
+  "haiti-earthquake": {
+   "center_lon": -73.75347,
+   "center_lat": 18.20316,
+   "extent_deg": [
+    -73.7686,
+    18.1774,
+    -73.7323,
+    18.2228
+   ],
+   "date": "2021-08-14",
+   "pre_scenes": 5,
+   "post_scenes": 8,
+   "tracks": [
+    {
+     "track": 4,
+     "pre_dates": [
+      "2021-07-12",
+      "2021-08-05"
+     ],
+     "post_dates": [
+      "2021-08-17",
+      "2021-08-23",
+      "2021-08-29",
+      "2021-09-04"
+     ],
+     "first_post_days": 3,
+     "coherence_ok": true
+    },
+    {
+     "track": 142,
+     "pre_dates": [
+      "2021-07-10",
+      "2021-07-22",
+      "2021-08-03"
+     ],
+     "post_dates": [
+      "2021-08-15",
+      "2021-08-21",
+      "2021-08-27",
+      "2021-09-02"
+     ],
+     "first_post_days": 1,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 1
+  },
+  "hawaii-wildfire": {
+   "center_lon": -156.67207,
+   "center_lat": 20.88034,
+   "extent_deg": [
+    -156.6881,
+    20.8564,
+    -156.6534,
+    20.9017
+   ],
+   "date": "2023-08-08",
+   "pre_scenes": 9,
+   "post_scenes": 6,
+   "tracks": [
+    {
+     "track": 87,
+     "pre_dates": [
+      "2023-07-08",
+      "2023-07-20",
+      "2023-08-01"
+     ],
+     "post_dates": [
+      "2023-08-13",
+      "2023-08-25"
+     ],
+     "first_post_days": 5,
+     "coherence_ok": true
+    },
+    {
+     "track": 124,
+     "pre_dates": [
+      "2023-07-11",
+      "2023-07-23",
+      "2023-08-04"
+     ],
+     "post_dates": [
+      "2023-08-16",
+      "2023-08-28"
+     ],
+     "first_post_days": 8,
+     "coherence_ok": true
+    },
+    {
+     "track": 160,
+     "pre_dates": [
+      "2023-07-13",
+      "2023-07-25",
+      "2023-08-06"
+     ],
+     "post_dates": [
+      "2023-08-18",
+      "2023-08-30"
+     ],
+     "first_post_days": 10,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 5
+  },
+  "la_palma-volcano": {
+   "center_lon": -17.89136,
+   "center_lat": 28.61681,
+   "extent_deg": [
+    -17.9493,
+    28.5511,
+    -17.8331,
+    28.6571
+   ],
+   "date": "2021-09-19",
+   "pre_scenes": 12,
+   "post_scenes": 8,
+   "tracks": [
+    {
+     "track": 60,
+     "pre_dates": [
+      "2021-08-15",
+      "2021-08-21",
+      "2021-08-27",
+      "2021-09-02",
+      "2021-09-08",
+      "2021-09-14"
+     ],
+     "post_dates": [
+      "2021-09-20",
+      "2021-09-26",
+      "2021-10-02",
+      "2021-10-08"
+     ],
+     "first_post_days": 1,
+     "coherence_ok": true
+    },
+    {
+     "track": 169,
+     "pre_dates": [
+      "2021-08-17",
+      "2021-08-23",
+      "2021-08-29",
+      "2021-09-04",
+      "2021-09-10",
+      "2021-09-16"
+     ],
+     "post_dates": [
+      "2021-09-22",
+      "2021-09-28",
+      "2021-10-04",
+      "2021-10-10"
+     ],
+     "first_post_days": 3,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 1
+  },
+  "libya-flood": {
+   "center_lon": 22.64612,
+   "center_lat": 32.75487,
+   "extent_deg": [
+    22.6177,
+    32.7323,
+    22.675,
+    32.7746
+   ],
+   "date": "2023-09-10",
+   "pre_scenes": 9,
+   "post_scenes": 6,
+   "tracks": [
+    {
+     "track": 7,
+     "pre_dates": [
+      "2023-08-08",
+      "2023-08-20",
+      "2023-09-01"
+     ],
+     "post_dates": [
+      "2023-09-13",
+      "2023-09-25"
+     ],
+     "first_post_days": 3,
+     "coherence_ok": true
+    },
+    {
+     "track": 109,
+     "pre_dates": [
+      "2023-08-15",
+      "2023-08-27",
+      "2023-09-08"
+     ],
+     "post_dates": [
+      "2023-09-20",
+      "2023-10-02"
+     ],
+     "first_post_days": 10,
+     "coherence_ok": true
+    },
+    {
+     "track": 175,
+     "pre_dates": [
+      "2023-08-07",
+      "2023-08-19",
+      "2023-08-31"
+     ],
+     "post_dates": [
+      "2023-09-12",
+      "2023-09-24"
+     ],
+     "first_post_days": 2,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 2
+  },
+  "marshall-wildfire": {
+   "center_lon": -105.15673,
+   "center_lat": 39.97453,
+   "extent_deg": [
+    -105.1864,
+    39.9482,
+    -105.1216,
+    39.998
+   ],
+   "date": "2021-12-30",
+   "pre_scenes": 13,
+   "post_scenes": 4,
+   "tracks": [
+    {
+     "track": 56,
+     "pre_dates": [
+      "2021-11-25",
+      "2021-12-07",
+      "2021-12-19"
+     ],
+     "post_dates": [
+      "2021-12-31",
+      "2022-01-12"
+     ],
+     "first_post_days": 1,
+     "coherence_ok": true
+    },
+    {
+     "track": 158,
+     "pre_dates": [
+      "2021-12-02",
+      "2021-12-14",
+      "2021-12-26"
+     ],
+     "post_dates": [
+      "2022-01-07",
+      "2022-01-19"
+     ],
+     "first_post_days": 8,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 1
+  },
+  "mexico-hurricane": {
+   "center_lon": -99.81925,
+   "center_lat": 16.87077,
+   "extent_deg": [
+    -99.8377,
+    16.7837,
+    -99.8013,
+    16.9439
+   ],
+   "date": "2023-10-25",
+   "pre_scenes": 6,
+   "post_scenes": 6,
+   "tracks": [
+    {
+     "track": 41,
+     "pre_dates": [
+      "2023-09-27",
+      "2023-10-09",
+      "2023-10-21"
+     ],
+     "post_dates": [
+      "2023-11-02",
+      "2023-11-14"
+     ],
+     "first_post_days": 8,
+     "coherence_ok": true
+    },
+    {
+     "track": 78,
+     "pre_dates": [
+      "2023-09-30",
+      "2023-10-12",
+      "2023-10-24"
+     ],
+     "post_dates": [
+      "2023-11-05",
+      "2023-11-17"
+     ],
+     "first_post_days": 11,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 8
+  },
+  "morocco-earthquake": {
+   "center_lon": -7.95632,
+   "center_lat": 31.31889,
+   "extent_deg": [
+    -7.9994,
+    31.256,
+    -7.9173,
+    31.3798
+   ],
+   "date": "2023-09-08",
+   "pre_scenes": 9,
+   "post_scenes": 6,
+   "tracks": [
+    {
+     "track": 45,
+     "pre_dates": [
+      "2023-08-10",
+      "2023-08-22",
+      "2023-09-03"
+     ],
+     "post_dates": [
+      "2023-09-15",
+      "2023-09-27"
+     ],
+     "first_post_days": 7,
+     "coherence_ok": true
+    },
+    {
+     "track": 52,
+     "pre_dates": [
+      "2023-08-11",
+      "2023-08-23",
+      "2023-09-04"
+     ],
+     "post_dates": [
+      "2023-09-16",
+      "2023-09-28"
+     ],
+     "first_post_days": 8,
+     "coherence_ok": true
+    },
+    {
+     "track": 154,
+     "pre_dates": [
+      "2023-08-06",
+      "2023-08-18",
+      "2023-08-30"
+     ],
+     "post_dates": [
+      "2023-09-11",
+      "2023-09-23"
+     ],
+     "first_post_days": 3,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 3
+  },
+  "myanmar-hurricane": {
+   "center_lon": 93.53973,
+   "center_lat": 19.42844,
+   "extent_deg": [
+    93.5172,
+    19.4062,
+    93.565,
+    19.4516
+   ],
+   "date": "2023-05-14",
+   "pre_scenes": 6,
+   "post_scenes": 3,
+   "tracks": [
+    {
+     "track": 4,
+     "pre_dates": [
+      "2023-04-09",
+      "2023-04-21",
+      "2023-05-03"
+     ],
+     "post_dates": [
+      "2023-05-15"
+     ],
+     "first_post_days": 1,
+     "coherence_ok": true
+    },
+    {
+     "track": 41,
+     "pre_dates": [
+      "2023-04-12",
+      "2023-04-24",
+      "2023-05-06"
+     ],
+     "post_dates": [
+      "2023-05-18",
+      "2023-05-30"
+     ],
+     "first_post_days": 4,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 1
+  },
+  "noto-earthquake": {
+   "center_lon": 136.90334,
+   "center_lat": 37.39484,
+   "extent_deg": [
+    136.8752,
+    37.3736,
+    136.9301,
+    37.4172
+   ],
+   "date": "2024-01-01",
+   "pre_scenes": 5,
+   "post_scenes": 6,
+   "tracks": [
+    {
+     "track": 17,
+     "pre_dates": [
+      "2023-12-06",
+      "2023-12-18",
+      "2023-12-30"
+     ],
+     "post_dates": [
+      "2024-01-11",
+      "2024-01-23"
+     ],
+     "first_post_days": 10,
+     "coherence_ok": true
+    },
+    {
+     "track": 119,
+     "pre_dates": [
+      "2023-12-13",
+      "2023-12-25"
+     ],
+     "post_dates": [
+      "2024-01-06",
+      "2024-01-18"
+     ],
+     "first_post_days": 5,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 5
+  },
+  "ukraine-conflict": {
+   "center_lon": 35.68833,
+   "center_lat": 48.00362,
+   "extent_deg": [
+    30.1965,
+    47.0834,
+    37.6986,
+    50.5624
+   ],
+   "date": "2022-02-24",
+   "pre_scenes": 6,
+   "post_scenes": 4,
+   "tracks": [
+    {
+     "track": 116,
+     "pre_dates": [
+      "2022-01-28",
+      "2022-02-09",
+      "2022-02-21"
+     ],
+     "post_dates": [
+      "2022-03-05",
+      "2022-03-17"
+     ],
+     "first_post_days": 9,
+     "coherence_ok": true
+    },
+    {
+     "track": 167,
+     "pre_dates": [
+      "2022-01-20",
+      "2022-02-01",
+      "2022-02-13"
+     ],
+     "post_dates": [
+      "2022-02-25",
+      "2022-03-09"
+     ],
+     "first_post_days": 1,
+     "coherence_ok": true
+    }
+   ],
+   "feasible": true,
+   "best_first_post_days": 1
+  },
+  "turkey-earthquake": {
+   "clusters": [
+    {
+     "center_lon": 37.3583,
+     "center_lat": 37.0898,
+     "extent_deg": [
+      37.3583,
+      37.0898,
+      37.3583,
+      37.0898
+     ],
+     "date": "2023-02-06",
+     "pre_scenes": 9,
+     "post_scenes": 5,
+     "tracks": [
+      {
+       "track": 14,
+       "pre_dates": [
+        "2023-01-04",
+        "2023-01-16",
+        "2023-01-28"
+       ],
+       "post_dates": [
+        "2023-02-09",
+        "2023-02-21"
+       ],
+       "first_post_days": 3,
+       "coherence_ok": true
+      },
+      {
+       "track": 21,
+       "pre_dates": [
+        "2023-01-05",
+        "2023-01-17",
+        "2023-01-29"
+       ],
+       "post_dates": [
+        "2023-02-10",
+        "2023-02-22"
+       ],
+       "first_post_days": 4,
+       "coherence_ok": true
+      },
+      {
+       "track": 116,
+       "pre_dates": [
+        "2023-01-11",
+        "2023-01-23",
+        "2023-02-04"
+       ],
+       "post_dates": [
+        "2023-02-28"
+       ],
+       "first_post_days": 22,
+       "coherence_ok": true
+      }
+     ],
+     "feasible": true,
+     "best_first_post_days": 3,
+     "tiles": 181,
+     "place": "Gaziantep"
+    },
+    {
+     "center_lon": 36.2559,
+     "center_lat": 37.0732,
+     "extent_deg": [
+      36.2559,
+      37.0732,
+      36.2559,
+      37.0732
+     ],
+     "date": "2023-02-06",
+     "pre_scenes": 12,
+     "post_scenes": 8,
+     "tracks": [
+      {
+       "track": 14,
+       "pre_dates": [
+        "2023-01-04",
+        "2023-01-16",
+        "2023-01-28"
+       ],
+       "post_dates": [
+        "2023-02-09",
+        "2023-02-21"
+       ],
+       "first_post_days": 3,
+       "coherence_ok": true
+      },
+      {
+       "track": 21,
+       "pre_dates": [
+        "2023-01-05",
+        "2023-01-17",
+        "2023-01-29"
+       ],
+       "post_dates": [
+        "2023-02-10",
+        "2023-02-22"
+       ],
+       "first_post_days": 4,
+       "coherence_ok": true
+      },
+      {
+       "track": 94,
+       "pre_dates": [
+        "2023-01-10",
+        "2023-01-22",
+        "2023-02-03"
+       ],
+       "post_dates": [
+        "2023-02-15",
+        "2023-02-27"
+       ],
+       "first_post_days": 9,
+       "coherence_ok": true
+      }
+     ],
+     "feasible": true,
+     "best_first_post_days": 3,
+     "tiles": 179,
+     "place": "Osmaniye"
+    },
+    {
+     "center_lon": 38.2743,
+     "center_lat": 37.7625,
+     "extent_deg": [
+      38.2743,
+      37.7625,
+      38.2743,
+      37.7625
+     ],
+     "date": "2023-02-06",
+     "pre_scenes": 9,
+     "post_scenes": 5,
+     "tracks": [
+      {
+       "track": 21,
+       "pre_dates": [
+        "2023-01-05",
+        "2023-01-17",
+        "2023-01-29"
+       ],
+       "post_dates": [
+        "2023-02-10",
+        "2023-02-22"
+       ],
+       "first_post_days": 4,
+       "coherence_ok": true
+      },
+      {
+       "track": 116,
+       "pre_dates": [
+        "2023-01-11",
+        "2023-01-23",
+        "2023-02-04"
+       ],
+       "post_dates": [
+        "2023-02-28"
+       ],
+       "first_post_days": 22,
+       "coherence_ok": true
+      },
+      {
+       "track": 123,
+       "pre_dates": [
+        "2023-01-12",
+        "2023-01-24",
+        "2023-02-05"
+       ],
+       "post_dates": [
+        "2023-02-17",
+        "2023-03-01"
+       ],
+       "first_post_days": 11,
+       "coherence_ok": true
+      }
+     ],
+     "feasible": true,
+     "best_first_post_days": 4,
+     "tiles": 171,
+     "place": "Adıyaman"
+    },
+    {
+     "center_lon": 38.307,
+     "center_lat": 38.3468,
+     "extent_deg": [
+      38.307,
+      38.3468,
+      38.307,
+      38.3468
+     ],
+     "date": "2023-02-06",
+     "pre_scenes": 9,
+     "post_scenes": 5,
+     "tracks": [
+      {
+       "track": 21,
+       "pre_dates": [
+        "2023-01-05",
+        "2023-01-17",
+        "2023-01-29"
+       ],
+       "post_dates": [
+        "2023-02-10",
+        "2023-02-22"
+       ],
+       "first_post_days": 4,
+       "coherence_ok": true
+      },
+      {
+       "track": 116,
+       "pre_dates": [
+        "2023-01-11",
+        "2023-01-23",
+        "2023-02-04"
+       ],
+       "post_dates": [
+        "2023-02-28"
+       ],
+       "first_post_days": 22,
+       "coherence_ok": true
+      },
+      {
+       "track": 123,
+       "pre_dates": [
+        "2023-01-12",
+        "2023-01-24",
+        "2023-02-05"
+       ],
+       "post_dates": [
+        "2023-02-17",
+        "2023-03-01"
+       ],
+       "first_post_days": 11,
+       "coherence_ok": true
+      }
+     ],
+     "feasible": true,
+     "best_first_post_days": 4,
+     "tiles": 168,
+     "place": "Malatya"
+    },
+    {
+     "center_lon": 36.9241,
+     "center_lat": 37.578,
+     "extent_deg": [
+      36.9241,
+      37.578,
+      36.9241,
+      37.578
+     ],
+     "date": "2023-02-06",
+     "pre_scenes": 9,
+     "post_scenes": 5,
+     "tracks": [
+      {
+       "track": 14,
+       "pre_dates": [
+        "2023-01-04",
+        "2023-01-16",
+        "2023-01-28"
+       ],
+       "post_dates": [
+        "2023-02-09",
+        "2023-02-21"
+       ],
+       "first_post_days": 3,
+       "coherence_ok": true
+      },
+      {
+       "track": 21,
+       "pre_dates": [
+        "2023-01-05",
+        "2023-01-17",
+        "2023-01-29"
+       ],
+       "post_dates": [
+        "2023-02-10",
+        "2023-02-22"
+       ],
+       "first_post_days": 4,
+       "coherence_ok": true
+      },
+      {
+       "track": 116,
+       "pre_dates": [
+        "2023-01-11",
+        "2023-01-23",
+        "2023-02-04"
+       ],
+       "post_dates": [
+        "2023-02-28"
+       ],
+       "first_post_days": 22,
+       "coherence_ok": true
+      }
+     ],
+     "feasible": true,
+     "best_first_post_days": 3,
+     "tiles": 160,
+     "place": "Kahramanmaraş"
+    },
+    {
+     "center_lon": 36.155,
+     "center_lat": 36.2055,
+     "extent_deg": [
+      36.155,
+      36.2055,
+      36.155,
+      36.2055
+     ],
+     "date": "2023-02-06",
+     "pre_scenes": 9,
+     "post_scenes": 6,
+     "tracks": [
+      {
+       "track": 14,
+       "pre_dates": [
+        "2023-01-04",
+        "2023-01-16",
+        "2023-01-28"
+       ],
+       "post_dates": [
+        "2023-02-09",
+        "2023-02-21"
+       ],
+       "first_post_days": 3,
+       "coherence_ok": true
+      },
+      {
+       "track": 21,
+       "pre_dates": [
+        "2023-01-05",
+        "2023-01-17",
+        "2023-01-29"
+       ],
+       "post_dates": [
+        "2023-02-10",
+        "2023-02-22"
+       ],
+       "first_post_days": 4,
+       "coherence_ok": true
+      },
+      {
+       "track": 94,
+       "pre_dates": [
+        "2023-01-10",
+        "2023-01-22",
+        "2023-02-03"
+       ],
+       "post_dates": [
+        "2023-02-15",
+        "2023-02-27"
+       ],
+       "first_post_days": 9,
+       "coherence_ok": true
+      }
+     ],
+     "feasible": true,
+     "best_first_post_days": 3,
+     "tiles": 130,
+     "place": "Antakya"
+    },
+    {
+     "center_lon": 36.6317,
+     "center_lat": 37.0252,
+     "extent_deg": [
+      36.6317,
+      37.0252,
+      36.6317,
+      37.0252
+     ],
+     "date": "2023-02-06",
+     "pre_scenes": 6,
+     "post_scenes": 4,
+     "tracks": [
+      {
+       "track": 14,
+       "pre_dates": [
+        "2023-01-04",
+        "2023-01-16",
+        "2023-01-28"
+       ],
+       "post_dates": [
+        "2023-02-09",
+        "2023-02-21"
+       ],
+       "first_post_days": 3,
+       "coherence_ok": true
+      },
+      {
+       "track": 21,
+       "pre_dates": [
+        "2023-01-05",
+        "2023-01-17",
+        "2023-01-29"
+       ],
+       "post_dates": [
+        "2023-02-10",
+        "2023-02-22"
+       ],
+       "first_post_days": 4,
+       "coherence_ok": true
+      }
+     ],
+     "feasible": true,
+     "best_first_post_days": 3,
+     "tiles": 125,
+     "place": "İslahiye"
+    }
+   ],
+   "feasible": true
+  }
+ },
+ "summary": {
+  "feasible_events": 14,
+  "total_events": 14
+ }
+}

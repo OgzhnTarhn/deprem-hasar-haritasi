@@ -1,0 +1,5706 @@
+{
+ "kind": "research",
+ "question": "Turkiye karelerinin sehir ve mekansal blok dagilimi (yalniz GeoTIFF basligi)",
+ "source": "Kullervo/BRIGHT post-event.zip, Turkiye karelerinin TIFF basliklari; piksel ve etiket okunmadi",
+ "tiles": 1114,
+ "crs_epsg": [
+  32637
+ ],
+ "tile_size_m_median": [
+  312.5
+ ],
+ "link_km": 1.0,
+ "clusters": [
+  {
+   "tiles": 181,
+   "center_lat": 37.0898,
+   "center_lon": 37.3583,
+   "nearest_place": "Gaziantep",
+   "nearest_km": 3.4
+  },
+  {
+   "tiles": 179,
+   "center_lat": 37.0732,
+   "center_lon": 36.2559,
+   "nearest_place": "Osmaniye",
+   "nearest_km": 0.8
+  },
+  {
+   "tiles": 171,
+   "center_lat": 37.7625,
+   "center_lon": 38.2743,
+   "nearest_place": "Adıyaman",
+   "nearest_km": 0.2
+  },
+  {
+   "tiles": 168,
+   "center_lat": 38.3468,
+   "center_lon": 38.307,
+   "nearest_place": "Malatya",
+   "nearest_km": 0.9
+  },
+  {
+   "tiles": 160,
+   "center_lat": 37.578,
+   "center_lon": 36.9241,
+   "nearest_place": "Kahramanmaraş",
+   "nearest_km": 1.4
+  },
+  {
+   "tiles": 130,
+   "center_lat": 36.2055,
+   "center_lon": 36.155,
+   "nearest_place": "Antakya",
+   "nearest_km": 0.6
+  },
+  {
+   "tiles": 125,
+   "center_lat": 37.0252,
+   "center_lon": 36.6317,
+   "nearest_place": "İslahiye",
+   "nearest_km": 0.1
+  }
+ ],
+ "block_km": 2.0,
+ "blocks": {
+  "count": 64,
+  "tiles_per_block": [
+   42,
+   42,
+   42,
+   42,
+   41,
+   36,
+   36,
+   36,
+   35,
+   34,
+   33,
+   32,
+   30,
+   29,
+   28,
+   26,
+   26,
+   24,
+   24,
+   23,
+   23,
+   21,
+   19,
+   18,
+   18,
+   18,
+   18,
+   17,
+   17,
+   16,
+   16,
+   16,
+   15,
+   15,
+   15,
+   14,
+   13,
+   13,
+   12,
+   12,
+   12,
+   12,
+   11,
+   10,
+   9,
+   8,
+   6,
+   6,
+   6,
+   6,
+   5,
+   5,
+   5,
+   5,
+   4,
+   3,
+   3,
+   3,
+   2,
+   2,
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "tile_centers": [
+  {
+   "name": "turkey-earthquake_00000000",
+   "lat": 37.113251,
+   "lon": 37.349433
+  },
+  {
+   "name": "turkey-earthquake_00000001",
+   "lat": 37.113307,
+   "lon": 37.353466
+  },
+  {
+   "name": "turkey-earthquake_00000002",
+   "lat": 37.113419,
+   "lon": 37.36153
+  },
+  {
+   "name": "turkey-earthquake_00000003",
+   "lat": 37.11353,
+   "lon": 37.369595
+  },
+  {
+   "name": "turkey-earthquake_00000004",
+   "lat": 37.113696,
+   "lon": 37.381693
+  },
+  {
+   "name": "turkey-earthquake_00000005",
+   "lat": 37.109682,
+   "lon": 37.32531
+  },
+  {
+   "name": "turkey-earthquake_00000006",
+   "lat": 37.109796,
+   "lon": 37.333375
+  },
+  {
+   "name": "turkey-earthquake_00000007",
+   "lat": 37.109965,
+   "lon": 37.345471
+  },
+  {
+   "name": "turkey-earthquake_00000008",
+   "lat": 37.110078,
+   "lon": 37.353536
+  },
+  {
+   "name": "turkey-earthquake_00000009",
+   "lat": 37.110134,
+   "lon": 37.357568
+  },
+  {
+   "name": "turkey-earthquake_00000010",
+   "lat": 37.110245,
+   "lon": 37.365632
+  },
+  {
+   "name": "turkey-earthquake_00000011",
+   "lat": 37.110411,
+   "lon": 37.377729
+  },
+  {
+   "name": "turkey-earthquake_00000012",
+   "lat": 37.110466,
+   "lon": 37.381761
+  },
+  {
+   "name": "turkey-earthquake_00000013",
+   "lat": 37.106453,
+   "lon": 37.325382
+  },
+  {
+   "name": "turkey-earthquake_00000014",
+   "lat": 37.10651,
+   "lon": 37.329414
+  },
+  {
+   "name": "turkey-earthquake_00000015",
+   "lat": 37.106567,
+   "lon": 37.333446
+  },
+  {
+   "name": "turkey-earthquake_00000016",
+   "lat": 37.10668,
+   "lon": 37.34151
+  },
+  {
+   "name": "turkey-earthquake_00000017",
+   "lat": 37.106736,
+   "lon": 37.345542
+  },
+  {
+   "name": "turkey-earthquake_00000018",
+   "lat": 37.106792,
+   "lon": 37.349574
+  },
+  {
+   "name": "turkey-earthquake_00000019",
+   "lat": 37.106848,
+   "lon": 37.353606
+  },
+  {
+   "name": "turkey-earthquake_00000020",
+   "lat": 37.106904,
+   "lon": 37.357638
+  },
+  {
+   "name": "turkey-earthquake_00000021",
+   "lat": 37.107182,
+   "lon": 37.377798
+  },
+  {
+   "name": "turkey-earthquake_00000022",
+   "lat": 37.107237,
+   "lon": 37.38183
+  },
+  {
+   "name": "turkey-earthquake_00000023",
+   "lat": 37.107292,
+   "lon": 37.385862
+  },
+  {
+   "name": "turkey-earthquake_00000024",
+   "lat": 37.103224,
+   "lon": 37.325453
+  },
+  {
+   "name": "turkey-earthquake_00000025",
+   "lat": 37.103281,
+   "lon": 37.329485
+  },
+  {
+   "name": "turkey-earthquake_00000026",
+   "lat": 37.103337,
+   "lon": 37.333516
+  },
+  {
+   "name": "turkey-earthquake_00000027",
+   "lat": 37.10345,
+   "lon": 37.34158
+  },
+  {
+   "name": "turkey-earthquake_00000028",
+   "lat": 37.103507,
+   "lon": 37.345612
+  },
+  {
+   "name": "turkey-earthquake_00000029",
+   "lat": 37.103563,
+   "lon": 37.349644
+  },
+  {
+   "name": "turkey-earthquake_00000030",
+   "lat": 37.103619,
+   "lon": 37.353675
+  },
+  {
+   "name": "turkey-earthquake_00000031",
+   "lat": 37.103675,
+   "lon": 37.357707
+  },
+  {
+   "name": "turkey-earthquake_00000032",
+   "lat": 37.103897,
+   "lon": 37.373835
+  },
+  {
+   "name": "turkey-earthquake_00000033",
+   "lat": 37.103952,
+   "lon": 37.377867
+  },
+  {
+   "name": "turkey-earthquake_00000034",
+   "lat": 37.104008,
+   "lon": 37.381899
+  },
+  {
+   "name": "turkey-earthquake_00000035",
+   "lat": 37.104063,
+   "lon": 37.385931
+  },
+  {
+   "name": "turkey-earthquake_00000036",
+   "lat": 37.099994,
+   "lon": 37.325524
+  },
+  {
+   "name": "turkey-earthquake_00000037",
+   "lat": 37.100051,
+   "lon": 37.329555
+  },
+  {
+   "name": "turkey-earthquake_00000038",
+   "lat": 37.100108,
+   "lon": 37.333587
+  },
+  {
+   "name": "turkey-earthquake_00000039",
+   "lat": 37.100165,
+   "lon": 37.337619
+  },
+  {
+   "name": "turkey-earthquake_00000040",
+   "lat": 37.100221,
+   "lon": 37.34165
+  },
+  {
+   "name": "turkey-earthquake_00000041",
+   "lat": 37.100277,
+   "lon": 37.345682
+  },
+  {
+   "name": "turkey-earthquake_00000042",
+   "lat": 37.100334,
+   "lon": 37.349714
+  },
+  {
+   "name": "turkey-earthquake_00000043",
+   "lat": 37.10039,
+   "lon": 37.353745
+  },
+  {
+   "name": "turkey-earthquake_00000044",
+   "lat": 37.100446,
+   "lon": 37.357777
+  },
+  {
+   "name": "turkey-earthquake_00000045",
+   "lat": 37.100668,
+   "lon": 37.373904
+  },
+  {
+   "name": "turkey-earthquake_00000046",
+   "lat": 37.100723,
+   "lon": 37.377936
+  },
+  {
+   "name": "turkey-earthquake_00000047",
+   "lat": 37.100778,
+   "lon": 37.381967
+  },
+  {
+   "name": "turkey-earthquake_00000048",
+   "lat": 37.100833,
+   "lon": 37.385999
+  },
+  {
+   "name": "turkey-earthquake_00000049",
+   "lat": 37.096822,
+   "lon": 37.329626
+  },
+  {
+   "name": "turkey-earthquake_00000050",
+   "lat": 37.096879,
+   "lon": 37.333658
+  },
+  {
+   "name": "turkey-earthquake_00000051",
+   "lat": 37.096935,
+   "lon": 37.337689
+  },
+  {
+   "name": "turkey-earthquake_00000052",
+   "lat": 37.096992,
+   "lon": 37.341721
+  },
+  {
+   "name": "turkey-earthquake_00000053",
+   "lat": 37.097048,
+   "lon": 37.345752
+  },
+  {
+   "name": "turkey-earthquake_00000054",
+   "lat": 37.097104,
+   "lon": 37.349784
+  },
+  {
+   "name": "turkey-earthquake_00000055",
+   "lat": 37.09716,
+   "lon": 37.353815
+  },
+  {
+   "name": "turkey-earthquake_00000056",
+   "lat": 37.097216,
+   "lon": 37.357847
+  },
+  {
+   "name": "turkey-earthquake_00000057",
+   "lat": 37.097383,
+   "lon": 37.369941
+  },
+  {
+   "name": "turkey-earthquake_00000058",
+   "lat": 37.097438,
+   "lon": 37.373973
+  },
+  {
+   "name": "turkey-earthquake_00000059",
+   "lat": 37.097494,
+   "lon": 37.378005
+  },
+  {
+   "name": "turkey-earthquake_00000060",
+   "lat": 37.097549,
+   "lon": 37.382036
+  },
+  {
+   "name": "turkey-earthquake_00000061",
+   "lat": 37.097604,
+   "lon": 37.386068
+  },
+  {
+   "name": "turkey-earthquake_00000062",
+   "lat": 37.093593,
+   "lon": 37.329697
+  },
+  {
+   "name": "turkey-earthquake_00000063",
+   "lat": 37.093649,
+   "lon": 37.333729
+  },
+  {
+   "name": "turkey-earthquake_00000064",
+   "lat": 37.093706,
+   "lon": 37.33776
+  },
+  {
+   "name": "turkey-earthquake_00000065",
+   "lat": 37.093762,
+   "lon": 37.341791
+  },
+  {
+   "name": "turkey-earthquake_00000066",
+   "lat": 37.093819,
+   "lon": 37.345822
+  },
+  {
+   "name": "turkey-earthquake_00000067",
+   "lat": 37.093875,
+   "lon": 37.349854
+  },
+  {
+   "name": "turkey-earthquake_00000068",
+   "lat": 37.093931,
+   "lon": 37.353885
+  },
+  {
+   "name": "turkey-earthquake_00000069",
+   "lat": 37.093987,
+   "lon": 37.357916
+  },
+  {
+   "name": "turkey-earthquake_00000070",
+   "lat": 37.094098,
+   "lon": 37.365979
+  },
+  {
+   "name": "turkey-earthquake_00000071",
+   "lat": 37.094154,
+   "lon": 37.370011
+  },
+  {
+   "name": "turkey-earthquake_00000072",
+   "lat": 37.094209,
+   "lon": 37.374042
+  },
+  {
+   "name": "turkey-earthquake_00000073",
+   "lat": 37.094264,
+   "lon": 37.378073
+  },
+  {
+   "name": "turkey-earthquake_00000074",
+   "lat": 37.094319,
+   "lon": 37.382105
+  },
+  {
+   "name": "turkey-earthquake_00000075",
+   "lat": 37.094374,
+   "lon": 37.386136
+  },
+  {
+   "name": "turkey-earthquake_00000076",
+   "lat": 37.094429,
+   "lon": 37.390168
+  },
+  {
+   "name": "turkey-earthquake_00000077",
+   "lat": 37.090363,
+   "lon": 37.329768
+  },
+  {
+   "name": "turkey-earthquake_00000078",
+   "lat": 37.09042,
+   "lon": 37.333799
+  },
+  {
+   "name": "turkey-earthquake_00000079",
+   "lat": 37.090476,
+   "lon": 37.33783
+  },
+  {
+   "name": "turkey-earthquake_00000080",
+   "lat": 37.090533,
+   "lon": 37.341862
+  },
+  {
+   "name": "turkey-earthquake_00000081",
+   "lat": 37.090589,
+   "lon": 37.345893
+  },
+  {
+   "name": "turkey-earthquake_00000082",
+   "lat": 37.090645,
+   "lon": 37.349924
+  },
+  {
+   "name": "turkey-earthquake_00000083",
+   "lat": 37.090701,
+   "lon": 37.353955
+  },
+  {
+   "name": "turkey-earthquake_00000084",
+   "lat": 37.090757,
+   "lon": 37.357986
+  },
+  {
+   "name": "turkey-earthquake_00000085",
+   "lat": 37.090813,
+   "lon": 37.362017
+  },
+  {
+   "name": "turkey-earthquake_00000086",
+   "lat": 37.090869,
+   "lon": 37.366049
+  },
+  {
+   "name": "turkey-earthquake_00000087",
+   "lat": 37.090924,
+   "lon": 37.37008
+  },
+  {
+   "name": "turkey-earthquake_00000088",
+   "lat": 37.09098,
+   "lon": 37.374111
+  },
+  {
+   "name": "turkey-earthquake_00000089",
+   "lat": 37.091035,
+   "lon": 37.378142
+  },
+  {
+   "name": "turkey-earthquake_00000090",
+   "lat": 37.09109,
+   "lon": 37.382174
+  },
+  {
+   "name": "turkey-earthquake_00000091",
+   "lat": 37.091145,
+   "lon": 37.386205
+  },
+  {
+   "name": "turkey-earthquake_00000092",
+   "lat": 37.0912,
+   "lon": 37.390236
+  },
+  {
+   "name": "turkey-earthquake_00000093",
+   "lat": 37.087191,
+   "lon": 37.33387
+  },
+  {
+   "name": "turkey-earthquake_00000094",
+   "lat": 37.087247,
+   "lon": 37.337901
+  },
+  {
+   "name": "turkey-earthquake_00000095",
+   "lat": 37.087304,
+   "lon": 37.341932
+  },
+  {
+   "name": "turkey-earthquake_00000096",
+   "lat": 37.08736,
+   "lon": 37.345963
+  },
+  {
+   "name": "turkey-earthquake_00000097",
+   "lat": 37.087416,
+   "lon": 37.349994
+  },
+  {
+   "name": "turkey-earthquake_00000098",
+   "lat": 37.087472,
+   "lon": 37.354025
+  },
+  {
+   "name": "turkey-earthquake_00000099",
+   "lat": 37.087528,
+   "lon": 37.358056
+  },
+  {
+   "name": "turkey-earthquake_00000100",
+   "lat": 37.087584,
+   "lon": 37.362087
+  },
+  {
+   "name": "turkey-earthquake_00000101",
+   "lat": 37.087639,
+   "lon": 37.366118
+  },
+  {
+   "name": "turkey-earthquake_00000102",
+   "lat": 37.087695,
+   "lon": 37.370149
+  },
+  {
+   "name": "turkey-earthquake_00000103",
+   "lat": 37.08775,
+   "lon": 37.37418
+  },
+  {
+   "name": "turkey-earthquake_00000104",
+   "lat": 37.087805,
+   "lon": 37.378211
+  },
+  {
+   "name": "turkey-earthquake_00000105",
+   "lat": 37.08786,
+   "lon": 37.382242
+  },
+  {
+   "name": "turkey-earthquake_00000106",
+   "lat": 37.087915,
+   "lon": 37.386273
+  },
+  {
+   "name": "turkey-earthquake_00000107",
+   "lat": 37.08797,
+   "lon": 37.390304
+  },
+  {
+   "name": "turkey-earthquake_00000108",
+   "lat": 37.083961,
+   "lon": 37.333941
+  },
+  {
+   "name": "turkey-earthquake_00000109",
+   "lat": 37.084018,
+   "lon": 37.337971
+  },
+  {
+   "name": "turkey-earthquake_00000110",
+   "lat": 37.084074,
+   "lon": 37.342002
+  },
+  {
+   "name": "turkey-earthquake_00000111",
+   "lat": 37.084131,
+   "lon": 37.346033
+  },
+  {
+   "name": "turkey-earthquake_00000112",
+   "lat": 37.084187,
+   "lon": 37.350064
+  },
+  {
+   "name": "turkey-earthquake_00000113",
+   "lat": 37.084243,
+   "lon": 37.354095
+  },
+  {
+   "name": "turkey-earthquake_00000114",
+   "lat": 37.084299,
+   "lon": 37.358126
+  },
+  {
+   "name": "turkey-earthquake_00000115",
+   "lat": 37.084354,
+   "lon": 37.362156
+  },
+  {
+   "name": "turkey-earthquake_00000116",
+   "lat": 37.08441,
+   "lon": 37.366187
+  },
+  {
+   "name": "turkey-earthquake_00000117",
+   "lat": 37.084465,
+   "lon": 37.370218
+  },
+  {
+   "name": "turkey-earthquake_00000118",
+   "lat": 37.084521,
+   "lon": 37.374249
+  },
+  {
+   "name": "turkey-earthquake_00000119",
+   "lat": 37.084576,
+   "lon": 37.37828
+  },
+  {
+   "name": "turkey-earthquake_00000120",
+   "lat": 37.084631,
+   "lon": 37.382311
+  },
+  {
+   "name": "turkey-earthquake_00000121",
+   "lat": 37.084686,
+   "lon": 37.386342
+  },
+  {
+   "name": "turkey-earthquake_00000122",
+   "lat": 37.084741,
+   "lon": 37.390373
+  },
+  {
+   "name": "turkey-earthquake_00000123",
+   "lat": 37.080732,
+   "lon": 37.334011
+  },
+  {
+   "name": "turkey-earthquake_00000124",
+   "lat": 37.080788,
+   "lon": 37.338042
+  },
+  {
+   "name": "turkey-earthquake_00000125",
+   "lat": 37.080845,
+   "lon": 37.342073
+  },
+  {
+   "name": "turkey-earthquake_00000126",
+   "lat": 37.080901,
+   "lon": 37.346103
+  },
+  {
+   "name": "turkey-earthquake_00000127",
+   "lat": 37.080957,
+   "lon": 37.350134
+  },
+  {
+   "name": "turkey-earthquake_00000128",
+   "lat": 37.081013,
+   "lon": 37.354165
+  },
+  {
+   "name": "turkey-earthquake_00000129",
+   "lat": 37.081069,
+   "lon": 37.358195
+  },
+  {
+   "name": "turkey-earthquake_00000130",
+   "lat": 37.081125,
+   "lon": 37.362226
+  },
+  {
+   "name": "turkey-earthquake_00000131",
+   "lat": 37.081181,
+   "lon": 37.366257
+  },
+  {
+   "name": "turkey-earthquake_00000132",
+   "lat": 37.081236,
+   "lon": 37.370287
+  },
+  {
+   "name": "turkey-earthquake_00000133",
+   "lat": 37.081291,
+   "lon": 37.374318
+  },
+  {
+   "name": "turkey-earthquake_00000134",
+   "lat": 37.081347,
+   "lon": 37.378349
+  },
+  {
+   "name": "turkey-earthquake_00000135",
+   "lat": 37.081402,
+   "lon": 37.382379
+  },
+  {
+   "name": "turkey-earthquake_00000136",
+   "lat": 37.081456,
+   "lon": 37.38641
+  },
+  {
+   "name": "turkey-earthquake_00000137",
+   "lat": 37.081511,
+   "lon": 37.390441
+  },
+  {
+   "name": "turkey-earthquake_00000138",
+   "lat": 37.077502,
+   "lon": 37.334082
+  },
+  {
+   "name": "turkey-earthquake_00000139",
+   "lat": 37.077559,
+   "lon": 37.338112
+  },
+  {
+   "name": "turkey-earthquake_00000140",
+   "lat": 37.077615,
+   "lon": 37.342143
+  },
+  {
+   "name": "turkey-earthquake_00000141",
+   "lat": 37.077672,
+   "lon": 37.346173
+  },
+  {
+   "name": "turkey-earthquake_00000142",
+   "lat": 37.077728,
+   "lon": 37.350204
+  },
+  {
+   "name": "turkey-earthquake_00000143",
+   "lat": 37.077784,
+   "lon": 37.354234
+  },
+  {
+   "name": "turkey-earthquake_00000144",
+   "lat": 37.07784,
+   "lon": 37.358265
+  },
+  {
+   "name": "turkey-earthquake_00000145",
+   "lat": 37.077896,
+   "lon": 37.362295
+  },
+  {
+   "name": "turkey-earthquake_00000146",
+   "lat": 37.077951,
+   "lon": 37.366326
+  },
+  {
+   "name": "turkey-earthquake_00000147",
+   "lat": 37.078007,
+   "lon": 37.370356
+  },
+  {
+   "name": "turkey-earthquake_00000148",
+   "lat": 37.078062,
+   "lon": 37.374387
+  },
+  {
+   "name": "turkey-earthquake_00000149",
+   "lat": 37.078117,
+   "lon": 37.378418
+  },
+  {
+   "name": "turkey-earthquake_00000150",
+   "lat": 37.078172,
+   "lon": 37.382448
+  },
+  {
+   "name": "turkey-earthquake_00000151",
+   "lat": 37.07433,
+   "lon": 37.338183
+  },
+  {
+   "name": "turkey-earthquake_00000152",
+   "lat": 37.074386,
+   "lon": 37.342213
+  },
+  {
+   "name": "turkey-earthquake_00000153",
+   "lat": 37.074442,
+   "lon": 37.346244
+  },
+  {
+   "name": "turkey-earthquake_00000154",
+   "lat": 37.074499,
+   "lon": 37.350274
+  },
+  {
+   "name": "turkey-earthquake_00000155",
+   "lat": 37.074555,
+   "lon": 37.354304
+  },
+  {
+   "name": "turkey-earthquake_00000156",
+   "lat": 37.07461,
+   "lon": 37.358335
+  },
+  {
+   "name": "turkey-earthquake_00000157",
+   "lat": 37.074666,
+   "lon": 37.362365
+  },
+  {
+   "name": "turkey-earthquake_00000158",
+   "lat": 37.074722,
+   "lon": 37.366395
+  },
+  {
+   "name": "turkey-earthquake_00000159",
+   "lat": 37.074777,
+   "lon": 37.370426
+  },
+  {
+   "name": "turkey-earthquake_00000160",
+   "lat": 37.074832,
+   "lon": 37.374456
+  },
+  {
+   "name": "turkey-earthquake_00000161",
+   "lat": 37.074888,
+   "lon": 37.378486
+  },
+  {
+   "name": "turkey-earthquake_00000162",
+   "lat": 37.074943,
+   "lon": 37.382517
+  },
+  {
+   "name": "turkey-earthquake_00000163",
+   "lat": 37.074998,
+   "lon": 37.386547
+  },
+  {
+   "name": "turkey-earthquake_00000164",
+   "lat": 37.0711,
+   "lon": 37.338253
+  },
+  {
+   "name": "turkey-earthquake_00000165",
+   "lat": 37.071157,
+   "lon": 37.342284
+  },
+  {
+   "name": "turkey-earthquake_00000166",
+   "lat": 37.071213,
+   "lon": 37.346314
+  },
+  {
+   "name": "turkey-earthquake_00000167",
+   "lat": 37.071269,
+   "lon": 37.350344
+  },
+  {
+   "name": "turkey-earthquake_00000168",
+   "lat": 37.071325,
+   "lon": 37.354374
+  },
+  {
+   "name": "turkey-earthquake_00000169",
+   "lat": 37.071381,
+   "lon": 37.358404
+  },
+  {
+   "name": "turkey-earthquake_00000170",
+   "lat": 37.071437,
+   "lon": 37.362434
+  },
+  {
+   "name": "turkey-earthquake_00000171",
+   "lat": 37.071492,
+   "lon": 37.366464
+  },
+  {
+   "name": "turkey-earthquake_00000172",
+   "lat": 37.071548,
+   "lon": 37.370495
+  },
+  {
+   "name": "turkey-earthquake_00000173",
+   "lat": 37.071603,
+   "lon": 37.374525
+  },
+  {
+   "name": "turkey-earthquake_00000174",
+   "lat": 37.067871,
+   "lon": 37.338324
+  },
+  {
+   "name": "turkey-earthquake_00000175",
+   "lat": 37.067927,
+   "lon": 37.342354
+  },
+  {
+   "name": "turkey-earthquake_00000176",
+   "lat": 37.067984,
+   "lon": 37.346384
+  },
+  {
+   "name": "turkey-earthquake_00000177",
+   "lat": 37.06804,
+   "lon": 37.350414
+  },
+  {
+   "name": "turkey-earthquake_00000178",
+   "lat": 37.068096,
+   "lon": 37.354444
+  },
+  {
+   "name": "turkey-earthquake_00000179",
+   "lat": 37.068152,
+   "lon": 37.358474
+  },
+  {
+   "name": "turkey-earthquake_00000180",
+   "lat": 37.064698,
+   "lon": 37.342424
+  },
+  {
+   "name": "turkey-earthquake_00000181",
+   "lat": 37.781289,
+   "lon": 38.265253
+  },
+  {
+   "name": "turkey-earthquake_00000182",
+   "lat": 37.781311,
+   "lon": 38.268824
+  },
+  {
+   "name": "turkey-earthquake_00000183",
+   "lat": 37.781333,
+   "lon": 38.272395
+  },
+  {
+   "name": "turkey-earthquake_00000184",
+   "lat": 37.781355,
+   "lon": 38.275966
+  },
+  {
+   "name": "turkey-earthquake_00000185",
+   "lat": 37.781377,
+   "lon": 38.279537
+  },
+  {
+   "name": "turkey-earthquake_00000186",
+   "lat": 37.781399,
+   "lon": 38.283108
+  },
+  {
+   "name": "turkey-earthquake_00000187",
+   "lat": 37.778433,
+   "lon": 38.26171
+  },
+  {
+   "name": "turkey-earthquake_00000188",
+   "lat": 37.778455,
+   "lon": 38.265281
+  },
+  {
+   "name": "turkey-earthquake_00000189",
+   "lat": 37.778477,
+   "lon": 38.268852
+  },
+  {
+   "name": "turkey-earthquake_00000190",
+   "lat": 37.778499,
+   "lon": 38.272422
+  },
+  {
+   "name": "turkey-earthquake_00000191",
+   "lat": 37.778521,
+   "lon": 38.275993
+  },
+  {
+   "name": "turkey-earthquake_00000192",
+   "lat": 37.778543,
+   "lon": 38.279564
+  },
+  {
+   "name": "turkey-earthquake_00000193",
+   "lat": 37.778565,
+   "lon": 38.283135
+  },
+  {
+   "name": "turkey-earthquake_00000194",
+   "lat": 37.778587,
+   "lon": 38.286706
+  },
+  {
+   "name": "turkey-earthquake_00000195",
+   "lat": 37.775576,
+   "lon": 38.258167
+  },
+  {
+   "name": "turkey-earthquake_00000196",
+   "lat": 37.775598,
+   "lon": 38.261738
+  },
+  {
+   "name": "turkey-earthquake_00000197",
+   "lat": 37.775621,
+   "lon": 38.265309
+  },
+  {
+   "name": "turkey-earthquake_00000198",
+   "lat": 37.775643,
+   "lon": 38.26888
+  },
+  {
+   "name": "turkey-earthquake_00000199",
+   "lat": 37.775665,
+   "lon": 38.27245
+  },
+  {
+   "name": "turkey-earthquake_00000200",
+   "lat": 37.775687,
+   "lon": 38.276021
+  },
+  {
+   "name": "turkey-earthquake_00000201",
+   "lat": 37.775709,
+   "lon": 38.279592
+  },
+  {
+   "name": "turkey-earthquake_00000202",
+   "lat": 37.775731,
+   "lon": 38.283162
+  },
+  {
+   "name": "turkey-earthquake_00000203",
+   "lat": 37.775752,
+   "lon": 38.286733
+  },
+  {
+   "name": "turkey-earthquake_00000204",
+   "lat": 37.775774,
+   "lon": 38.290304
+  },
+  {
+   "name": "turkey-earthquake_00000205",
+   "lat": 37.772719,
+   "lon": 38.254625
+  },
+  {
+   "name": "turkey-earthquake_00000206",
+   "lat": 37.772742,
+   "lon": 38.258196
+  },
+  {
+   "name": "turkey-earthquake_00000207",
+   "lat": 37.772764,
+   "lon": 38.261766
+  },
+  {
+   "name": "turkey-earthquake_00000208",
+   "lat": 37.772786,
+   "lon": 38.265337
+  },
+  {
+   "name": "turkey-earthquake_00000209",
+   "lat": 37.772809,
+   "lon": 38.268907
+  },
+  {
+   "name": "turkey-earthquake_00000210",
+   "lat": 37.772831,
+   "lon": 38.272478
+  },
+  {
+   "name": "turkey-earthquake_00000211",
+   "lat": 37.772853,
+   "lon": 38.276049
+  },
+  {
+   "name": "turkey-earthquake_00000212",
+   "lat": 37.772875,
+   "lon": 38.279619
+  },
+  {
+   "name": "turkey-earthquake_00000213",
+   "lat": 37.772896,
+   "lon": 38.28319
+  },
+  {
+   "name": "turkey-earthquake_00000214",
+   "lat": 37.772918,
+   "lon": 38.28676
+  },
+  {
+   "name": "turkey-earthquake_00000215",
+   "lat": 37.77294,
+   "lon": 38.290331
+  },
+  {
+   "name": "turkey-earthquake_00000216",
+   "lat": 37.772961,
+   "lon": 38.293902
+  },
+  {
+   "name": "turkey-earthquake_00000217",
+   "lat": 37.769862,
+   "lon": 38.251083
+  },
+  {
+   "name": "turkey-earthquake_00000218",
+   "lat": 37.769885,
+   "lon": 38.254654
+  },
+  {
+   "name": "turkey-earthquake_00000219",
+   "lat": 37.769908,
+   "lon": 38.258224
+  },
+  {
+   "name": "turkey-earthquake_00000220",
+   "lat": 37.76993,
+   "lon": 38.261794
+  },
+  {
+   "name": "turkey-earthquake_00000221",
+   "lat": 37.769952,
+   "lon": 38.265365
+  },
+  {
+   "name": "turkey-earthquake_00000222",
+   "lat": 37.769974,
+   "lon": 38.268935
+  },
+  {
+   "name": "turkey-earthquake_00000223",
+   "lat": 37.769997,
+   "lon": 38.272506
+  },
+  {
+   "name": "turkey-earthquake_00000224",
+   "lat": 37.770019,
+   "lon": 38.276076
+  },
+  {
+   "name": "turkey-earthquake_00000225",
+   "lat": 37.77004,
+   "lon": 38.279647
+  },
+  {
+   "name": "turkey-earthquake_00000226",
+   "lat": 37.770062,
+   "lon": 38.283217
+  },
+  {
+   "name": "turkey-earthquake_00000227",
+   "lat": 37.770084,
+   "lon": 38.286788
+  },
+  {
+   "name": "turkey-earthquake_00000228",
+   "lat": 37.770105,
+   "lon": 38.290358
+  },
+  {
+   "name": "turkey-earthquake_00000229",
+   "lat": 37.770127,
+   "lon": 38.293928
+  },
+  {
+   "name": "turkey-earthquake_00000230",
+   "lat": 37.770148,
+   "lon": 38.297499
+  },
+  {
+   "name": "turkey-earthquake_00000231",
+   "lat": 37.767005,
+   "lon": 38.247542
+  },
+  {
+   "name": "turkey-earthquake_00000232",
+   "lat": 37.767028,
+   "lon": 38.251112
+  },
+  {
+   "name": "turkey-earthquake_00000233",
+   "lat": 37.767051,
+   "lon": 38.254682
+  },
+  {
+   "name": "turkey-earthquake_00000234",
+   "lat": 37.767073,
+   "lon": 38.258252
+  },
+  {
+   "name": "turkey-earthquake_00000235",
+   "lat": 37.767096,
+   "lon": 38.261823
+  },
+  {
+   "name": "turkey-earthquake_00000236",
+   "lat": 37.767118,
+   "lon": 38.265393
+  },
+  {
+   "name": "turkey-earthquake_00000237",
+   "lat": 37.76714,
+   "lon": 38.268963
+  },
+  {
+   "name": "turkey-earthquake_00000238",
+   "lat": 37.767162,
+   "lon": 38.272534
+  },
+  {
+   "name": "turkey-earthquake_00000239",
+   "lat": 37.767184,
+   "lon": 38.276104
+  },
+  {
+   "name": "turkey-earthquake_00000240",
+   "lat": 37.767206,
+   "lon": 38.279674
+  },
+  {
+   "name": "turkey-earthquake_00000241",
+   "lat": 37.767228,
+   "lon": 38.283244
+  },
+  {
+   "name": "turkey-earthquake_00000242",
+   "lat": 37.76725,
+   "lon": 38.286815
+  },
+  {
+   "name": "turkey-earthquake_00000243",
+   "lat": 37.767271,
+   "lon": 38.290385
+  },
+  {
+   "name": "turkey-earthquake_00000244",
+   "lat": 37.767293,
+   "lon": 38.293955
+  },
+  {
+   "name": "turkey-earthquake_00000245",
+   "lat": 37.767314,
+   "lon": 38.297526
+  },
+  {
+   "name": "turkey-earthquake_00000246",
+   "lat": 37.767335,
+   "lon": 38.301096
+  },
+  {
+   "name": "turkey-earthquake_00000247",
+   "lat": 37.764148,
+   "lon": 38.244
+  },
+  {
+   "name": "turkey-earthquake_00000248",
+   "lat": 37.764171,
+   "lon": 38.24757
+  },
+  {
+   "name": "turkey-earthquake_00000249",
+   "lat": 37.764194,
+   "lon": 38.25114
+  },
+  {
+   "name": "turkey-earthquake_00000250",
+   "lat": 37.764217,
+   "lon": 38.254711
+  },
+  {
+   "name": "turkey-earthquake_00000251",
+   "lat": 37.764239,
+   "lon": 38.258281
+  },
+  {
+   "name": "turkey-earthquake_00000252",
+   "lat": 37.764261,
+   "lon": 38.261851
+  },
+  {
+   "name": "turkey-earthquake_00000253",
+   "lat": 37.764284,
+   "lon": 38.265421
+  },
+  {
+   "name": "turkey-earthquake_00000254",
+   "lat": 37.764306,
+   "lon": 38.268991
+  },
+  {
+   "name": "turkey-earthquake_00000255",
+   "lat": 37.764328,
+   "lon": 38.272561
+  },
+  {
+   "name": "turkey-earthquake_00000256",
+   "lat": 37.76435,
+   "lon": 38.276131
+  },
+  {
+   "name": "turkey-earthquake_00000257",
+   "lat": 37.764372,
+   "lon": 38.279702
+  },
+  {
+   "name": "turkey-earthquake_00000258",
+   "lat": 37.764394,
+   "lon": 38.283272
+  },
+  {
+   "name": "turkey-earthquake_00000259",
+   "lat": 37.764415,
+   "lon": 38.286842
+  },
+  {
+   "name": "turkey-earthquake_00000260",
+   "lat": 37.764437,
+   "lon": 38.290412
+  },
+  {
+   "name": "turkey-earthquake_00000261",
+   "lat": 37.764458,
+   "lon": 38.293982
+  },
+  {
+   "name": "turkey-earthquake_00000262",
+   "lat": 37.76448,
+   "lon": 38.297553
+  },
+  {
+   "name": "turkey-earthquake_00000263",
+   "lat": 37.764501,
+   "lon": 38.301123
+  },
+  {
+   "name": "turkey-earthquake_00000264",
+   "lat": 37.764522,
+   "lon": 38.304693
+  },
+  {
+   "name": "turkey-earthquake_00000265",
+   "lat": 37.761314,
+   "lon": 38.244029
+  },
+  {
+   "name": "turkey-earthquake_00000266",
+   "lat": 37.761337,
+   "lon": 38.247599
+  },
+  {
+   "name": "turkey-earthquake_00000267",
+   "lat": 37.76136,
+   "lon": 38.251169
+  },
+  {
+   "name": "turkey-earthquake_00000268",
+   "lat": 37.761382,
+   "lon": 38.254739
+  },
+  {
+   "name": "turkey-earthquake_00000269",
+   "lat": 37.761405,
+   "lon": 38.258309
+  },
+  {
+   "name": "turkey-earthquake_00000270",
+   "lat": 37.761427,
+   "lon": 38.261879
+  },
+  {
+   "name": "turkey-earthquake_00000271",
+   "lat": 37.76145,
+   "lon": 38.265449
+  },
+  {
+   "name": "turkey-earthquake_00000272",
+   "lat": 37.761472,
+   "lon": 38.269019
+  },
+  {
+   "name": "turkey-earthquake_00000273",
+   "lat": 37.761494,
+   "lon": 38.272589
+  },
+  {
+   "name": "turkey-earthquake_00000274",
+   "lat": 37.761516,
+   "lon": 38.276159
+  },
+  {
+   "name": "turkey-earthquake_00000275",
+   "lat": 37.761538,
+   "lon": 38.279729
+  },
+  {
+   "name": "turkey-earthquake_00000276",
+   "lat": 37.761559,
+   "lon": 38.283299
+  },
+  {
+   "name": "turkey-earthquake_00000277",
+   "lat": 37.761581,
+   "lon": 38.286869
+  },
+  {
+   "name": "turkey-earthquake_00000278",
+   "lat": 37.761603,
+   "lon": 38.290439
+  },
+  {
+   "name": "turkey-earthquake_00000279",
+   "lat": 37.761624,
+   "lon": 38.294009
+  },
+  {
+   "name": "turkey-earthquake_00000280",
+   "lat": 37.761645,
+   "lon": 38.297579
+  },
+  {
+   "name": "turkey-earthquake_00000281",
+   "lat": 37.761667,
+   "lon": 38.301149
+  },
+  {
+   "name": "turkey-earthquake_00000282",
+   "lat": 37.761688,
+   "lon": 38.304719
+  },
+  {
+   "name": "turkey-earthquake_00000283",
+   "lat": 37.758503,
+   "lon": 38.247628
+  },
+  {
+   "name": "turkey-earthquake_00000284",
+   "lat": 37.758525,
+   "lon": 38.251198
+  },
+  {
+   "name": "turkey-earthquake_00000285",
+   "lat": 37.758548,
+   "lon": 38.254767
+  },
+  {
+   "name": "turkey-earthquake_00000286",
+   "lat": 37.758571,
+   "lon": 38.258337
+  },
+  {
+   "name": "turkey-earthquake_00000287",
+   "lat": 37.758593,
+   "lon": 38.261907
+  },
+  {
+   "name": "turkey-earthquake_00000288",
+   "lat": 37.758615,
+   "lon": 38.265477
+  },
+  {
+   "name": "turkey-earthquake_00000289",
+   "lat": 37.758638,
+   "lon": 38.269047
+  },
+  {
+   "name": "turkey-earthquake_00000290",
+   "lat": 37.75866,
+   "lon": 38.272617
+  },
+  {
+   "name": "turkey-earthquake_00000291",
+   "lat": 37.758682,
+   "lon": 38.276187
+  },
+  {
+   "name": "turkey-earthquake_00000292",
+   "lat": 37.758703,
+   "lon": 38.279757
+  },
+  {
+   "name": "turkey-earthquake_00000293",
+   "lat": 37.758725,
+   "lon": 38.283327
+  },
+  {
+   "name": "turkey-earthquake_00000294",
+   "lat": 37.758747,
+   "lon": 38.286896
+  },
+  {
+   "name": "turkey-earthquake_00000295",
+   "lat": 37.758768,
+   "lon": 38.290466
+  },
+  {
+   "name": "turkey-earthquake_00000296",
+   "lat": 37.75879,
+   "lon": 38.294036
+  },
+  {
+   "name": "turkey-earthquake_00000297",
+   "lat": 37.758811,
+   "lon": 38.297606
+  },
+  {
+   "name": "turkey-earthquake_00000298",
+   "lat": 37.758832,
+   "lon": 38.301176
+  },
+  {
+   "name": "turkey-earthquake_00000299",
+   "lat": 37.755691,
+   "lon": 38.251226
+  },
+  {
+   "name": "turkey-earthquake_00000300",
+   "lat": 37.755714,
+   "lon": 38.254796
+  },
+  {
+   "name": "turkey-earthquake_00000301",
+   "lat": 37.755736,
+   "lon": 38.258366
+  },
+  {
+   "name": "turkey-earthquake_00000302",
+   "lat": 37.755759,
+   "lon": 38.261935
+  },
+  {
+   "name": "turkey-earthquake_00000303",
+   "lat": 37.755781,
+   "lon": 38.265505
+  },
+  {
+   "name": "turkey-earthquake_00000304",
+   "lat": 37.755803,
+   "lon": 38.269075
+  },
+  {
+   "name": "turkey-earthquake_00000305",
+   "lat": 37.755825,
+   "lon": 38.272645
+  },
+  {
+   "name": "turkey-earthquake_00000306",
+   "lat": 37.755847,
+   "lon": 38.276214
+  },
+  {
+   "name": "turkey-earthquake_00000307",
+   "lat": 37.755869,
+   "lon": 38.279784
+  },
+  {
+   "name": "turkey-earthquake_00000308",
+   "lat": 37.755891,
+   "lon": 38.283354
+  },
+  {
+   "name": "turkey-earthquake_00000309",
+   "lat": 37.755913,
+   "lon": 38.286924
+  },
+  {
+   "name": "turkey-earthquake_00000310",
+   "lat": 37.755934,
+   "lon": 38.290493
+  },
+  {
+   "name": "turkey-earthquake_00000311",
+   "lat": 37.755956,
+   "lon": 38.294063
+  },
+  {
+   "name": "turkey-earthquake_00000312",
+   "lat": 37.755977,
+   "lon": 38.297633
+  },
+  {
+   "name": "turkey-earthquake_00000313",
+   "lat": 37.75288,
+   "lon": 38.254824
+  },
+  {
+   "name": "turkey-earthquake_00000314",
+   "lat": 37.752902,
+   "lon": 38.258394
+  },
+  {
+   "name": "turkey-earthquake_00000315",
+   "lat": 37.752925,
+   "lon": 38.261963
+  },
+  {
+   "name": "turkey-earthquake_00000316",
+   "lat": 37.752947,
+   "lon": 38.265533
+  },
+  {
+   "name": "turkey-earthquake_00000317",
+   "lat": 37.752969,
+   "lon": 38.269103
+  },
+  {
+   "name": "turkey-earthquake_00000318",
+   "lat": 37.752991,
+   "lon": 38.272672
+  },
+  {
+   "name": "turkey-earthquake_00000319",
+   "lat": 37.753013,
+   "lon": 38.276242
+  },
+  {
+   "name": "turkey-earthquake_00000320",
+   "lat": 37.753035,
+   "lon": 38.279812
+  },
+  {
+   "name": "turkey-earthquake_00000321",
+   "lat": 37.753057,
+   "lon": 38.283381
+  },
+  {
+   "name": "turkey-earthquake_00000322",
+   "lat": 37.753078,
+   "lon": 38.286951
+  },
+  {
+   "name": "turkey-earthquake_00000323",
+   "lat": 37.7531,
+   "lon": 38.29052
+  },
+  {
+   "name": "turkey-earthquake_00000324",
+   "lat": 37.753121,
+   "lon": 38.29409
+  },
+  {
+   "name": "turkey-earthquake_00000325",
+   "lat": 37.750068,
+   "lon": 38.258422
+  },
+  {
+   "name": "turkey-earthquake_00000326",
+   "lat": 37.75009,
+   "lon": 38.261992
+  },
+  {
+   "name": "turkey-earthquake_00000327",
+   "lat": 37.750113,
+   "lon": 38.265561
+  },
+  {
+   "name": "turkey-earthquake_00000328",
+   "lat": 37.750135,
+   "lon": 38.269131
+  },
+  {
+   "name": "turkey-earthquake_00000329",
+   "lat": 37.750157,
+   "lon": 38.2727
+  },
+  {
+   "name": "turkey-earthquake_00000330",
+   "lat": 37.750179,
+   "lon": 38.27627
+  },
+  {
+   "name": "turkey-earthquake_00000331",
+   "lat": 37.750201,
+   "lon": 38.279839
+  },
+  {
+   "name": "turkey-earthquake_00000332",
+   "lat": 37.750222,
+   "lon": 38.283409
+  },
+  {
+   "name": "turkey-earthquake_00000333",
+   "lat": 37.750244,
+   "lon": 38.286978
+  },
+  {
+   "name": "turkey-earthquake_00000334",
+   "lat": 37.750266,
+   "lon": 38.290548
+  },
+  {
+   "name": "turkey-earthquake_00000335",
+   "lat": 37.747256,
+   "lon": 38.26202
+  },
+  {
+   "name": "turkey-earthquake_00000336",
+   "lat": 37.747278,
+   "lon": 38.265589
+  },
+  {
+   "name": "turkey-earthquake_00000337",
+   "lat": 37.747301,
+   "lon": 38.269158
+  },
+  {
+   "name": "turkey-earthquake_00000338",
+   "lat": 37.747345,
+   "lon": 38.276297
+  },
+  {
+   "name": "turkey-earthquake_00000339",
+   "lat": 37.747366,
+   "lon": 38.279867
+  },
+  {
+   "name": "turkey-earthquake_00000340",
+   "lat": 37.747388,
+   "lon": 38.283436
+  },
+  {
+   "name": "turkey-earthquake_00000341",
+   "lat": 37.74741,
+   "lon": 38.287005
+  },
+  {
+   "name": "turkey-earthquake_00000342",
+   "lat": 37.744444,
+   "lon": 38.265617
+  },
+  {
+   "name": "turkey-earthquake_00000343",
+   "lat": 37.744466,
+   "lon": 38.269186
+  },
+  {
+   "name": "turkey-earthquake_00000344",
+   "lat": 37.744488,
+   "lon": 38.272756
+  },
+  {
+   "name": "turkey-earthquake_00000345",
+   "lat": 37.74451,
+   "lon": 38.276325
+  },
+  {
+   "name": "turkey-earthquake_00000346",
+   "lat": 37.744532,
+   "lon": 38.279894
+  },
+  {
+   "name": "turkey-earthquake_00000347",
+   "lat": 37.744554,
+   "lon": 38.283463
+  },
+  {
+   "name": "turkey-earthquake_00000348",
+   "lat": 37.741632,
+   "lon": 38.269214
+  },
+  {
+   "name": "turkey-earthquake_00000349",
+   "lat": 37.741654,
+   "lon": 38.272783
+  },
+  {
+   "name": "turkey-earthquake_00000350",
+   "lat": 37.741676,
+   "lon": 38.276352
+  },
+  {
+   "name": "turkey-earthquake_00000351",
+   "lat": 37.73882,
+   "lon": 38.272811
+  },
+  {
+   "name": "turkey-earthquake_00000352",
+   "lat": 37.595365,
+   "lon": 36.903119
+  },
+  {
+   "name": "turkey-earthquake_00000353",
+   "lat": 37.595429,
+   "lon": 36.906744
+  },
+  {
+   "name": "turkey-earthquake_00000354",
+   "lat": 37.595493,
+   "lon": 36.910369
+  },
+  {
+   "name": "turkey-earthquake_00000355",
+   "lat": 37.595557,
+   "lon": 36.913994
+  },
+  {
+   "name": "turkey-earthquake_00000356",
+   "lat": 37.595621,
+   "lon": 36.917619
+  },
+  {
+   "name": "turkey-earthquake_00000357",
+   "lat": 37.595685,
+   "lon": 36.921244
+  },
+  {
+   "name": "turkey-earthquake_00000358",
+   "lat": 37.595749,
+   "lon": 36.924869
+  },
+  {
+   "name": "turkey-earthquake_00000359",
+   "lat": 37.595813,
+   "lon": 36.928494
+  },
+  {
+   "name": "turkey-earthquake_00000360",
+   "lat": 37.595876,
+   "lon": 36.932119
+  },
+  {
+   "name": "turkey-earthquake_00000361",
+   "lat": 37.59594,
+   "lon": 36.935744
+  },
+  {
+   "name": "turkey-earthquake_00000362",
+   "lat": 37.596003,
+   "lon": 36.939369
+  },
+  {
+   "name": "turkey-earthquake_00000363",
+   "lat": 37.596067,
+   "lon": 36.942994
+  },
+  {
+   "name": "turkey-earthquake_00000364",
+   "lat": 37.59248,
+   "lon": 36.9032
+  },
+  {
+   "name": "turkey-earthquake_00000365",
+   "lat": 37.592545,
+   "lon": 36.906824
+  },
+  {
+   "name": "turkey-earthquake_00000366",
+   "lat": 37.592609,
+   "lon": 36.910449
+  },
+  {
+   "name": "turkey-earthquake_00000367",
+   "lat": 37.592673,
+   "lon": 36.914074
+  },
+  {
+   "name": "turkey-earthquake_00000368",
+   "lat": 37.592737,
+   "lon": 36.917699
+  },
+  {
+   "name": "turkey-earthquake_00000369",
+   "lat": 37.592801,
+   "lon": 36.921324
+  },
+  {
+   "name": "turkey-earthquake_00000370",
+   "lat": 37.592865,
+   "lon": 36.924949
+  },
+  {
+   "name": "turkey-earthquake_00000371",
+   "lat": 37.592928,
+   "lon": 36.928574
+  },
+  {
+   "name": "turkey-earthquake_00000372",
+   "lat": 37.592992,
+   "lon": 36.932199
+  },
+  {
+   "name": "turkey-earthquake_00000373",
+   "lat": 37.593055,
+   "lon": 36.935824
+  },
+  {
+   "name": "turkey-earthquake_00000374",
+   "lat": 37.593119,
+   "lon": 36.939449
+  },
+  {
+   "name": "turkey-earthquake_00000375",
+   "lat": 37.593182,
+   "lon": 36.943074
+  },
+  {
+   "name": "turkey-earthquake_00000376",
+   "lat": 37.589596,
+   "lon": 36.903281
+  },
+  {
+   "name": "turkey-earthquake_00000377",
+   "lat": 37.58966,
+   "lon": 36.906905
+  },
+  {
+   "name": "turkey-earthquake_00000378",
+   "lat": 37.589724,
+   "lon": 36.91053
+  },
+  {
+   "name": "turkey-earthquake_00000379",
+   "lat": 37.589789,
+   "lon": 36.914155
+  },
+  {
+   "name": "turkey-earthquake_00000380",
+   "lat": 37.589853,
+   "lon": 36.91778
+  },
+  {
+   "name": "turkey-earthquake_00000381",
+   "lat": 37.589916,
+   "lon": 36.921404
+  },
+  {
+   "name": "turkey-earthquake_00000382",
+   "lat": 37.58998,
+   "lon": 36.925029
+  },
+  {
+   "name": "turkey-earthquake_00000383",
+   "lat": 37.590044,
+   "lon": 36.928654
+  },
+  {
+   "name": "turkey-earthquake_00000384",
+   "lat": 37.590108,
+   "lon": 36.932279
+  },
+  {
+   "name": "turkey-earthquake_00000385",
+   "lat": 37.590171,
+   "lon": 36.935904
+  },
+  {
+   "name": "turkey-earthquake_00000386",
+   "lat": 37.590234,
+   "lon": 36.939528
+  },
+  {
+   "name": "turkey-earthquake_00000387",
+   "lat": 37.590298,
+   "lon": 36.943153
+  },
+  {
+   "name": "turkey-earthquake_00000388",
+   "lat": 37.586711,
+   "lon": 36.903361
+  },
+  {
+   "name": "turkey-earthquake_00000389",
+   "lat": 37.586776,
+   "lon": 36.906986
+  },
+  {
+   "name": "turkey-earthquake_00000390",
+   "lat": 37.58684,
+   "lon": 36.910611
+  },
+  {
+   "name": "turkey-earthquake_00000391",
+   "lat": 37.586904,
+   "lon": 36.914235
+  },
+  {
+   "name": "turkey-earthquake_00000392",
+   "lat": 37.586968,
+   "lon": 36.91786
+  },
+  {
+   "name": "turkey-earthquake_00000393",
+   "lat": 37.587032,
+   "lon": 36.921485
+  },
+  {
+   "name": "turkey-earthquake_00000394",
+   "lat": 37.587096,
+   "lon": 36.925109
+  },
+  {
+   "name": "turkey-earthquake_00000395",
+   "lat": 37.58716,
+   "lon": 36.928734
+  },
+  {
+   "name": "turkey-earthquake_00000396",
+   "lat": 37.587223,
+   "lon": 36.932359
+  },
+  {
+   "name": "turkey-earthquake_00000397",
+   "lat": 37.587287,
+   "lon": 36.935983
+  },
+  {
+   "name": "turkey-earthquake_00000398",
+   "lat": 37.58735,
+   "lon": 36.939608
+  },
+  {
+   "name": "turkey-earthquake_00000399",
+   "lat": 37.587413,
+   "lon": 36.943233
+  },
+  {
+   "name": "turkey-earthquake_00000400",
+   "lat": 37.583827,
+   "lon": 36.903442
+  },
+  {
+   "name": "turkey-earthquake_00000401",
+   "lat": 37.583891,
+   "lon": 36.907067
+  },
+  {
+   "name": "turkey-earthquake_00000402",
+   "lat": 37.583956,
+   "lon": 36.910691
+  },
+  {
+   "name": "turkey-earthquake_00000403",
+   "lat": 37.58402,
+   "lon": 36.914316
+  },
+  {
+   "name": "turkey-earthquake_00000404",
+   "lat": 37.584084,
+   "lon": 36.91794
+  },
+  {
+   "name": "turkey-earthquake_00000405",
+   "lat": 37.584148,
+   "lon": 36.921565
+  },
+  {
+   "name": "turkey-earthquake_00000406",
+   "lat": 37.584211,
+   "lon": 36.925189
+  },
+  {
+   "name": "turkey-earthquake_00000407",
+   "lat": 37.584275,
+   "lon": 36.928814
+  },
+  {
+   "name": "turkey-earthquake_00000408",
+   "lat": 37.584339,
+   "lon": 36.932438
+  },
+  {
+   "name": "turkey-earthquake_00000409",
+   "lat": 37.584402,
+   "lon": 36.936063
+  },
+  {
+   "name": "turkey-earthquake_00000410",
+   "lat": 37.584465,
+   "lon": 36.939688
+  },
+  {
+   "name": "turkey-earthquake_00000411",
+   "lat": 37.584529,
+   "lon": 36.943312
+  },
+  {
+   "name": "turkey-earthquake_00000412",
+   "lat": 37.580943,
+   "lon": 36.903523
+  },
+  {
+   "name": "turkey-earthquake_00000413",
+   "lat": 37.581007,
+   "lon": 36.907148
+  },
+  {
+   "name": "turkey-earthquake_00000414",
+   "lat": 37.581071,
+   "lon": 36.910772
+  },
+  {
+   "name": "turkey-earthquake_00000415",
+   "lat": 37.581135,
+   "lon": 36.914396
+  },
+  {
+   "name": "turkey-earthquake_00000416",
+   "lat": 37.581199,
+   "lon": 36.918021
+  },
+  {
+   "name": "turkey-earthquake_00000417",
+   "lat": 37.581263,
+   "lon": 36.921645
+  },
+  {
+   "name": "turkey-earthquake_00000418",
+   "lat": 37.581327,
+   "lon": 36.925269
+  },
+  {
+   "name": "turkey-earthquake_00000419",
+   "lat": 37.581391,
+   "lon": 36.928894
+  },
+  {
+   "name": "turkey-earthquake_00000420",
+   "lat": 37.581454,
+   "lon": 36.932518
+  },
+  {
+   "name": "turkey-earthquake_00000421",
+   "lat": 37.581518,
+   "lon": 36.936143
+  },
+  {
+   "name": "turkey-earthquake_00000422",
+   "lat": 37.581581,
+   "lon": 36.939767
+  },
+  {
+   "name": "turkey-earthquake_00000423",
+   "lat": 37.581644,
+   "lon": 36.943391
+  },
+  {
+   "name": "turkey-earthquake_00000424",
+   "lat": 37.578058,
+   "lon": 36.903604
+  },
+  {
+   "name": "turkey-earthquake_00000425",
+   "lat": 37.578123,
+   "lon": 36.907228
+  },
+  {
+   "name": "turkey-earthquake_00000426",
+   "lat": 37.578187,
+   "lon": 36.910853
+  },
+  {
+   "name": "turkey-earthquake_00000427",
+   "lat": 37.578251,
+   "lon": 36.914477
+  },
+  {
+   "name": "turkey-earthquake_00000428",
+   "lat": 37.578315,
+   "lon": 36.918101
+  },
+  {
+   "name": "turkey-earthquake_00000429",
+   "lat": 37.578379,
+   "lon": 36.921725
+  },
+  {
+   "name": "turkey-earthquake_00000430",
+   "lat": 37.578443,
+   "lon": 36.925349
+  },
+  {
+   "name": "turkey-earthquake_00000431",
+   "lat": 37.578506,
+   "lon": 36.928974
+  },
+  {
+   "name": "turkey-earthquake_00000432",
+   "lat": 37.57857,
+   "lon": 36.932598
+  },
+  {
+   "name": "turkey-earthquake_00000433",
+   "lat": 37.578633,
+   "lon": 36.936222
+  },
+  {
+   "name": "turkey-earthquake_00000434",
+   "lat": 37.578697,
+   "lon": 36.939847
+  },
+  {
+   "name": "turkey-earthquake_00000435",
+   "lat": 37.57876,
+   "lon": 36.943471
+  },
+  {
+   "name": "turkey-earthquake_00000436",
+   "lat": 37.575174,
+   "lon": 36.903685
+  },
+  {
+   "name": "turkey-earthquake_00000437",
+   "lat": 37.575238,
+   "lon": 36.907309
+  },
+  {
+   "name": "turkey-earthquake_00000438",
+   "lat": 37.575302,
+   "lon": 36.910933
+  },
+  {
+   "name": "turkey-earthquake_00000439",
+   "lat": 37.575366,
+   "lon": 36.914557
+  },
+  {
+   "name": "turkey-earthquake_00000440",
+   "lat": 37.57543,
+   "lon": 36.918181
+  },
+  {
+   "name": "turkey-earthquake_00000441",
+   "lat": 37.575494,
+   "lon": 36.921805
+  },
+  {
+   "name": "turkey-earthquake_00000442",
+   "lat": 37.575558,
+   "lon": 36.92543
+  },
+  {
+   "name": "turkey-earthquake_00000443",
+   "lat": 37.575622,
+   "lon": 36.929054
+  },
+  {
+   "name": "turkey-earthquake_00000444",
+   "lat": 37.575685,
+   "lon": 36.932678
+  },
+  {
+   "name": "turkey-earthquake_00000445",
+   "lat": 37.575749,
+   "lon": 36.936302
+  },
+  {
+   "name": "turkey-earthquake_00000446",
+   "lat": 37.575812,
+   "lon": 36.939926
+  },
+  {
+   "name": "turkey-earthquake_00000447",
+   "lat": 37.575875,
+   "lon": 36.94355
+  },
+  {
+   "name": "turkey-earthquake_00000448",
+   "lat": 37.572289,
+   "lon": 36.903766
+  },
+  {
+   "name": "turkey-earthquake_00000449",
+   "lat": 37.572354,
+   "lon": 36.90739
+  },
+  {
+   "name": "turkey-earthquake_00000450",
+   "lat": 37.572418,
+   "lon": 36.911014
+  },
+  {
+   "name": "turkey-earthquake_00000451",
+   "lat": 37.572482,
+   "lon": 36.914638
+  },
+  {
+   "name": "turkey-earthquake_00000452",
+   "lat": 37.572546,
+   "lon": 36.918262
+  },
+  {
+   "name": "turkey-earthquake_00000453",
+   "lat": 37.57261,
+   "lon": 36.921886
+  },
+  {
+   "name": "turkey-earthquake_00000454",
+   "lat": 37.572674,
+   "lon": 36.92551
+  },
+  {
+   "name": "turkey-earthquake_00000455",
+   "lat": 37.572737,
+   "lon": 36.929134
+  },
+  {
+   "name": "turkey-earthquake_00000456",
+   "lat": 37.572801,
+   "lon": 36.932758
+  },
+  {
+   "name": "turkey-earthquake_00000457",
+   "lat": 37.572864,
+   "lon": 36.936382
+  },
+  {
+   "name": "turkey-earthquake_00000458",
+   "lat": 37.572928,
+   "lon": 36.940006
+  },
+  {
+   "name": "turkey-earthquake_00000459",
+   "lat": 37.572991,
+   "lon": 36.94363
+  },
+  {
+   "name": "turkey-earthquake_00000460",
+   "lat": 37.569405,
+   "lon": 36.903847
+  },
+  {
+   "name": "turkey-earthquake_00000461",
+   "lat": 37.569469,
+   "lon": 36.907471
+  },
+  {
+   "name": "turkey-earthquake_00000462",
+   "lat": 37.569533,
+   "lon": 36.911094
+  },
+  {
+   "name": "turkey-earthquake_00000463",
+   "lat": 37.569598,
+   "lon": 36.914718
+  },
+  {
+   "name": "turkey-earthquake_00000464",
+   "lat": 37.569662,
+   "lon": 36.918342
+  },
+  {
+   "name": "turkey-earthquake_00000465",
+   "lat": 37.569725,
+   "lon": 36.921966
+  },
+  {
+   "name": "turkey-earthquake_00000466",
+   "lat": 37.569789,
+   "lon": 36.92559
+  },
+  {
+   "name": "turkey-earthquake_00000467",
+   "lat": 37.569853,
+   "lon": 36.929213
+  },
+  {
+   "name": "turkey-earthquake_00000468",
+   "lat": 37.569916,
+   "lon": 36.932837
+  },
+  {
+   "name": "turkey-earthquake_00000469",
+   "lat": 37.56998,
+   "lon": 36.936461
+  },
+  {
+   "name": "turkey-earthquake_00000470",
+   "lat": 37.570043,
+   "lon": 36.940085
+  },
+  {
+   "name": "turkey-earthquake_00000471",
+   "lat": 37.570106,
+   "lon": 36.943709
+  },
+  {
+   "name": "turkey-earthquake_00000472",
+   "lat": 37.566521,
+   "lon": 36.903928
+  },
+  {
+   "name": "turkey-earthquake_00000473",
+   "lat": 37.566585,
+   "lon": 36.907551
+  },
+  {
+   "name": "turkey-earthquake_00000474",
+   "lat": 37.566649,
+   "lon": 36.911175
+  },
+  {
+   "name": "turkey-earthquake_00000475",
+   "lat": 37.566713,
+   "lon": 36.914799
+  },
+  {
+   "name": "turkey-earthquake_00000476",
+   "lat": 37.566777,
+   "lon": 36.918422
+  },
+  {
+   "name": "turkey-earthquake_00000477",
+   "lat": 37.566841,
+   "lon": 36.922046
+  },
+  {
+   "name": "turkey-earthquake_00000478",
+   "lat": 37.566905,
+   "lon": 36.92567
+  },
+  {
+   "name": "turkey-earthquake_00000479",
+   "lat": 37.566968,
+   "lon": 36.929293
+  },
+  {
+   "name": "turkey-earthquake_00000480",
+   "lat": 37.567032,
+   "lon": 36.932917
+  },
+  {
+   "name": "turkey-earthquake_00000481",
+   "lat": 37.567095,
+   "lon": 36.936541
+  },
+  {
+   "name": "turkey-earthquake_00000482",
+   "lat": 37.567159,
+   "lon": 36.940165
+  },
+  {
+   "name": "turkey-earthquake_00000483",
+   "lat": 37.567222,
+   "lon": 36.943788
+  },
+  {
+   "name": "turkey-earthquake_00000484",
+   "lat": 37.567285,
+   "lon": 36.947412
+  },
+  {
+   "name": "turkey-earthquake_00000485",
+   "lat": 37.563636,
+   "lon": 36.904009
+  },
+  {
+   "name": "turkey-earthquake_00000486",
+   "lat": 37.5637,
+   "lon": 36.907632
+  },
+  {
+   "name": "turkey-earthquake_00000487",
+   "lat": 37.563765,
+   "lon": 36.911256
+  },
+  {
+   "name": "turkey-earthquake_00000488",
+   "lat": 37.563829,
+   "lon": 36.914879
+  },
+  {
+   "name": "turkey-earthquake_00000489",
+   "lat": 37.563893,
+   "lon": 36.918503
+  },
+  {
+   "name": "turkey-earthquake_00000490",
+   "lat": 37.563957,
+   "lon": 36.922126
+  },
+  {
+   "name": "turkey-earthquake_00000491",
+   "lat": 37.56402,
+   "lon": 36.92575
+  },
+  {
+   "name": "turkey-earthquake_00000492",
+   "lat": 37.564084,
+   "lon": 36.929373
+  },
+  {
+   "name": "turkey-earthquake_00000493",
+   "lat": 37.564147,
+   "lon": 36.932997
+  },
+  {
+   "name": "turkey-earthquake_00000494",
+   "lat": 37.564211,
+   "lon": 36.93662
+  },
+  {
+   "name": "turkey-earthquake_00000495",
+   "lat": 37.564274,
+   "lon": 36.940244
+  },
+  {
+   "name": "turkey-earthquake_00000496",
+   "lat": 37.564337,
+   "lon": 36.943868
+  },
+  {
+   "name": "turkey-earthquake_00000497",
+   "lat": 37.5644,
+   "lon": 36.947491
+  },
+  {
+   "name": "turkey-earthquake_00000498",
+   "lat": 37.560752,
+   "lon": 36.904089
+  },
+  {
+   "name": "turkey-earthquake_00000499",
+   "lat": 37.560816,
+   "lon": 36.907713
+  },
+  {
+   "name": "turkey-earthquake_00000500",
+   "lat": 37.56088,
+   "lon": 36.911336
+  },
+  {
+   "name": "turkey-earthquake_00000501",
+   "lat": 37.560944,
+   "lon": 36.91496
+  },
+  {
+   "name": "turkey-earthquake_00000502",
+   "lat": 37.561008,
+   "lon": 36.918583
+  },
+  {
+   "name": "turkey-earthquake_00000503",
+   "lat": 37.561072,
+   "lon": 36.922206
+  },
+  {
+   "name": "turkey-earthquake_00000504",
+   "lat": 37.561136,
+   "lon": 36.92583
+  },
+  {
+   "name": "turkey-earthquake_00000505",
+   "lat": 37.561199,
+   "lon": 36.929453
+  },
+  {
+   "name": "turkey-earthquake_00000506",
+   "lat": 37.561263,
+   "lon": 36.933077
+  },
+  {
+   "name": "turkey-earthquake_00000507",
+   "lat": 37.561326,
+   "lon": 36.9367
+  },
+  {
+   "name": "turkey-earthquake_00000508",
+   "lat": 37.56139,
+   "lon": 36.940323
+  },
+  {
+   "name": "turkey-earthquake_00000509",
+   "lat": 37.561453,
+   "lon": 36.943947
+  },
+  {
+   "name": "turkey-earthquake_00000510",
+   "lat": 37.558505,
+   "lon": 36.940403
+  },
+  {
+   "name": "turkey-earthquake_00000511",
+   "lat": 37.558568,
+   "lon": 36.944026
+  },
+  {
+   "name": "turkey-earthquake_00000512",
+   "lat": 38.362651,
+   "lon": 38.291653
+  },
+  {
+   "name": "turkey-earthquake_00000513",
+   "lat": 38.362673,
+   "lon": 38.29523
+  },
+  {
+   "name": "turkey-earthquake_00000514",
+   "lat": 38.362694,
+   "lon": 38.298806
+  },
+  {
+   "name": "turkey-earthquake_00000515",
+   "lat": 38.362716,
+   "lon": 38.302383
+  },
+  {
+   "name": "turkey-earthquake_00000516",
+   "lat": 38.362737,
+   "lon": 38.30596
+  },
+  {
+   "name": "turkey-earthquake_00000517",
+   "lat": 38.362758,
+   "lon": 38.309537
+  },
+  {
+   "name": "turkey-earthquake_00000518",
+   "lat": 38.362779,
+   "lon": 38.313113
+  },
+  {
+   "name": "turkey-earthquake_00000519",
+   "lat": 38.3628,
+   "lon": 38.31669
+  },
+  {
+   "name": "turkey-earthquake_00000520",
+   "lat": 38.362821,
+   "lon": 38.320267
+  },
+  {
+   "name": "turkey-earthquake_00000521",
+   "lat": 38.362841,
+   "lon": 38.323844
+  },
+  {
+   "name": "turkey-earthquake_00000522",
+   "lat": 38.35977,
+   "lon": 38.28095
+  },
+  {
+   "name": "turkey-earthquake_00000523",
+   "lat": 38.359792,
+   "lon": 38.284527
+  },
+  {
+   "name": "turkey-earthquake_00000524",
+   "lat": 38.359813,
+   "lon": 38.288104
+  },
+  {
+   "name": "turkey-earthquake_00000525",
+   "lat": 38.359835,
+   "lon": 38.29168
+  },
+  {
+   "name": "turkey-earthquake_00000526",
+   "lat": 38.359857,
+   "lon": 38.295257
+  },
+  {
+   "name": "turkey-earthquake_00000527",
+   "lat": 38.359878,
+   "lon": 38.298833
+  },
+  {
+   "name": "turkey-earthquake_00000528",
+   "lat": 38.359899,
+   "lon": 38.30241
+  },
+  {
+   "name": "turkey-earthquake_00000529",
+   "lat": 38.359921,
+   "lon": 38.305987
+  },
+  {
+   "name": "turkey-earthquake_00000530",
+   "lat": 38.359942,
+   "lon": 38.309563
+  },
+  {
+   "name": "turkey-earthquake_00000531",
+   "lat": 38.359963,
+   "lon": 38.31314
+  },
+  {
+   "name": "turkey-earthquake_00000532",
+   "lat": 38.359984,
+   "lon": 38.316717
+  },
+  {
+   "name": "turkey-earthquake_00000533",
+   "lat": 38.360004,
+   "lon": 38.320293
+  },
+  {
+   "name": "turkey-earthquake_00000534",
+   "lat": 38.360025,
+   "lon": 38.32387
+  },
+  {
+   "name": "turkey-earthquake_00000535",
+   "lat": 38.356932,
+   "lon": 38.277402
+  },
+  {
+   "name": "turkey-earthquake_00000536",
+   "lat": 38.356954,
+   "lon": 38.280978
+  },
+  {
+   "name": "turkey-earthquake_00000537",
+   "lat": 38.356975,
+   "lon": 38.284555
+  },
+  {
+   "name": "turkey-earthquake_00000538",
+   "lat": 38.356997,
+   "lon": 38.288131
+  },
+  {
+   "name": "turkey-earthquake_00000539",
+   "lat": 38.357019,
+   "lon": 38.291708
+  },
+  {
+   "name": "turkey-earthquake_00000540",
+   "lat": 38.35704,
+   "lon": 38.295284
+  },
+  {
+   "name": "turkey-earthquake_00000541",
+   "lat": 38.357062,
+   "lon": 38.298861
+  },
+  {
+   "name": "turkey-earthquake_00000542",
+   "lat": 38.357083,
+   "lon": 38.302437
+  },
+  {
+   "name": "turkey-earthquake_00000543",
+   "lat": 38.357104,
+   "lon": 38.306014
+  },
+  {
+   "name": "turkey-earthquake_00000544",
+   "lat": 38.357126,
+   "lon": 38.30959
+  },
+  {
+   "name": "turkey-earthquake_00000545",
+   "lat": 38.357147,
+   "lon": 38.313167
+  },
+  {
+   "name": "turkey-earthquake_00000546",
+   "lat": 38.357167,
+   "lon": 38.316743
+  },
+  {
+   "name": "turkey-earthquake_00000547",
+   "lat": 38.357188,
+   "lon": 38.32032
+  },
+  {
+   "name": "turkey-earthquake_00000548",
+   "lat": 38.357209,
+   "lon": 38.323896
+  },
+  {
+   "name": "turkey-earthquake_00000549",
+   "lat": 38.357229,
+   "lon": 38.327473
+  },
+  {
+   "name": "turkey-earthquake_00000550",
+   "lat": 38.354115,
+   "lon": 38.27743
+  },
+  {
+   "name": "turkey-earthquake_00000551",
+   "lat": 38.354137,
+   "lon": 38.281006
+  },
+  {
+   "name": "turkey-earthquake_00000552",
+   "lat": 38.354159,
+   "lon": 38.284582
+  },
+  {
+   "name": "turkey-earthquake_00000553",
+   "lat": 38.354181,
+   "lon": 38.288159
+  },
+  {
+   "name": "turkey-earthquake_00000554",
+   "lat": 38.354203,
+   "lon": 38.291735
+  },
+  {
+   "name": "turkey-earthquake_00000555",
+   "lat": 38.354224,
+   "lon": 38.295311
+  },
+  {
+   "name": "turkey-earthquake_00000556",
+   "lat": 38.354246,
+   "lon": 38.298888
+  },
+  {
+   "name": "turkey-earthquake_00000557",
+   "lat": 38.354267,
+   "lon": 38.302464
+  },
+  {
+   "name": "turkey-earthquake_00000558",
+   "lat": 38.354288,
+   "lon": 38.30604
+  },
+  {
+   "name": "turkey-earthquake_00000559",
+   "lat": 38.354309,
+   "lon": 38.309617
+  },
+  {
+   "name": "turkey-earthquake_00000560",
+   "lat": 38.35433,
+   "lon": 38.313193
+  },
+  {
+   "name": "turkey-earthquake_00000561",
+   "lat": 38.354351,
+   "lon": 38.31677
+  },
+  {
+   "name": "turkey-earthquake_00000562",
+   "lat": 38.354372,
+   "lon": 38.320346
+  },
+  {
+   "name": "turkey-earthquake_00000563",
+   "lat": 38.354393,
+   "lon": 38.323922
+  },
+  {
+   "name": "turkey-earthquake_00000564",
+   "lat": 38.354413,
+   "lon": 38.327499
+  },
+  {
+   "name": "turkey-earthquake_00000565",
+   "lat": 38.351321,
+   "lon": 38.281034
+  },
+  {
+   "name": "turkey-earthquake_00000566",
+   "lat": 38.351343,
+   "lon": 38.28461
+  },
+  {
+   "name": "turkey-earthquake_00000567",
+   "lat": 38.351365,
+   "lon": 38.288186
+  },
+  {
+   "name": "turkey-earthquake_00000568",
+   "lat": 38.351387,
+   "lon": 38.291763
+  },
+  {
+   "name": "turkey-earthquake_00000569",
+   "lat": 38.351408,
+   "lon": 38.295339
+  },
+  {
+   "name": "turkey-earthquake_00000570",
+   "lat": 38.35143,
+   "lon": 38.298915
+  },
+  {
+   "name": "turkey-earthquake_00000571",
+   "lat": 38.351451,
+   "lon": 38.302491
+  },
+  {
+   "name": "turkey-earthquake_00000572",
+   "lat": 38.351472,
+   "lon": 38.306067
+  },
+  {
+   "name": "turkey-earthquake_00000573",
+   "lat": 38.351493,
+   "lon": 38.309644
+  },
+  {
+   "name": "turkey-earthquake_00000574",
+   "lat": 38.351514,
+   "lon": 38.31322
+  },
+  {
+   "name": "turkey-earthquake_00000575",
+   "lat": 38.351535,
+   "lon": 38.316796
+  },
+  {
+   "name": "turkey-earthquake_00000576",
+   "lat": 38.351556,
+   "lon": 38.320372
+  },
+  {
+   "name": "turkey-earthquake_00000577",
+   "lat": 38.351577,
+   "lon": 38.323948
+  },
+  {
+   "name": "turkey-earthquake_00000578",
+   "lat": 38.351597,
+   "lon": 38.327525
+  },
+  {
+   "name": "turkey-earthquake_00000579",
+   "lat": 38.351618,
+   "lon": 38.331101
+  },
+  {
+   "name": "turkey-earthquake_00000580",
+   "lat": 38.348505,
+   "lon": 38.281062
+  },
+  {
+   "name": "turkey-earthquake_00000581",
+   "lat": 38.348527,
+   "lon": 38.284638
+  },
+  {
+   "name": "turkey-earthquake_00000582",
+   "lat": 38.348549,
+   "lon": 38.288214
+  },
+  {
+   "name": "turkey-earthquake_00000583",
+   "lat": 38.34857,
+   "lon": 38.29179
+  },
+  {
+   "name": "turkey-earthquake_00000584",
+   "lat": 38.348592,
+   "lon": 38.295366
+  },
+  {
+   "name": "turkey-earthquake_00000585",
+   "lat": 38.348613,
+   "lon": 38.298942
+  },
+  {
+   "name": "turkey-earthquake_00000586",
+   "lat": 38.348635,
+   "lon": 38.302518
+  },
+  {
+   "name": "turkey-earthquake_00000587",
+   "lat": 38.348656,
+   "lon": 38.306094
+  },
+  {
+   "name": "turkey-earthquake_00000588",
+   "lat": 38.348677,
+   "lon": 38.30967
+  },
+  {
+   "name": "turkey-earthquake_00000589",
+   "lat": 38.348698,
+   "lon": 38.313246
+  },
+  {
+   "name": "turkey-earthquake_00000590",
+   "lat": 38.348719,
+   "lon": 38.316822
+  },
+  {
+   "name": "turkey-earthquake_00000591",
+   "lat": 38.34874,
+   "lon": 38.320399
+  },
+  {
+   "name": "turkey-earthquake_00000592",
+   "lat": 38.34876,
+   "lon": 38.323975
+  },
+  {
+   "name": "turkey-earthquake_00000593",
+   "lat": 38.348781,
+   "lon": 38.327551
+  },
+  {
+   "name": "turkey-earthquake_00000594",
+   "lat": 38.348801,
+   "lon": 38.331127
+  },
+  {
+   "name": "turkey-earthquake_00000595",
+   "lat": 38.345711,
+   "lon": 38.284666
+  },
+  {
+   "name": "turkey-earthquake_00000596",
+   "lat": 38.345733,
+   "lon": 38.288241
+  },
+  {
+   "name": "turkey-earthquake_00000597",
+   "lat": 38.345754,
+   "lon": 38.291817
+  },
+  {
+   "name": "turkey-earthquake_00000598",
+   "lat": 38.345776,
+   "lon": 38.295393
+  },
+  {
+   "name": "turkey-earthquake_00000599",
+   "lat": 38.345797,
+   "lon": 38.298969
+  },
+  {
+   "name": "turkey-earthquake_00000600",
+   "lat": 38.345819,
+   "lon": 38.302545
+  },
+  {
+   "name": "turkey-earthquake_00000601",
+   "lat": 38.34584,
+   "lon": 38.306121
+  },
+  {
+   "name": "turkey-earthquake_00000602",
+   "lat": 38.345861,
+   "lon": 38.309697
+  },
+  {
+   "name": "turkey-earthquake_00000603",
+   "lat": 38.345882,
+   "lon": 38.313273
+  },
+  {
+   "name": "turkey-earthquake_00000604",
+   "lat": 38.345903,
+   "lon": 38.316849
+  },
+  {
+   "name": "turkey-earthquake_00000605",
+   "lat": 38.345924,
+   "lon": 38.320425
+  },
+  {
+   "name": "turkey-earthquake_00000606",
+   "lat": 38.345944,
+   "lon": 38.324001
+  },
+  {
+   "name": "turkey-earthquake_00000607",
+   "lat": 38.345965,
+   "lon": 38.327577
+  },
+  {
+   "name": "turkey-earthquake_00000608",
+   "lat": 38.345985,
+   "lon": 38.331153
+  },
+  {
+   "name": "turkey-earthquake_00000609",
+   "lat": 38.346006,
+   "lon": 38.334729
+  },
+  {
+   "name": "turkey-earthquake_00000610",
+   "lat": 38.342895,
+   "lon": 38.284693
+  },
+  {
+   "name": "turkey-earthquake_00000611",
+   "lat": 38.342917,
+   "lon": 38.288269
+  },
+  {
+   "name": "turkey-earthquake_00000612",
+   "lat": 38.342938,
+   "lon": 38.291845
+  },
+  {
+   "name": "turkey-earthquake_00000613",
+   "lat": 38.34296,
+   "lon": 38.295421
+  },
+  {
+   "name": "turkey-earthquake_00000614",
+   "lat": 38.342981,
+   "lon": 38.298996
+  },
+  {
+   "name": "turkey-earthquake_00000615",
+   "lat": 38.343002,
+   "lon": 38.302572
+  },
+  {
+   "name": "turkey-earthquake_00000616",
+   "lat": 38.343024,
+   "lon": 38.306148
+  },
+  {
+   "name": "turkey-earthquake_00000617",
+   "lat": 38.343045,
+   "lon": 38.309724
+  },
+  {
+   "name": "turkey-earthquake_00000618",
+   "lat": 38.343066,
+   "lon": 38.3133
+  },
+  {
+   "name": "turkey-earthquake_00000619",
+   "lat": 38.343087,
+   "lon": 38.316875
+  },
+  {
+   "name": "turkey-earthquake_00000620",
+   "lat": 38.343107,
+   "lon": 38.320451
+  },
+  {
+   "name": "turkey-earthquake_00000621",
+   "lat": 38.343128,
+   "lon": 38.324027
+  },
+  {
+   "name": "turkey-earthquake_00000622",
+   "lat": 38.343149,
+   "lon": 38.327603
+  },
+  {
+   "name": "turkey-earthquake_00000623",
+   "lat": 38.343169,
+   "lon": 38.331179
+  },
+  {
+   "name": "turkey-earthquake_00000624",
+   "lat": 38.343189,
+   "lon": 38.334754
+  },
+  {
+   "name": "turkey-earthquake_00000625",
+   "lat": 38.3401,
+   "lon": 38.288297
+  },
+  {
+   "name": "turkey-earthquake_00000626",
+   "lat": 38.340122,
+   "lon": 38.291872
+  },
+  {
+   "name": "turkey-earthquake_00000627",
+   "lat": 38.340144,
+   "lon": 38.295448
+  },
+  {
+   "name": "turkey-earthquake_00000628",
+   "lat": 38.340165,
+   "lon": 38.299024
+  },
+  {
+   "name": "turkey-earthquake_00000629",
+   "lat": 38.340186,
+   "lon": 38.302599
+  },
+  {
+   "name": "turkey-earthquake_00000630",
+   "lat": 38.340207,
+   "lon": 38.306175
+  },
+  {
+   "name": "turkey-earthquake_00000631",
+   "lat": 38.340229,
+   "lon": 38.30975
+  },
+  {
+   "name": "turkey-earthquake_00000632",
+   "lat": 38.34025,
+   "lon": 38.313326
+  },
+  {
+   "name": "turkey-earthquake_00000633",
+   "lat": 38.34027,
+   "lon": 38.316902
+  },
+  {
+   "name": "turkey-earthquake_00000634",
+   "lat": 38.340291,
+   "lon": 38.320477
+  },
+  {
+   "name": "turkey-earthquake_00000635",
+   "lat": 38.340312,
+   "lon": 38.324053
+  },
+  {
+   "name": "turkey-earthquake_00000636",
+   "lat": 38.340332,
+   "lon": 38.327629
+  },
+  {
+   "name": "turkey-earthquake_00000637",
+   "lat": 38.340353,
+   "lon": 38.331204
+  },
+  {
+   "name": "turkey-earthquake_00000638",
+   "lat": 38.340373,
+   "lon": 38.33478
+  },
+  {
+   "name": "turkey-earthquake_00000639",
+   "lat": 38.340393,
+   "lon": 38.338356
+  },
+  {
+   "name": "turkey-earthquake_00000640",
+   "lat": 38.337284,
+   "lon": 38.288324
+  },
+  {
+   "name": "turkey-earthquake_00000641",
+   "lat": 38.337306,
+   "lon": 38.2919
+  },
+  {
+   "name": "turkey-earthquake_00000642",
+   "lat": 38.337327,
+   "lon": 38.295475
+  },
+  {
+   "name": "turkey-earthquake_00000643",
+   "lat": 38.337349,
+   "lon": 38.299051
+  },
+  {
+   "name": "turkey-earthquake_00000644",
+   "lat": 38.33737,
+   "lon": 38.302626
+  },
+  {
+   "name": "turkey-earthquake_00000645",
+   "lat": 38.337391,
+   "lon": 38.306202
+  },
+  {
+   "name": "turkey-earthquake_00000646",
+   "lat": 38.337412,
+   "lon": 38.309777
+  },
+  {
+   "name": "turkey-earthquake_00000647",
+   "lat": 38.337433,
+   "lon": 38.313353
+  },
+  {
+   "name": "turkey-earthquake_00000648",
+   "lat": 38.337454,
+   "lon": 38.316928
+  },
+  {
+   "name": "turkey-earthquake_00000649",
+   "lat": 38.337475,
+   "lon": 38.320504
+  },
+  {
+   "name": "turkey-earthquake_00000650",
+   "lat": 38.337496,
+   "lon": 38.324079
+  },
+  {
+   "name": "turkey-earthquake_00000651",
+   "lat": 38.337516,
+   "lon": 38.327655
+  },
+  {
+   "name": "turkey-earthquake_00000652",
+   "lat": 38.337537,
+   "lon": 38.33123
+  },
+  {
+   "name": "turkey-earthquake_00000653",
+   "lat": 38.337557,
+   "lon": 38.334806
+  },
+  {
+   "name": "turkey-earthquake_00000654",
+   "lat": 38.33449,
+   "lon": 38.291927
+  },
+  {
+   "name": "turkey-earthquake_00000655",
+   "lat": 38.334511,
+   "lon": 38.295502
+  },
+  {
+   "name": "turkey-earthquake_00000656",
+   "lat": 38.334533,
+   "lon": 38.299078
+  },
+  {
+   "name": "turkey-earthquake_00000657",
+   "lat": 38.334554,
+   "lon": 38.302653
+  },
+  {
+   "name": "turkey-earthquake_00000658",
+   "lat": 38.334575,
+   "lon": 38.306229
+  },
+  {
+   "name": "turkey-earthquake_00000659",
+   "lat": 38.334596,
+   "lon": 38.309804
+  },
+  {
+   "name": "turkey-earthquake_00000660",
+   "lat": 38.334617,
+   "lon": 38.313379
+  },
+  {
+   "name": "turkey-earthquake_00000661",
+   "lat": 38.334638,
+   "lon": 38.316955
+  },
+  {
+   "name": "turkey-earthquake_00000662",
+   "lat": 38.334659,
+   "lon": 38.32053
+  },
+  {
+   "name": "turkey-earthquake_00000663",
+   "lat": 38.33468,
+   "lon": 38.324105
+  },
+  {
+   "name": "turkey-earthquake_00000664",
+   "lat": 38.3347,
+   "lon": 38.327681
+  },
+  {
+   "name": "turkey-earthquake_00000665",
+   "lat": 38.331674,
+   "lon": 38.291954
+  },
+  {
+   "name": "turkey-earthquake_00000666",
+   "lat": 38.331695,
+   "lon": 38.29553
+  },
+  {
+   "name": "turkey-earthquake_00000667",
+   "lat": 38.331716,
+   "lon": 38.299105
+  },
+  {
+   "name": "turkey-earthquake_00000668",
+   "lat": 38.331738,
+   "lon": 38.30268
+  },
+  {
+   "name": "turkey-earthquake_00000669",
+   "lat": 38.331759,
+   "lon": 38.306255
+  },
+  {
+   "name": "turkey-earthquake_00000670",
+   "lat": 38.33178,
+   "lon": 38.309831
+  },
+  {
+   "name": "turkey-earthquake_00000671",
+   "lat": 38.331801,
+   "lon": 38.313406
+  },
+  {
+   "name": "turkey-earthquake_00000672",
+   "lat": 38.331822,
+   "lon": 38.316981
+  },
+  {
+   "name": "turkey-earthquake_00000673",
+   "lat": 38.328879,
+   "lon": 38.295557
+  },
+  {
+   "name": "turkey-earthquake_00000674",
+   "lat": 38.3289,
+   "lon": 38.299132
+  },
+  {
+   "name": "turkey-earthquake_00000675",
+   "lat": 38.328922,
+   "lon": 38.302707
+  },
+  {
+   "name": "turkey-earthquake_00000676",
+   "lat": 38.328943,
+   "lon": 38.306282
+  },
+  {
+   "name": "turkey-earthquake_00000677",
+   "lat": 38.328964,
+   "lon": 38.309857
+  },
+  {
+   "name": "turkey-earthquake_00000678",
+   "lat": 38.326063,
+   "lon": 38.295584
+  },
+  {
+   "name": "turkey-earthquake_00000679",
+   "lat": 38.326084,
+   "lon": 38.299159
+  },
+  {
+   "name": "turkey-earthquake_00000680",
+   "lat": 37.096122,
+   "lon": 36.244223
+  },
+  {
+   "name": "turkey-earthquake_00000681",
+   "lat": 37.096204,
+   "lon": 36.247735
+  },
+  {
+   "name": "turkey-earthquake_00000682",
+   "lat": 37.093308,
+   "lon": 36.244325
+  },
+  {
+   "name": "turkey-earthquake_00000683",
+   "lat": 37.09339,
+   "lon": 36.247837
+  },
+  {
+   "name": "turkey-earthquake_00000684",
+   "lat": 37.093471,
+   "lon": 36.25135
+  },
+  {
+   "name": "turkey-earthquake_00000685",
+   "lat": 37.093553,
+   "lon": 36.254862
+  },
+  {
+   "name": "turkey-earthquake_00000686",
+   "lat": 37.090413,
+   "lon": 36.240915
+  },
+  {
+   "name": "turkey-earthquake_00000687",
+   "lat": 37.090495,
+   "lon": 36.244427
+  },
+  {
+   "name": "turkey-earthquake_00000688",
+   "lat": 37.090576,
+   "lon": 36.247939
+  },
+  {
+   "name": "turkey-earthquake_00000689",
+   "lat": 37.090658,
+   "lon": 36.251451
+  },
+  {
+   "name": "turkey-earthquake_00000690",
+   "lat": 37.090739,
+   "lon": 36.254964
+  },
+  {
+   "name": "turkey-earthquake_00000691",
+   "lat": 37.09082,
+   "lon": 36.258476
+  },
+  {
+   "name": "turkey-earthquake_00000692",
+   "lat": 37.090902,
+   "lon": 36.261988
+  },
+  {
+   "name": "turkey-earthquake_00000693",
+   "lat": 37.087599,
+   "lon": 36.241017
+  },
+  {
+   "name": "turkey-earthquake_00000694",
+   "lat": 37.087681,
+   "lon": 36.244529
+  },
+  {
+   "name": "turkey-earthquake_00000695",
+   "lat": 37.087762,
+   "lon": 36.248041
+  },
+  {
+   "name": "turkey-earthquake_00000696",
+   "lat": 37.087844,
+   "lon": 36.251553
+  },
+  {
+   "name": "turkey-earthquake_00000697",
+   "lat": 37.087925,
+   "lon": 36.255065
+  },
+  {
+   "name": "turkey-earthquake_00000698",
+   "lat": 37.088007,
+   "lon": 36.258578
+  },
+  {
+   "name": "turkey-earthquake_00000699",
+   "lat": 37.088088,
+   "lon": 36.26209
+  },
+  {
+   "name": "turkey-earthquake_00000700",
+   "lat": 37.088169,
+   "lon": 36.265602
+  },
+  {
+   "name": "turkey-earthquake_00000701",
+   "lat": 37.08825,
+   "lon": 36.269114
+  },
+  {
+   "name": "turkey-earthquake_00000702",
+   "lat": 37.084704,
+   "lon": 36.237607
+  },
+  {
+   "name": "turkey-earthquake_00000703",
+   "lat": 37.084785,
+   "lon": 36.241119
+  },
+  {
+   "name": "turkey-earthquake_00000704",
+   "lat": 37.084867,
+   "lon": 36.244631
+  },
+  {
+   "name": "turkey-earthquake_00000705",
+   "lat": 37.084949,
+   "lon": 36.248143
+  },
+  {
+   "name": "turkey-earthquake_00000706",
+   "lat": 37.08503,
+   "lon": 36.251655
+  },
+  {
+   "name": "turkey-earthquake_00000707",
+   "lat": 37.085112,
+   "lon": 36.255167
+  },
+  {
+   "name": "turkey-earthquake_00000708",
+   "lat": 37.085193,
+   "lon": 36.258679
+  },
+  {
+   "name": "turkey-earthquake_00000709",
+   "lat": 37.085274,
+   "lon": 36.262191
+  },
+  {
+   "name": "turkey-earthquake_00000710",
+   "lat": 37.085355,
+   "lon": 36.265703
+  },
+  {
+   "name": "turkey-earthquake_00000711",
+   "lat": 37.085436,
+   "lon": 36.269215
+  },
+  {
+   "name": "turkey-earthquake_00000712",
+   "lat": 37.085517,
+   "lon": 36.272727
+  },
+  {
+   "name": "turkey-earthquake_00000713",
+   "lat": 37.085598,
+   "lon": 36.276239
+  },
+  {
+   "name": "turkey-earthquake_00000714",
+   "lat": 37.08189,
+   "lon": 36.237709
+  },
+  {
+   "name": "turkey-earthquake_00000715",
+   "lat": 37.081972,
+   "lon": 36.241221
+  },
+  {
+   "name": "turkey-earthquake_00000716",
+   "lat": 37.082053,
+   "lon": 36.244733
+  },
+  {
+   "name": "turkey-earthquake_00000717",
+   "lat": 37.082135,
+   "lon": 36.248245
+  },
+  {
+   "name": "turkey-earthquake_00000718",
+   "lat": 37.082217,
+   "lon": 36.251756
+  },
+  {
+   "name": "turkey-earthquake_00000719",
+   "lat": 37.082298,
+   "lon": 36.255268
+  },
+  {
+   "name": "turkey-earthquake_00000720",
+   "lat": 37.082379,
+   "lon": 36.25878
+  },
+  {
+   "name": "turkey-earthquake_00000721",
+   "lat": 37.08246,
+   "lon": 36.262292
+  },
+  {
+   "name": "turkey-earthquake_00000722",
+   "lat": 37.082541,
+   "lon": 36.265804
+  },
+  {
+   "name": "turkey-earthquake_00000723",
+   "lat": 37.082622,
+   "lon": 36.269316
+  },
+  {
+   "name": "turkey-earthquake_00000724",
+   "lat": 37.082703,
+   "lon": 36.272828
+  },
+  {
+   "name": "turkey-earthquake_00000725",
+   "lat": 37.082784,
+   "lon": 36.27634
+  },
+  {
+   "name": "turkey-earthquake_00000726",
+   "lat": 37.082865,
+   "lon": 36.279852
+  },
+  {
+   "name": "turkey-earthquake_00000727",
+   "lat": 37.082945,
+   "lon": 36.283364
+  },
+  {
+   "name": "turkey-earthquake_00000728",
+   "lat": 37.078994,
+   "lon": 36.234299
+  },
+  {
+   "name": "turkey-earthquake_00000729",
+   "lat": 37.079076,
+   "lon": 36.237811
+  },
+  {
+   "name": "turkey-earthquake_00000730",
+   "lat": 37.079158,
+   "lon": 36.241323
+  },
+  {
+   "name": "turkey-earthquake_00000731",
+   "lat": 37.07924,
+   "lon": 36.244835
+  },
+  {
+   "name": "turkey-earthquake_00000732",
+   "lat": 37.079321,
+   "lon": 36.248346
+  },
+  {
+   "name": "turkey-earthquake_00000733",
+   "lat": 37.079403,
+   "lon": 36.251858
+  },
+  {
+   "name": "turkey-earthquake_00000734",
+   "lat": 37.079484,
+   "lon": 36.25537
+  },
+  {
+   "name": "turkey-earthquake_00000735",
+   "lat": 37.079565,
+   "lon": 36.258882
+  },
+  {
+   "name": "turkey-earthquake_00000736",
+   "lat": 37.079647,
+   "lon": 36.262394
+  },
+  {
+   "name": "turkey-earthquake_00000737",
+   "lat": 37.079728,
+   "lon": 36.265905
+  },
+  {
+   "name": "turkey-earthquake_00000738",
+   "lat": 37.079809,
+   "lon": 36.269417
+  },
+  {
+   "name": "turkey-earthquake_00000739",
+   "lat": 37.07989,
+   "lon": 36.272929
+  },
+  {
+   "name": "turkey-earthquake_00000740",
+   "lat": 37.07997,
+   "lon": 36.276441
+  },
+  {
+   "name": "turkey-earthquake_00000741",
+   "lat": 37.080051,
+   "lon": 36.279953
+  },
+  {
+   "name": "turkey-earthquake_00000742",
+   "lat": 37.080132,
+   "lon": 36.283465
+  },
+  {
+   "name": "turkey-earthquake_00000743",
+   "lat": 37.076181,
+   "lon": 36.234402
+  },
+  {
+   "name": "turkey-earthquake_00000744",
+   "lat": 37.076263,
+   "lon": 36.237913
+  },
+  {
+   "name": "turkey-earthquake_00000745",
+   "lat": 37.076344,
+   "lon": 36.241425
+  },
+  {
+   "name": "turkey-earthquake_00000746",
+   "lat": 37.076426,
+   "lon": 36.244936
+  },
+  {
+   "name": "turkey-earthquake_00000747",
+   "lat": 37.076508,
+   "lon": 36.248448
+  },
+  {
+   "name": "turkey-earthquake_00000748",
+   "lat": 37.076589,
+   "lon": 36.25196
+  },
+  {
+   "name": "turkey-earthquake_00000749",
+   "lat": 37.07667,
+   "lon": 36.255471
+  },
+  {
+   "name": "turkey-earthquake_00000750",
+   "lat": 37.076752,
+   "lon": 36.258983
+  },
+  {
+   "name": "turkey-earthquake_00000751",
+   "lat": 37.076833,
+   "lon": 36.262495
+  },
+  {
+   "name": "turkey-earthquake_00000752",
+   "lat": 37.076914,
+   "lon": 36.266006
+  },
+  {
+   "name": "turkey-earthquake_00000753",
+   "lat": 37.076995,
+   "lon": 36.269518
+  },
+  {
+   "name": "turkey-earthquake_00000754",
+   "lat": 37.077076,
+   "lon": 36.27303
+  },
+  {
+   "name": "turkey-earthquake_00000755",
+   "lat": 37.077157,
+   "lon": 36.276542
+  },
+  {
+   "name": "turkey-earthquake_00000756",
+   "lat": 37.077237,
+   "lon": 36.280053
+  },
+  {
+   "name": "turkey-earthquake_00000757",
+   "lat": 37.077318,
+   "lon": 36.283565
+  },
+  {
+   "name": "turkey-earthquake_00000758",
+   "lat": 37.073285,
+   "lon": 36.230992
+  },
+  {
+   "name": "turkey-earthquake_00000759",
+   "lat": 37.073367,
+   "lon": 36.234504
+  },
+  {
+   "name": "turkey-earthquake_00000760",
+   "lat": 37.073449,
+   "lon": 36.238015
+  },
+  {
+   "name": "turkey-earthquake_00000761",
+   "lat": 37.073531,
+   "lon": 36.241527
+  },
+  {
+   "name": "turkey-earthquake_00000762",
+   "lat": 37.073612,
+   "lon": 36.245038
+  },
+  {
+   "name": "turkey-earthquake_00000763",
+   "lat": 37.073694,
+   "lon": 36.24855
+  },
+  {
+   "name": "turkey-earthquake_00000764",
+   "lat": 37.073775,
+   "lon": 36.252061
+  },
+  {
+   "name": "turkey-earthquake_00000765",
+   "lat": 37.073857,
+   "lon": 36.255573
+  },
+  {
+   "name": "turkey-earthquake_00000766",
+   "lat": 37.073938,
+   "lon": 36.259084
+  },
+  {
+   "name": "turkey-earthquake_00000767",
+   "lat": 37.074019,
+   "lon": 36.262596
+  },
+  {
+   "name": "turkey-earthquake_00000768",
+   "lat": 37.0741,
+   "lon": 36.266108
+  },
+  {
+   "name": "turkey-earthquake_00000769",
+   "lat": 37.074181,
+   "lon": 36.269619
+  },
+  {
+   "name": "turkey-earthquake_00000770",
+   "lat": 37.074262,
+   "lon": 36.273131
+  },
+  {
+   "name": "turkey-earthquake_00000771",
+   "lat": 37.074343,
+   "lon": 36.276642
+  },
+  {
+   "name": "turkey-earthquake_00000772",
+   "lat": 37.074423,
+   "lon": 36.280154
+  },
+  {
+   "name": "turkey-earthquake_00000773",
+   "lat": 37.070471,
+   "lon": 36.231095
+  },
+  {
+   "name": "turkey-earthquake_00000774",
+   "lat": 37.070553,
+   "lon": 36.234606
+  },
+  {
+   "name": "turkey-earthquake_00000775",
+   "lat": 37.070635,
+   "lon": 36.238117
+  },
+  {
+   "name": "turkey-earthquake_00000776",
+   "lat": 37.070717,
+   "lon": 36.241629
+  },
+  {
+   "name": "turkey-earthquake_00000777",
+   "lat": 37.070799,
+   "lon": 36.24514
+  },
+  {
+   "name": "turkey-earthquake_00000778",
+   "lat": 37.07088,
+   "lon": 36.248652
+  },
+  {
+   "name": "turkey-earthquake_00000779",
+   "lat": 37.070962,
+   "lon": 36.252163
+  },
+  {
+   "name": "turkey-earthquake_00000780",
+   "lat": 37.071043,
+   "lon": 36.255674
+  },
+  {
+   "name": "turkey-earthquake_00000781",
+   "lat": 37.071124,
+   "lon": 36.259186
+  },
+  {
+   "name": "turkey-earthquake_00000782",
+   "lat": 37.071205,
+   "lon": 36.262697
+  },
+  {
+   "name": "turkey-earthquake_00000783",
+   "lat": 37.071286,
+   "lon": 36.266209
+  },
+  {
+   "name": "turkey-earthquake_00000784",
+   "lat": 37.071367,
+   "lon": 36.26972
+  },
+  {
+   "name": "turkey-earthquake_00000785",
+   "lat": 37.071448,
+   "lon": 36.273232
+  },
+  {
+   "name": "turkey-earthquake_00000786",
+   "lat": 37.071529,
+   "lon": 36.276743
+  },
+  {
+   "name": "turkey-earthquake_00000787",
+   "lat": 37.07161,
+   "lon": 36.280255
+  },
+  {
+   "name": "turkey-earthquake_00000788",
+   "lat": 37.067576,
+   "lon": 36.227686
+  },
+  {
+   "name": "turkey-earthquake_00000789",
+   "lat": 37.067658,
+   "lon": 36.231197
+  },
+  {
+   "name": "turkey-earthquake_00000790",
+   "lat": 37.06774,
+   "lon": 36.234708
+  },
+  {
+   "name": "turkey-earthquake_00000791",
+   "lat": 37.067822,
+   "lon": 36.23822
+  },
+  {
+   "name": "turkey-earthquake_00000792",
+   "lat": 37.067903,
+   "lon": 36.241731
+  },
+  {
+   "name": "turkey-earthquake_00000793",
+   "lat": 37.067985,
+   "lon": 36.245242
+  },
+  {
+   "name": "turkey-earthquake_00000794",
+   "lat": 37.068066,
+   "lon": 36.248753
+  },
+  {
+   "name": "turkey-earthquake_00000795",
+   "lat": 37.068148,
+   "lon": 36.252265
+  },
+  {
+   "name": "turkey-earthquake_00000796",
+   "lat": 37.068229,
+   "lon": 36.255776
+  },
+  {
+   "name": "turkey-earthquake_00000797",
+   "lat": 37.068311,
+   "lon": 36.259287
+  },
+  {
+   "name": "turkey-earthquake_00000798",
+   "lat": 37.068392,
+   "lon": 36.262798
+  },
+  {
+   "name": "turkey-earthquake_00000799",
+   "lat": 37.068473,
+   "lon": 36.26631
+  },
+  {
+   "name": "turkey-earthquake_00000800",
+   "lat": 37.068554,
+   "lon": 36.269821
+  },
+  {
+   "name": "turkey-earthquake_00000801",
+   "lat": 37.068634,
+   "lon": 36.273332
+  },
+  {
+   "name": "turkey-earthquake_00000802",
+   "lat": 37.068715,
+   "lon": 36.276844
+  },
+  {
+   "name": "turkey-earthquake_00000803",
+   "lat": 37.064762,
+   "lon": 36.227788
+  },
+  {
+   "name": "turkey-earthquake_00000804",
+   "lat": 37.064844,
+   "lon": 36.2313
+  },
+  {
+   "name": "turkey-earthquake_00000805",
+   "lat": 37.064926,
+   "lon": 36.234811
+  },
+  {
+   "name": "turkey-earthquake_00000806",
+   "lat": 37.065008,
+   "lon": 36.238322
+  },
+  {
+   "name": "turkey-earthquake_00000807",
+   "lat": 37.06509,
+   "lon": 36.241833
+  },
+  {
+   "name": "turkey-earthquake_00000808",
+   "lat": 37.065171,
+   "lon": 36.245344
+  },
+  {
+   "name": "turkey-earthquake_00000809",
+   "lat": 37.065253,
+   "lon": 36.248855
+  },
+  {
+   "name": "turkey-earthquake_00000810",
+   "lat": 37.065334,
+   "lon": 36.252366
+  },
+  {
+   "name": "turkey-earthquake_00000811",
+   "lat": 37.065416,
+   "lon": 36.255877
+  },
+  {
+   "name": "turkey-earthquake_00000812",
+   "lat": 37.065497,
+   "lon": 36.259388
+  },
+  {
+   "name": "turkey-earthquake_00000813",
+   "lat": 37.065578,
+   "lon": 36.2629
+  },
+  {
+   "name": "turkey-earthquake_00000814",
+   "lat": 37.065659,
+   "lon": 36.266411
+  },
+  {
+   "name": "turkey-earthquake_00000815",
+   "lat": 37.06574,
+   "lon": 36.269922
+  },
+  {
+   "name": "turkey-earthquake_00000816",
+   "lat": 37.065821,
+   "lon": 36.273433
+  },
+  {
+   "name": "turkey-earthquake_00000817",
+   "lat": 37.065901,
+   "lon": 36.276944
+  },
+  {
+   "name": "turkey-earthquake_00000818",
+   "lat": 37.06203,
+   "lon": 36.231402
+  },
+  {
+   "name": "turkey-earthquake_00000819",
+   "lat": 37.062112,
+   "lon": 36.234913
+  },
+  {
+   "name": "turkey-earthquake_00000820",
+   "lat": 37.062194,
+   "lon": 36.238424
+  },
+  {
+   "name": "turkey-earthquake_00000821",
+   "lat": 37.062276,
+   "lon": 36.241935
+  },
+  {
+   "name": "turkey-earthquake_00000822",
+   "lat": 37.062357,
+   "lon": 36.245446
+  },
+  {
+   "name": "turkey-earthquake_00000823",
+   "lat": 37.062439,
+   "lon": 36.248957
+  },
+  {
+   "name": "turkey-earthquake_00000824",
+   "lat": 37.06252,
+   "lon": 36.252468
+  },
+  {
+   "name": "turkey-earthquake_00000825",
+   "lat": 37.062602,
+   "lon": 36.255979
+  },
+  {
+   "name": "turkey-earthquake_00000826",
+   "lat": 37.062683,
+   "lon": 36.25949
+  },
+  {
+   "name": "turkey-earthquake_00000827",
+   "lat": 37.062764,
+   "lon": 36.263001
+  },
+  {
+   "name": "turkey-earthquake_00000828",
+   "lat": 37.062845,
+   "lon": 36.266512
+  },
+  {
+   "name": "turkey-earthquake_00000829",
+   "lat": 37.062926,
+   "lon": 36.270023
+  },
+  {
+   "name": "turkey-earthquake_00000830",
+   "lat": 37.063007,
+   "lon": 36.273534
+  },
+  {
+   "name": "turkey-earthquake_00000831",
+   "lat": 37.05938,
+   "lon": 36.238526
+  },
+  {
+   "name": "turkey-earthquake_00000832",
+   "lat": 37.059462,
+   "lon": 36.242037
+  },
+  {
+   "name": "turkey-earthquake_00000833",
+   "lat": 37.059544,
+   "lon": 36.245547
+  },
+  {
+   "name": "turkey-earthquake_00000834",
+   "lat": 37.059625,
+   "lon": 36.249058
+  },
+  {
+   "name": "turkey-earthquake_00000835",
+   "lat": 37.059707,
+   "lon": 36.252569
+  },
+  {
+   "name": "turkey-earthquake_00000836",
+   "lat": 37.059788,
+   "lon": 36.25608
+  },
+  {
+   "name": "turkey-earthquake_00000837",
+   "lat": 37.059869,
+   "lon": 36.259591
+  },
+  {
+   "name": "turkey-earthquake_00000838",
+   "lat": 37.05995,
+   "lon": 36.263102
+  },
+  {
+   "name": "turkey-earthquake_00000839",
+   "lat": 37.060031,
+   "lon": 36.266613
+  },
+  {
+   "name": "turkey-earthquake_00000840",
+   "lat": 37.060112,
+   "lon": 36.270124
+  },
+  {
+   "name": "turkey-earthquake_00000841",
+   "lat": 37.060193,
+   "lon": 36.273635
+  },
+  {
+   "name": "turkey-earthquake_00000842",
+   "lat": 37.05673,
+   "lon": 36.245649
+  },
+  {
+   "name": "turkey-earthquake_00000843",
+   "lat": 37.056812,
+   "lon": 36.24916
+  },
+  {
+   "name": "turkey-earthquake_00000844",
+   "lat": 37.056893,
+   "lon": 36.252671
+  },
+  {
+   "name": "turkey-earthquake_00000845",
+   "lat": 37.056974,
+   "lon": 36.256181
+  },
+  {
+   "name": "turkey-earthquake_00000846",
+   "lat": 37.057056,
+   "lon": 36.259692
+  },
+  {
+   "name": "turkey-earthquake_00000847",
+   "lat": 37.057137,
+   "lon": 36.263203
+  },
+  {
+   "name": "turkey-earthquake_00000848",
+   "lat": 37.057218,
+   "lon": 36.266714
+  },
+  {
+   "name": "turkey-earthquake_00000849",
+   "lat": 37.057299,
+   "lon": 36.270225
+  },
+  {
+   "name": "turkey-earthquake_00000850",
+   "lat": 37.054079,
+   "lon": 36.252772
+  },
+  {
+   "name": "turkey-earthquake_00000851",
+   "lat": 37.054161,
+   "lon": 36.256283
+  },
+  {
+   "name": "turkey-earthquake_00000852",
+   "lat": 37.054242,
+   "lon": 36.259794
+  },
+  {
+   "name": "turkey-earthquake_00000853",
+   "lat": 37.054323,
+   "lon": 36.263304
+  },
+  {
+   "name": "turkey-earthquake_00000854",
+   "lat": 37.054404,
+   "lon": 36.266815
+  },
+  {
+   "name": "turkey-earthquake_00000855",
+   "lat": 37.054485,
+   "lon": 36.270326
+  },
+  {
+   "name": "turkey-earthquake_00000856",
+   "lat": 37.051428,
+   "lon": 36.259895
+  },
+  {
+   "name": "turkey-earthquake_00000857",
+   "lat": 37.051509,
+   "lon": 36.263405
+  },
+  {
+   "name": "turkey-earthquake_00000858",
+   "lat": 37.05159,
+   "lon": 36.266916
+  },
+  {
+   "name": "turkey-earthquake_00000859",
+   "lat": 37.042687,
+   "lon": 36.623821
+  },
+  {
+   "name": "turkey-earthquake_00000860",
+   "lat": 37.042828,
+   "lon": 36.630843
+  },
+  {
+   "name": "turkey-earthquake_00000861",
+   "lat": 37.042898,
+   "lon": 36.634355
+  },
+  {
+   "name": "turkey-earthquake_00000862",
+   "lat": 37.042968,
+   "lon": 36.637866
+  },
+  {
+   "name": "turkey-earthquake_00000863",
+   "lat": 37.043108,
+   "lon": 36.644888
+  },
+  {
+   "name": "turkey-earthquake_00000864",
+   "lat": 37.039661,
+   "lon": 36.613375
+  },
+  {
+   "name": "turkey-earthquake_00000865",
+   "lat": 37.039732,
+   "lon": 36.616886
+  },
+  {
+   "name": "turkey-earthquake_00000866",
+   "lat": 37.039943,
+   "lon": 36.62742
+  },
+  {
+   "name": "turkey-earthquake_00000867",
+   "lat": 37.040013,
+   "lon": 36.630931
+  },
+  {
+   "name": "turkey-earthquake_00000868",
+   "lat": 37.040083,
+   "lon": 36.634442
+  },
+  {
+   "name": "turkey-earthquake_00000869",
+   "lat": 37.040153,
+   "lon": 36.637953
+  },
+  {
+   "name": "turkey-earthquake_00000870",
+   "lat": 37.040432,
+   "lon": 36.651998
+  },
+  {
+   "name": "turkey-earthquake_00000871",
+   "lat": 37.036776,
+   "lon": 36.609952
+  },
+  {
+   "name": "turkey-earthquake_00000872",
+   "lat": 37.036847,
+   "lon": 36.613463
+  },
+  {
+   "name": "turkey-earthquake_00000873",
+   "lat": 37.036917,
+   "lon": 36.616974
+  },
+  {
+   "name": "turkey-earthquake_00000874",
+   "lat": 37.037128,
+   "lon": 36.627507
+  },
+  {
+   "name": "turkey-earthquake_00000875",
+   "lat": 37.037199,
+   "lon": 36.631018
+  },
+  {
+   "name": "turkey-earthquake_00000876",
+   "lat": 37.037269,
+   "lon": 36.634529
+  },
+  {
+   "name": "turkey-earthquake_00000877",
+   "lat": 37.037339,
+   "lon": 36.63804
+  },
+  {
+   "name": "turkey-earthquake_00000878",
+   "lat": 37.037409,
+   "lon": 36.641551
+  },
+  {
+   "name": "turkey-earthquake_00000879",
+   "lat": 37.037478,
+   "lon": 36.645062
+  },
+  {
+   "name": "turkey-earthquake_00000880",
+   "lat": 37.034032,
+   "lon": 36.613552
+  },
+  {
+   "name": "turkey-earthquake_00000881",
+   "lat": 37.034103,
+   "lon": 36.617062
+  },
+  {
+   "name": "turkey-earthquake_00000882",
+   "lat": 37.034173,
+   "lon": 36.620573
+  },
+  {
+   "name": "turkey-earthquake_00000883",
+   "lat": 37.034243,
+   "lon": 36.624084
+  },
+  {
+   "name": "turkey-earthquake_00000884",
+   "lat": 37.034314,
+   "lon": 36.627595
+  },
+  {
+   "name": "turkey-earthquake_00000885",
+   "lat": 37.034384,
+   "lon": 36.631106
+  },
+  {
+   "name": "turkey-earthquake_00000886",
+   "lat": 37.034454,
+   "lon": 36.634617
+  },
+  {
+   "name": "turkey-earthquake_00000887",
+   "lat": 37.034524,
+   "lon": 36.638128
+  },
+  {
+   "name": "turkey-earthquake_00000888",
+   "lat": 37.034594,
+   "lon": 36.641638
+  },
+  {
+   "name": "turkey-earthquake_00000889",
+   "lat": 37.034664,
+   "lon": 36.645149
+  },
+  {
+   "name": "turkey-earthquake_00000890",
+   "lat": 37.034733,
+   "lon": 36.64866
+  },
+  {
+   "name": "turkey-earthquake_00000891",
+   "lat": 37.031217,
+   "lon": 36.61364
+  },
+  {
+   "name": "turkey-earthquake_00000892",
+   "lat": 37.031288,
+   "lon": 36.61715
+  },
+  {
+   "name": "turkey-earthquake_00000893",
+   "lat": 37.031358,
+   "lon": 36.620661
+  },
+  {
+   "name": "turkey-earthquake_00000894",
+   "lat": 37.031429,
+   "lon": 36.624172
+  },
+  {
+   "name": "turkey-earthquake_00000895",
+   "lat": 37.031499,
+   "lon": 36.627682
+  },
+  {
+   "name": "turkey-earthquake_00000896",
+   "lat": 37.031569,
+   "lon": 36.631193
+  },
+  {
+   "name": "turkey-earthquake_00000897",
+   "lat": 37.031639,
+   "lon": 36.634704
+  },
+  {
+   "name": "turkey-earthquake_00000898",
+   "lat": 37.031709,
+   "lon": 36.638215
+  },
+  {
+   "name": "turkey-earthquake_00000899",
+   "lat": 37.031779,
+   "lon": 36.641725
+  },
+  {
+   "name": "turkey-earthquake_00000900",
+   "lat": 37.031849,
+   "lon": 36.645236
+  },
+  {
+   "name": "turkey-earthquake_00000901",
+   "lat": 37.031919,
+   "lon": 36.648747
+  },
+  {
+   "name": "turkey-earthquake_00000902",
+   "lat": 37.028544,
+   "lon": 36.620749
+  },
+  {
+   "name": "turkey-earthquake_00000903",
+   "lat": 37.028614,
+   "lon": 36.624259
+  },
+  {
+   "name": "turkey-earthquake_00000904",
+   "lat": 37.028684,
+   "lon": 36.62777
+  },
+  {
+   "name": "turkey-earthquake_00000905",
+   "lat": 37.028755,
+   "lon": 36.631281
+  },
+  {
+   "name": "turkey-earthquake_00000906",
+   "lat": 37.028825,
+   "lon": 36.634791
+  },
+  {
+   "name": "turkey-earthquake_00000907",
+   "lat": 37.028895,
+   "lon": 36.638302
+  },
+  {
+   "name": "turkey-earthquake_00000908",
+   "lat": 37.028964,
+   "lon": 36.641813
+  },
+  {
+   "name": "turkey-earthquake_00000909",
+   "lat": 37.029034,
+   "lon": 36.645323
+  },
+  {
+   "name": "turkey-earthquake_00000910",
+   "lat": 37.029104,
+   "lon": 36.648834
+  },
+  {
+   "name": "turkey-earthquake_00000911",
+   "lat": 37.029173,
+   "lon": 36.652345
+  },
+  {
+   "name": "turkey-earthquake_00000912",
+   "lat": 37.025659,
+   "lon": 36.617326
+  },
+  {
+   "name": "turkey-earthquake_00000913",
+   "lat": 37.025729,
+   "lon": 36.620837
+  },
+  {
+   "name": "turkey-earthquake_00000914",
+   "lat": 37.025799,
+   "lon": 36.624347
+  },
+  {
+   "name": "turkey-earthquake_00000915",
+   "lat": 37.02587,
+   "lon": 36.627858
+  },
+  {
+   "name": "turkey-earthquake_00000916",
+   "lat": 37.02594,
+   "lon": 36.631368
+  },
+  {
+   "name": "turkey-earthquake_00000917",
+   "lat": 37.02601,
+   "lon": 36.634879
+  },
+  {
+   "name": "turkey-earthquake_00000918",
+   "lat": 37.02608,
+   "lon": 36.638389
+  },
+  {
+   "name": "turkey-earthquake_00000919",
+   "lat": 37.02615,
+   "lon": 36.6419
+  },
+  {
+   "name": "turkey-earthquake_00000920",
+   "lat": 37.026219,
+   "lon": 36.64541
+  },
+  {
+   "name": "turkey-earthquake_00000921",
+   "lat": 37.026289,
+   "lon": 36.648921
+  },
+  {
+   "name": "turkey-earthquake_00000922",
+   "lat": 37.026359,
+   "lon": 36.652431
+  },
+  {
+   "name": "turkey-earthquake_00000923",
+   "lat": 37.022703,
+   "lon": 36.610394
+  },
+  {
+   "name": "turkey-earthquake_00000924",
+   "lat": 37.022773,
+   "lon": 36.613904
+  },
+  {
+   "name": "turkey-earthquake_00000925",
+   "lat": 37.022844,
+   "lon": 36.617414
+  },
+  {
+   "name": "turkey-earthquake_00000926",
+   "lat": 37.022914,
+   "lon": 36.620925
+  },
+  {
+   "name": "turkey-earthquake_00000927",
+   "lat": 37.022985,
+   "lon": 36.624435
+  },
+  {
+   "name": "turkey-earthquake_00000928",
+   "lat": 37.023055,
+   "lon": 36.627945
+  },
+  {
+   "name": "turkey-earthquake_00000929",
+   "lat": 37.023125,
+   "lon": 36.631456
+  },
+  {
+   "name": "turkey-earthquake_00000930",
+   "lat": 37.023195,
+   "lon": 36.634966
+  },
+  {
+   "name": "turkey-earthquake_00000931",
+   "lat": 37.023265,
+   "lon": 36.638476
+  },
+  {
+   "name": "turkey-earthquake_00000932",
+   "lat": 37.023335,
+   "lon": 36.641987
+  },
+  {
+   "name": "turkey-earthquake_00000933",
+   "lat": 37.023405,
+   "lon": 36.645497
+  },
+  {
+   "name": "turkey-earthquake_00000934",
+   "lat": 37.023474,
+   "lon": 36.649007
+  },
+  {
+   "name": "turkey-earthquake_00000935",
+   "lat": 37.023544,
+   "lon": 36.652518
+  },
+  {
+   "name": "turkey-earthquake_00000936",
+   "lat": 37.023613,
+   "lon": 36.656028
+  },
+  {
+   "name": "turkey-earthquake_00000937",
+   "lat": 37.020029,
+   "lon": 36.617502
+  },
+  {
+   "name": "turkey-earthquake_00000938",
+   "lat": 37.0201,
+   "lon": 36.621012
+  },
+  {
+   "name": "turkey-earthquake_00000939",
+   "lat": 37.02017,
+   "lon": 36.624523
+  },
+  {
+   "name": "turkey-earthquake_00000940",
+   "lat": 37.02024,
+   "lon": 36.628033
+  },
+  {
+   "name": "turkey-earthquake_00000941",
+   "lat": 37.020311,
+   "lon": 36.631543
+  },
+  {
+   "name": "turkey-earthquake_00000942",
+   "lat": 37.020381,
+   "lon": 36.635053
+  },
+  {
+   "name": "turkey-earthquake_00000943",
+   "lat": 37.020451,
+   "lon": 36.638563
+  },
+  {
+   "name": "turkey-earthquake_00000944",
+   "lat": 37.02052,
+   "lon": 36.642074
+  },
+  {
+   "name": "turkey-earthquake_00000945",
+   "lat": 37.02059,
+   "lon": 36.645584
+  },
+  {
+   "name": "turkey-earthquake_00000946",
+   "lat": 37.02066,
+   "lon": 36.649094
+  },
+  {
+   "name": "turkey-earthquake_00000947",
+   "lat": 37.017144,
+   "lon": 36.61408
+  },
+  {
+   "name": "turkey-earthquake_00000948",
+   "lat": 37.017215,
+   "lon": 36.61759
+  },
+  {
+   "name": "turkey-earthquake_00000949",
+   "lat": 37.017355,
+   "lon": 36.62461
+  },
+  {
+   "name": "turkey-earthquake_00000950",
+   "lat": 37.017426,
+   "lon": 36.62812
+  },
+  {
+   "name": "turkey-earthquake_00000951",
+   "lat": 37.017496,
+   "lon": 36.63163
+  },
+  {
+   "name": "turkey-earthquake_00000952",
+   "lat": 37.017566,
+   "lon": 36.63514
+  },
+  {
+   "name": "turkey-earthquake_00000953",
+   "lat": 37.017636,
+   "lon": 36.638651
+  },
+  {
+   "name": "turkey-earthquake_00000954",
+   "lat": 37.017706,
+   "lon": 36.642161
+  },
+  {
+   "name": "turkey-earthquake_00000955",
+   "lat": 37.017775,
+   "lon": 36.645671
+  },
+  {
+   "name": "turkey-earthquake_00000956",
+   "lat": 37.017845,
+   "lon": 36.649181
+  },
+  {
+   "name": "turkey-earthquake_00000957",
+   "lat": 37.017915,
+   "lon": 36.652691
+  },
+  {
+   "name": "turkey-earthquake_00000958",
+   "lat": 37.0144,
+   "lon": 36.617678
+  },
+  {
+   "name": "turkey-earthquake_00000959",
+   "lat": 37.01447,
+   "lon": 36.621188
+  },
+  {
+   "name": "turkey-earthquake_00000960",
+   "lat": 37.014541,
+   "lon": 36.624698
+  },
+  {
+   "name": "turkey-earthquake_00000961",
+   "lat": 37.014611,
+   "lon": 36.628208
+  },
+  {
+   "name": "turkey-earthquake_00000962",
+   "lat": 37.014681,
+   "lon": 36.631718
+  },
+  {
+   "name": "turkey-earthquake_00000963",
+   "lat": 37.014751,
+   "lon": 36.635228
+  },
+  {
+   "name": "turkey-earthquake_00000964",
+   "lat": 37.014821,
+   "lon": 36.638738
+  },
+  {
+   "name": "turkey-earthquake_00000965",
+   "lat": 37.014961,
+   "lon": 36.645758
+  },
+  {
+   "name": "turkey-earthquake_00000966",
+   "lat": 37.01503,
+   "lon": 36.649268
+  },
+  {
+   "name": "turkey-earthquake_00000967",
+   "lat": 37.011515,
+   "lon": 36.614256
+  },
+  {
+   "name": "turkey-earthquake_00000968",
+   "lat": 37.011585,
+   "lon": 36.617766
+  },
+  {
+   "name": "turkey-earthquake_00000969",
+   "lat": 37.011656,
+   "lon": 36.621276
+  },
+  {
+   "name": "turkey-earthquake_00000970",
+   "lat": 37.011726,
+   "lon": 36.624786
+  },
+  {
+   "name": "turkey-earthquake_00000971",
+   "lat": 37.011796,
+   "lon": 36.628295
+  },
+  {
+   "name": "turkey-earthquake_00000972",
+   "lat": 37.011866,
+   "lon": 36.631805
+  },
+  {
+   "name": "turkey-earthquake_00000973",
+   "lat": 37.011937,
+   "lon": 36.635315
+  },
+  {
+   "name": "turkey-earthquake_00000974",
+   "lat": 37.012006,
+   "lon": 36.638825
+  },
+  {
+   "name": "turkey-earthquake_00000975",
+   "lat": 37.0087,
+   "lon": 36.614344
+  },
+  {
+   "name": "turkey-earthquake_00000976",
+   "lat": 37.008771,
+   "lon": 36.617854
+  },
+  {
+   "name": "turkey-earthquake_00000977",
+   "lat": 37.008841,
+   "lon": 36.621363
+  },
+  {
+   "name": "turkey-earthquake_00000978",
+   "lat": 37.008911,
+   "lon": 36.624873
+  },
+  {
+   "name": "turkey-earthquake_00000979",
+   "lat": 37.008982,
+   "lon": 36.628383
+  },
+  {
+   "name": "turkey-earthquake_00000980",
+   "lat": 37.009052,
+   "lon": 36.631893
+  },
+  {
+   "name": "turkey-earthquake_00000981",
+   "lat": 37.005956,
+   "lon": 36.617942
+  },
+  {
+   "name": "turkey-earthquake_00000982",
+   "lat": 37.006026,
+   "lon": 36.621451
+  },
+  {
+   "name": "turkey-earthquake_00000983",
+   "lat": 37.006097,
+   "lon": 36.624961
+  },
+  {
+   "name": "turkey-earthquake_00000984",
+   "lat": 36.222112,
+   "lon": 36.141805
+  },
+  {
+   "name": "turkey-earthquake_00000985",
+   "lat": 36.222195,
+   "lon": 36.145278
+  },
+  {
+   "name": "turkey-earthquake_00000986",
+   "lat": 36.222278,
+   "lon": 36.148751
+  },
+  {
+   "name": "turkey-earthquake_00000987",
+   "lat": 36.222361,
+   "lon": 36.152224
+  },
+  {
+   "name": "turkey-earthquake_00000988",
+   "lat": 36.222444,
+   "lon": 36.155697
+  },
+  {
+   "name": "turkey-earthquake_00000989",
+   "lat": 36.219298,
+   "lon": 36.141908
+  },
+  {
+   "name": "turkey-earthquake_00000990",
+   "lat": 36.219381,
+   "lon": 36.14538
+  },
+  {
+   "name": "turkey-earthquake_00000991",
+   "lat": 36.219464,
+   "lon": 36.148853
+  },
+  {
+   "name": "turkey-earthquake_00000992",
+   "lat": 36.219547,
+   "lon": 36.152326
+  },
+  {
+   "name": "turkey-earthquake_00000993",
+   "lat": 36.21963,
+   "lon": 36.155799
+  },
+  {
+   "name": "turkey-earthquake_00000994",
+   "lat": 36.219712,
+   "lon": 36.159271
+  },
+  {
+   "name": "turkey-earthquake_00000995",
+   "lat": 36.219795,
+   "lon": 36.162744
+  },
+  {
+   "name": "turkey-earthquake_00000996",
+   "lat": 36.219877,
+   "lon": 36.166217
+  },
+  {
+   "name": "turkey-earthquake_00000997",
+   "lat": 36.219959,
+   "lon": 36.16969
+  },
+  {
+   "name": "turkey-earthquake_00000998",
+   "lat": 36.216484,
+   "lon": 36.14201
+  },
+  {
+   "name": "turkey-earthquake_00000999",
+   "lat": 36.216567,
+   "lon": 36.145483
+  },
+  {
+   "name": "turkey-earthquake_00001000",
+   "lat": 36.21665,
+   "lon": 36.148955
+  },
+  {
+   "name": "turkey-earthquake_00001001",
+   "lat": 36.216733,
+   "lon": 36.152428
+  },
+  {
+   "name": "turkey-earthquake_00001002",
+   "lat": 36.216816,
+   "lon": 36.155901
+  },
+  {
+   "name": "turkey-earthquake_00001003",
+   "lat": 36.216898,
+   "lon": 36.159373
+  },
+  {
+   "name": "turkey-earthquake_00001004",
+   "lat": 36.216981,
+   "lon": 36.162846
+  },
+  {
+   "name": "turkey-earthquake_00001005",
+   "lat": 36.217063,
+   "lon": 36.166319
+  },
+  {
+   "name": "turkey-earthquake_00001006",
+   "lat": 36.217145,
+   "lon": 36.169791
+  },
+  {
+   "name": "turkey-earthquake_00001007",
+   "lat": 36.217227,
+   "lon": 36.173264
+  },
+  {
+   "name": "turkey-earthquake_00001008",
+   "lat": 36.217309,
+   "lon": 36.176737
+  },
+  {
+   "name": "turkey-earthquake_00001009",
+   "lat": 36.217391,
+   "lon": 36.180209
+  },
+  {
+   "name": "turkey-earthquake_00001010",
+   "lat": 36.217473,
+   "lon": 36.183682
+  },
+  {
+   "name": "turkey-earthquake_00001011",
+   "lat": 36.213671,
+   "lon": 36.142112
+  },
+  {
+   "name": "turkey-earthquake_00001012",
+   "lat": 36.213754,
+   "lon": 36.145585
+  },
+  {
+   "name": "turkey-earthquake_00001013",
+   "lat": 36.213836,
+   "lon": 36.149057
+  },
+  {
+   "name": "turkey-earthquake_00001014",
+   "lat": 36.213919,
+   "lon": 36.15253
+  },
+  {
+   "name": "turkey-earthquake_00001015",
+   "lat": 36.214002,
+   "lon": 36.156002
+  },
+  {
+   "name": "turkey-earthquake_00001016",
+   "lat": 36.214084,
+   "lon": 36.159475
+  },
+  {
+   "name": "turkey-earthquake_00001017",
+   "lat": 36.214167,
+   "lon": 36.162948
+  },
+  {
+   "name": "turkey-earthquake_00001018",
+   "lat": 36.214249,
+   "lon": 36.16642
+  },
+  {
+   "name": "turkey-earthquake_00001019",
+   "lat": 36.214331,
+   "lon": 36.169893
+  },
+  {
+   "name": "turkey-earthquake_00001020",
+   "lat": 36.214413,
+   "lon": 36.173365
+  },
+  {
+   "name": "turkey-earthquake_00001021",
+   "lat": 36.214495,
+   "lon": 36.176838
+  },
+  {
+   "name": "turkey-earthquake_00001022",
+   "lat": 36.214577,
+   "lon": 36.180311
+  },
+  {
+   "name": "turkey-earthquake_00001023",
+   "lat": 36.210774,
+   "lon": 36.138742
+  },
+  {
+   "name": "turkey-earthquake_00001024",
+   "lat": 36.210857,
+   "lon": 36.142215
+  },
+  {
+   "name": "turkey-earthquake_00001025",
+   "lat": 36.21094,
+   "lon": 36.145687
+  },
+  {
+   "name": "turkey-earthquake_00001026",
+   "lat": 36.211022,
+   "lon": 36.14916
+  },
+  {
+   "name": "turkey-earthquake_00001027",
+   "lat": 36.211105,
+   "lon": 36.152632
+  },
+  {
+   "name": "turkey-earthquake_00001028",
+   "lat": 36.211188,
+   "lon": 36.156104
+  },
+  {
+   "name": "turkey-earthquake_00001029",
+   "lat": 36.21127,
+   "lon": 36.159577
+  },
+  {
+   "name": "turkey-earthquake_00001030",
+   "lat": 36.211353,
+   "lon": 36.163049
+  },
+  {
+   "name": "turkey-earthquake_00001031",
+   "lat": 36.211435,
+   "lon": 36.166522
+  },
+  {
+   "name": "turkey-earthquake_00001032",
+   "lat": 36.211517,
+   "lon": 36.169994
+  },
+  {
+   "name": "turkey-earthquake_00001033",
+   "lat": 36.211599,
+   "lon": 36.173467
+  },
+  {
+   "name": "turkey-earthquake_00001034",
+   "lat": 36.211682,
+   "lon": 36.176939
+  },
+  {
+   "name": "turkey-earthquake_00001035",
+   "lat": 36.211763,
+   "lon": 36.180412
+  },
+  {
+   "name": "turkey-earthquake_00001036",
+   "lat": 36.20796,
+   "lon": 36.138845
+  },
+  {
+   "name": "turkey-earthquake_00001037",
+   "lat": 36.208043,
+   "lon": 36.142317
+  },
+  {
+   "name": "turkey-earthquake_00001038",
+   "lat": 36.208126,
+   "lon": 36.145789
+  },
+  {
+   "name": "turkey-earthquake_00001039",
+   "lat": 36.208209,
+   "lon": 36.149262
+  },
+  {
+   "name": "turkey-earthquake_00001040",
+   "lat": 36.208291,
+   "lon": 36.152734
+  },
+  {
+   "name": "turkey-earthquake_00001041",
+   "lat": 36.208374,
+   "lon": 36.156206
+  },
+  {
+   "name": "turkey-earthquake_00001042",
+   "lat": 36.208456,
+   "lon": 36.159679
+  },
+  {
+   "name": "turkey-earthquake_00001043",
+   "lat": 36.208539,
+   "lon": 36.163151
+  },
+  {
+   "name": "turkey-earthquake_00001044",
+   "lat": 36.208621,
+   "lon": 36.166623
+  },
+  {
+   "name": "turkey-earthquake_00001045",
+   "lat": 36.208703,
+   "lon": 36.170096
+  },
+  {
+   "name": "turkey-earthquake_00001046",
+   "lat": 36.208786,
+   "lon": 36.173568
+  },
+  {
+   "name": "turkey-earthquake_00001047",
+   "lat": 36.208868,
+   "lon": 36.17704
+  },
+  {
+   "name": "turkey-earthquake_00001048",
+   "lat": 36.205146,
+   "lon": 36.138948
+  },
+  {
+   "name": "turkey-earthquake_00001049",
+   "lat": 36.205229,
+   "lon": 36.14242
+  },
+  {
+   "name": "turkey-earthquake_00001050",
+   "lat": 36.205312,
+   "lon": 36.145892
+  },
+  {
+   "name": "turkey-earthquake_00001051",
+   "lat": 36.205395,
+   "lon": 36.149364
+  },
+  {
+   "name": "turkey-earthquake_00001052",
+   "lat": 36.205477,
+   "lon": 36.152836
+  },
+  {
+   "name": "turkey-earthquake_00001053",
+   "lat": 36.20556,
+   "lon": 36.156308
+  },
+  {
+   "name": "turkey-earthquake_00001054",
+   "lat": 36.205643,
+   "lon": 36.15978
+  },
+  {
+   "name": "turkey-earthquake_00001055",
+   "lat": 36.205725,
+   "lon": 36.163252
+  },
+  {
+   "name": "turkey-earthquake_00001056",
+   "lat": 36.205807,
+   "lon": 36.166725
+  },
+  {
+   "name": "turkey-earthquake_00001057",
+   "lat": 36.205889,
+   "lon": 36.170197
+  },
+  {
+   "name": "turkey-earthquake_00001058",
+   "lat": 36.205972,
+   "lon": 36.173669
+  },
+  {
+   "name": "turkey-earthquake_00001059",
+   "lat": 36.202332,
+   "lon": 36.13905
+  },
+  {
+   "name": "turkey-earthquake_00001060",
+   "lat": 36.202415,
+   "lon": 36.142522
+  },
+  {
+   "name": "turkey-earthquake_00001061",
+   "lat": 36.202498,
+   "lon": 36.145994
+  },
+  {
+   "name": "turkey-earthquake_00001062",
+   "lat": 36.202581,
+   "lon": 36.149466
+  },
+  {
+   "name": "turkey-earthquake_00001063",
+   "lat": 36.202663,
+   "lon": 36.152938
+  },
+  {
+   "name": "turkey-earthquake_00001064",
+   "lat": 36.202746,
+   "lon": 36.15641
+  },
+  {
+   "name": "turkey-earthquake_00001065",
+   "lat": 36.202829,
+   "lon": 36.159882
+  },
+  {
+   "name": "turkey-earthquake_00001066",
+   "lat": 36.202911,
+   "lon": 36.163354
+  },
+  {
+   "name": "turkey-earthquake_00001067",
+   "lat": 36.202993,
+   "lon": 36.166826
+  },
+  {
+   "name": "turkey-earthquake_00001068",
+   "lat": 36.199518,
+   "lon": 36.139152
+  },
+  {
+   "name": "turkey-earthquake_00001069",
+   "lat": 36.199601,
+   "lon": 36.142624
+  },
+  {
+   "name": "turkey-earthquake_00001070",
+   "lat": 36.199684,
+   "lon": 36.146096
+  },
+  {
+   "name": "turkey-earthquake_00001071",
+   "lat": 36.199767,
+   "lon": 36.149568
+  },
+  {
+   "name": "turkey-earthquake_00001072",
+   "lat": 36.19985,
+   "lon": 36.15304
+  },
+  {
+   "name": "turkey-earthquake_00001073",
+   "lat": 36.199932,
+   "lon": 36.156512
+  },
+  {
+   "name": "turkey-earthquake_00001074",
+   "lat": 36.200015,
+   "lon": 36.159984
+  },
+  {
+   "name": "turkey-earthquake_00001075",
+   "lat": 36.200097,
+   "lon": 36.163456
+  },
+  {
+   "name": "turkey-earthquake_00001076",
+   "lat": 36.196621,
+   "lon": 36.135783
+  },
+  {
+   "name": "turkey-earthquake_00001077",
+   "lat": 36.196704,
+   "lon": 36.139255
+  },
+  {
+   "name": "turkey-earthquake_00001078",
+   "lat": 36.196787,
+   "lon": 36.142727
+  },
+  {
+   "name": "turkey-earthquake_00001079",
+   "lat": 36.19687,
+   "lon": 36.146198
+  },
+  {
+   "name": "turkey-earthquake_00001080",
+   "lat": 36.196953,
+   "lon": 36.14967
+  },
+  {
+   "name": "turkey-earthquake_00001081",
+   "lat": 36.197036,
+   "lon": 36.153142
+  },
+  {
+   "name": "turkey-earthquake_00001082",
+   "lat": 36.197118,
+   "lon": 36.156614
+  },
+  {
+   "name": "turkey-earthquake_00001083",
+   "lat": 36.197201,
+   "lon": 36.160085
+  },
+  {
+   "name": "turkey-earthquake_00001084",
+   "lat": 36.197283,
+   "lon": 36.163557
+  },
+  {
+   "name": "turkey-earthquake_00001085",
+   "lat": 36.193807,
+   "lon": 36.135886
+  },
+  {
+   "name": "turkey-earthquake_00001086",
+   "lat": 36.19389,
+   "lon": 36.139357
+  },
+  {
+   "name": "turkey-earthquake_00001087",
+   "lat": 36.193973,
+   "lon": 36.142829
+  },
+  {
+   "name": "turkey-earthquake_00001088",
+   "lat": 36.194056,
+   "lon": 36.146301
+  },
+  {
+   "name": "turkey-earthquake_00001089",
+   "lat": 36.194139,
+   "lon": 36.149772
+  },
+  {
+   "name": "turkey-earthquake_00001090",
+   "lat": 36.194222,
+   "lon": 36.153244
+  },
+  {
+   "name": "turkey-earthquake_00001091",
+   "lat": 36.194304,
+   "lon": 36.156716
+  },
+  {
+   "name": "turkey-earthquake_00001092",
+   "lat": 36.194387,
+   "lon": 36.160187
+  },
+  {
+   "name": "turkey-earthquake_00001093",
+   "lat": 36.194469,
+   "lon": 36.163659
+  },
+  {
+   "name": "turkey-earthquake_00001094",
+   "lat": 36.190993,
+   "lon": 36.135988
+  },
+  {
+   "name": "turkey-earthquake_00001095",
+   "lat": 36.191076,
+   "lon": 36.13946
+  },
+  {
+   "name": "turkey-earthquake_00001096",
+   "lat": 36.191159,
+   "lon": 36.142931
+  },
+  {
+   "name": "turkey-earthquake_00001097",
+   "lat": 36.191242,
+   "lon": 36.146403
+  },
+  {
+   "name": "turkey-earthquake_00001098",
+   "lat": 36.191325,
+   "lon": 36.149874
+  },
+  {
+   "name": "turkey-earthquake_00001099",
+   "lat": 36.191408,
+   "lon": 36.153346
+  },
+  {
+   "name": "turkey-earthquake_00001100",
+   "lat": 36.19149,
+   "lon": 36.156817
+  },
+  {
+   "name": "turkey-earthquake_00001101",
+   "lat": 36.191573,
+   "lon": 36.160289
+  },
+  {
+   "name": "turkey-earthquake_00001102",
+   "lat": 36.18818,
+   "lon": 36.136091
+  },
+  {
+   "name": "turkey-earthquake_00001103",
+   "lat": 36.188263,
+   "lon": 36.139562
+  },
+  {
+   "name": "turkey-earthquake_00001104",
+   "lat": 36.188346,
+   "lon": 36.143034
+  },
+  {
+   "name": "turkey-earthquake_00001105",
+   "lat": 36.188428,
+   "lon": 36.146505
+  },
+  {
+   "name": "turkey-earthquake_00001106",
+   "lat": 36.188511,
+   "lon": 36.149976
+  },
+  {
+   "name": "turkey-earthquake_00001107",
+   "lat": 36.188594,
+   "lon": 36.153448
+  },
+  {
+   "name": "turkey-earthquake_00001108",
+   "lat": 36.188676,
+   "lon": 36.156919
+  },
+  {
+   "name": "turkey-earthquake_00001109",
+   "lat": 36.188759,
+   "lon": 36.160391
+  },
+  {
+   "name": "turkey-earthquake_00001110",
+   "lat": 36.185615,
+   "lon": 36.146607
+  },
+  {
+   "name": "turkey-earthquake_00001111",
+   "lat": 36.185697,
+   "lon": 36.150078
+  },
+  {
+   "name": "turkey-earthquake_00001112",
+   "lat": 36.18578,
+   "lon": 36.15355
+  },
+  {
+   "name": "turkey-earthquake_00001113",
+   "lat": 36.185862,
+   "lon": 36.157021
+  }
+ ]
+}

@@ -1,0 +1,121 @@
+{
+ "kind": "research",
+ "question": "Bina ornek etiketleri hangi karelerde var (yalniz dosya adlari)",
+ "source": "Kullervo/BRIGHT cvprw26_trainval_instance_labels.zip merkez dizini",
+ "format": "COCO benzeri JSON: images[].geo_reference, annotations[].segmentation/bbox/category_id",
+ "train": {
+  "bata-explosion": {
+   "tiles": 93,
+   "with_instances": 93
+  },
+  "beirut-explosion": {
+   "tiles": 116,
+   "with_instances": 116
+  },
+  "congo-volcano": {
+   "tiles": 108,
+   "with_instances": 108
+  },
+  "haiti-earthquake": {
+   "tiles": 63,
+   "with_instances": 63
+  },
+  "hawaii-wildfire": {
+   "tiles": 56,
+   "with_instances": 56
+  },
+  "la_palma-volcano": {
+   "tiles": 836,
+   "with_instances": 836
+  },
+  "libya-flood": {
+   "tiles": 109,
+   "with_instances": 109
+  },
+  "marshall-wildfire": {
+   "tiles": 69,
+   "with_instances": 69
+  },
+  "mexico-hurricane": {
+   "tiles": 192,
+   "with_instances": 0
+  },
+  "morocco-earthquake": {
+   "tiles": 508,
+   "with_instances": 508
+  },
+  "myanmar-hurricane": {
+   "tiles": 113,
+   "with_instances": 0
+  },
+  "noto-earthquake": {
+   "tiles": 70,
+   "with_instances": 70
+  },
+  "ukraine-conflict": {
+   "tiles": 462,
+   "with_instances": 0
+  }
+ },
+ "val": {
+  "bata-explosion": {
+   "tiles": 14,
+   "with_instances": 0
+  },
+  "beirut-explosion": {
+   "tiles": 17,
+   "with_instances": 0
+  },
+  "congo-volcano": {
+   "tiles": 15,
+   "with_instances": 0
+  },
+  "haiti-earthquake": {
+   "tiles": 10,
+   "with_instances": 0
+  },
+  "hawaii-wildfire": {
+   "tiles": 9,
+   "with_instances": 0
+  },
+  "la_palma-volcano": {
+   "tiles": 97,
+   "with_instances": 0
+  },
+  "libya-flood": {
+   "tiles": 15,
+   "with_instances": 0
+  },
+  "marshall-wildfire": {
+   "tiles": 8,
+   "with_instances": 0
+  },
+  "mexico-hurricane": {
+   "tiles": 20,
+   "with_instances": 0
+  },
+  "morocco-earthquake": {
+   "tiles": 59,
+   "with_instances": 0
+  },
+  "myanmar-hurricane": {
+   "tiles": 13,
+   "with_instances": 0
+  },
+  "noto-earthquake": {
+   "tiles": 9,
+   "with_instances": 0
+  },
+  "ukraine-conflict": {
+   "tiles": 51,
+   "with_instances": 0
+  }
+ },
+ "test": {
+  "turkey-earthquake": {
+   "tiles": 1114,
+   "with_instances": 1001
+  }
+ },
+ "unlisted_names": 0
+}
