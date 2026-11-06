@@ -123,8 +123,12 @@ benzeri bir desen olur. Bu bir hata değil, radarın doğasıdır; ama modelin "
 
 **Desibel (dB).** Radar genliği çok geniş bir aralıkta değişir (bazı noktalar binlerce kat daha parlaktır).
 Bu yüzden genellikle logaritmik ölçeğe, **desibele** çevrilerek kullanılır: `dB = 10 · log10(güç)`. BRIGHT'ta SAR
-0–255 arası tam sayılar (uint8) olarak saklanıyor; bu değerlerin doğrusal genlik mi yoksa dB'den mi türetildiği
-henüz doğrulanmadı (Faz 2'de bakılacak). Bu ayrıntı önemli, çünkü model girdisinin ölçeği öğrenmeyi etkiler.
+0–255 arası tam sayılar (uint8) olarak saklanıyor. Faz 2'de 13 eğitim olayından örnek karelerle ölçtük: değerler
+doğrusal genlik gibi davranmıyor. Doğrusal ölçekte benek **çarpımsaldır**: parlak bölgede dalgalanma da büyür, yani
+küçük bir bloğun standart sapması ortalamasıyla orantılı artar (log-log eğimi ~1). BRIGHT'ta bu eğim 0,2 çıktı;
+dalgalanma parlaklıktan neredeyse bağımsız. Bu, logaritmik (dB benzeri) bir ölçeğin işaretidir. Olayların ortalama
+parlaklığı da 41 ile 104 arasında değişiyor; her olaya farklı bir "germe" uygulanmış olabilir. Sonuç: ana model
+için dB'ye çevirme adımı gerekmiyor; olaylar arası ölçek farkı A3 fikrinin (Bölüm 13) konusu.
 
 **Koherans (coherence).** Aynı yerin aynı yörüngeden, birkaç gün arayla çekilmiş iki radar görüntüsünün yalnız
 genliği değil **fazı** da karşılaştırılabilir. Hiçbir şey değişmediyse iki görüntü faz olarak birbirine çok
@@ -798,9 +802,12 @@ insanlar açısından eşit önemdedir. Bu yüzden **bina düzeyi** ölçüm de 
 yıkıkların kaçını buldum?") harmonik ortalamasıdır. **Makro** F1, her sınıfın F1'ini ayrı hesaplayıp eşit ağırlıkla
 ortalar; nadir sınıfları ezmez.
 
-Açık bir soru: BRIGHT'ın etiketi raster (piksel haritası); bina sınırları ayrı bir dosyada olmayabilir. Bitişik
-binalar piksel haritasında birleşik görünür. Yoğun Antakya dokusunda bu, birkaç binanın tek bina sayılması demek.
-BRIGHT'ın örnek (instance) etiketleri olup olmadığı Faz 2'de araştırılacak.
+BRIGHT'ın ana etiketi raster (piksel haritası); bitişik binalar orada birleşik görünür. Faz 2'de ölçtük: etiketteki
+birbirine değen bina piksellerini tek nesne sayarsak (bağlı bileşen), 13 olayda bina sayısının yalnız %61'ini
+buluyoruz; binaların yaklaşık %39'u komşusuyla birleşiyor. Neyse ki BRIGHT'ın 2026 CVPR çalıştayı için yayımlanan
+**örnek (instance) etiketleri** var: her bina ayrı bir çokgen (COCO biçimi). Türkiye'nin 1.114 karesinin 1.001'inde
+bu dosya bulunuyor (yalnız dosya adlarına bakarak saydık, içlerini açmadan). Öneri: bina düzeyi metrik bu 1.001
+karede örnek etiketleriyle hesaplanır.
 
 ### 8.5 Test zamanı artırımı (TTA) ve bina oylaması
 
@@ -808,7 +815,9 @@ BRIGHT'ın örnek (instance) etiketleri olup olmadığı Faz 2'de araştırılac
 tahminler geri çevrilip ortalanır. Model her yönde biraz farklı hata yaptığı için ortalama daha kararlıdır.
 
 **Bina oylaması:** Bir binanın içindeki piksellerin tahminleri çoğunluk oyuyla tek bir sınıfa indirilir. "Çatının
-yarısı hasarlı, yarısı yıkık" gibi tutarsızlıkları giderir.
+yarısı hasarlı, yarısı yıkık" gibi tutarsızlıkları giderir. Dikkat: "bina" burada modelin kendi bina tahmininden
+(`loc` maskesinin bağlı bileşenleri) gelir. Türkiye'nin gerçek bina çokgenlerini oylama için kullanmak, test
+etiketini tahmine sızdırmak olurdu.
 
 BRIGHT makalesinde TTA +0,56, nesne oylaması +0,69, ikisi birlikte +0,92 puan kazandırdı (olay düzeyi). Bunlar
 başlık sonucuna değil, **önceden ilan edilmiş ikincil satırlara** girer. Neden? Başlık sonucu 41,28 ile aynı
@@ -831,7 +840,10 @@ farklı olurdu. Bu belirsizliği ölçmenin yolu **güven aralığı**dır.
 
 - **Blok bootstrap.** Komşu kareler birbirine benzer (aynı mahalle, aynı hasar deseni). Kareleri bağımsızmış gibi
   yeniden örneklersek belirsizliği olduğundan küçük gösteririz. Bu yüzden örnekleme birimi tek tek kareler değil,
-  **mekânsal bloklar ya da şehirler** olacak.
+  **mekânsal bloklar** olacak. Faz 2'de yalnız GeoTIFF başlıklarındaki koordinatlara bakarak saydık: Türkiye kareleri
+  7 şehirde (Gaziantep, Osmaniye, Adıyaman, Malatya, Kahramanmaraş, Antakya, İslahiye) ve 2 km'lik ızgarada 64
+  bloğa düşüyor. 7 şehir bootstrap için çok az birim; öneri, her şehrin bloklarını kendi içinde yeniden örneklemek
+  (şehre göre katmanlı blok bootstrap).
 - **Eşleştirilmiş bootstrap.** İki modeli (ana model ve varyant) kıyaslarken, her yeniden örneklemde **iki modelin
   farkı** hesaplanır. Aynı kareler iki model için de kullanıldığı için bu yöntem farkları çok daha hassas ölçer.
 
@@ -1152,7 +1164,8 @@ Sarsıntı ne kadar güçlüyse hasar olasılığı o kadar yüksektir. **Bayes�
 olasılığı bu "önsel bilgiyle" (prior) birleştirir. Katsayılar yalnız Türkiye dışındaki depremlerde (Les Cayes, Fas,
 Noto) belirlenir. Benzer bir yaklaşım (ShakeMap + DPM) Li ve arkadaşlarının 2025 çalışmasında var.
 
-**A3, SAR ön işleme.** SAR'ı dB ölçeğine çevirip z-skoru almak. SkyCap çalışması, çok yüksek çözünürlüklü SAR'da
+**A3, SAR ön işleme.** SAR'ı eğitim kümesinin istatistiğiyle z-skoruna çevirmek (Faz 2: değerler zaten log/dB
+benzeri, ayrıca dB'ye çevirmeye gerek yok; olaylar arası parlaklık farkı büyük). SkyCap çalışması, çok yüksek çözünürlüklü SAR'da
 sonuçların ön işlemeye çok duyarlı olduğunu gösterdi. Ucuz bir deneme; Faz 4'te ölçülecek.
 
 ### 13.3 Bedava kazançlar
