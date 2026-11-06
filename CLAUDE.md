@@ -6,7 +6,8 @@ eğitilir; 6 Şubat 2023 Türkiye depreminde, eğitimde hiç görülmeden **bir 
 
 - Bağlayıcı tasarım: [docs/tasarim.md](docs/tasarim.md). Değişen karar orada ve ADR'de güncellenir.
 - Faz planı ve yenilik paketi: [docs/fazlar.md](docs/fazlar.md). Güncel durum: [docs/durum.md](docs/durum.md); her faz sonunda güncellenir.
-- Araştırma raporu: [reports/Hasar haritası mimari ve rakip analizi.md](reports/Hasar%20haritası%20mimari%20ve%20rakip%20analizi.md)
+- Ertelenmiş fikirler ve karar noktaları (KN1–KN3): [docs/fikir-havuzu.md](docs/fikir-havuzu.md).
+- Araştırma raporları: `reports/` (mimari ve rakip analizi; eksik belgeler, modüler yapı ve yenilik; ChangeMamba'nın ötesi).
 - Ham notlar: `research_notes/`. Bu klasörlerin içeriği değiştirilmez; yeni araştırma yeni klasöre gider.
 
 ## Çalışma biçimi
@@ -29,8 +30,9 @@ eğitilir; 6 Şubat 2023 Türkiye depreminde, eğitimde hiç görülmeden **bir 
    normalizasyon istatistiklerinde Türkiye'nin ne görüntüsü ne etiketi kullanılır. Her model Türkiye'de yalnız
    `final` adımında bir kez değerlendirilir; bu adım protokol commit'i etiketlenmeden (`protokol-kilidi`) çalışmaz.
    Varyant modelin tasarımı, ana modelin Türkiye sonucu görülmeden `varyant-kilidi` etiketiyle kilitlenir.
-   İki istisna, ikisi de başlık sonucunu etkilemez: Faz 2'de hazır zero-shot checkpoint'lerin yeniden üretimi ve
-   Faz 6'da Türkiye'nin etiketsiz SAR istatistikleriyle yapılan, ayrı "transdüktif" tabloda raporlanan Y3 analizi.
+   İki istisna, ikisi de başlık sonucunu etkilemez: Faz 3'te hazır zero-shot checkpoint'lerin yeniden üretimi ve
+   Faz 7'de Türkiye'nin etiketsiz SAR istatistikleriyle yapılan, ayrı "transdüktif" tabloda raporlanan Y3 analizi.
+   Fikir havuzundaki seçimler 13 olayın sonucuyla yapılır, Türkiye sonucuyla yapılmaz.
 2. **Türkiye'yi görmüş ağırlık yok.** `*_standard_ML_split.pth` checkpoint'leri ve 2023 Türkiye sahnelerini
    ön eğitimde görmüş olabilecek modeller (ör. MaRS) başlangıç ağırlığı olamaz.
 3. **İki tam eğitim, fazlası yok.** Ana model (ChangeMamba olduğu gibi) ve tek fikirli bir varyant, her biri bir kez.
