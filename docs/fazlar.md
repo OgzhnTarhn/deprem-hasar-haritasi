@@ -105,7 +105,7 @@ taslağına ve `fikir-havuzu.md`'ye işlendi.
 - Zenodo 15349462'deki hazır zero-shot checkpoint'lerin çıkarımı: Türkiye için SiamCRNN, UNet, DamageFormer;
   denetim için bir başka deprem. Aynı checkpoint'lerin 13 olaydaki doğrulama çıktıları da kaydedilir (B2 topluluk
   adayı için).
-- Metriğin uç durum testleri (kusursuz 1,0; hep arka plan ≈ 0,21).
+- Metriğin uç durum testleri (kusursuz 1,0; hep arka plan = arka plan piksel oranı / 4, doğrulama kümesinin etiket dağılımından).
 
 **Çıkış:** Türkiye'de 38,32 / 37,82 / 37,20 `[ZS-EVENT mIoU]` ±0,3 içinde (eğitim yok, sonuç belirlenimci olmalı).
 Tutmazsa sonraki faza geçilmez.

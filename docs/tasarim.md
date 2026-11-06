@@ -104,7 +104,10 @@ Bina sınıflarında bu kabaca ortalama 23 IoU demek. Gerçekçi beklenti 41,28 
 ## 6. Protokol
 
 - **Bölme:** BRIGHT `cross_event/zero_shot` mantığı, `test_event = turkey-earthquake`. Türkiye'nin 1.114 karesinin
-  tamamı teste gider; kalan 13 olayın eğitim ve doğrulama listeleri kullanılır (kare sayıları ön kontrolde doğrulanır).
+  tamamı teste gider. BRIGHT betiğiyle aynı biçimde eğitim = standart eğitim + standart test listesi, doğrulama =
+  standart doğrulama listesi (ikisi de Türkiye hariç): **2.795 / 337 / 1.114** kare ([ADR-0001](adr/0001-zero-shot-bolme.md);
+  ön kontrol kapısı 2'de doğrulanır).
+- **Hesap kuralları:** [protokol.md](protokol.md) (taslak 0.1); kararların gerekçeleri [adr/](adr/README.md).
 - **Seçim:** En iyi kayıt noktası 13 olayın doğrulama kümesinde EMA ağırlıklarının mIoU'suyla seçilir. Bu seçimin
   zayıf olduğu (korelasyon 0,35) raporda açıkça yazılır.
 - **Başlık sonucu:** Türkiye'de tek seferlik, TTA'sız, `argmax` hasar çıktısıyla 4 sınıf olay düzeyi mIoU; resmî
@@ -135,7 +138,7 @@ Dondurulmuş yapılandırma (`configs/ana.yaml`):
 | Hassasiyet ve EMA | bf16, EMA 0,999 | Düşük risk (yargı) |
 | Gradyan kırpma | Ön kontrolde ölçülen p90 gradyan normu | Ölçülecek |
 | Artırım | Flip, rot90; fotometrik yok | Resmî |
-| Normalizasyon | Optik ImageNet; SAR eğitim kümesi ortalaması ve standart sapması | Yargı |
+| Normalizasyon | Optik ImageNet. SAR: **öneri** resmî biçim (3 kanala kopya, ImageNet istatistikleri); eğitim kümesi istatistiği fikir havuzunda (A3) | Kanıt (resmî kod); onay bekliyor ([ADR-0004](adr/0004-sar-girdisi.md)) |
 | Nodata | Optik ve SAR'ın ikisi de 0 olan pikseller kayıpta yok sayılır | Yargı |
 | Doğrulama | 2.000 adımda bir, yalnız 13 olay | Türkiye eğitimde değerlendirilmez |
 | Kayıt | 1.000 adımda bir Drive'a (son 2 + en iyi), 5.000 adımda bir HF Hub özel repoya; atomik yazma | Kopmaya dayanıklılık |
@@ -164,7 +167,7 @@ Notebook mantık içermez; `src/hasar` paketini çağırır ve "Run All" ile kop
 4. Başlangıç kayıpları beklenene yakın: hasar başlığı ln 4 ≈ 1,386, bina başlığı ln 2 ≈ 0,693.
 5. Artırım kapalıyken 8 kare 300–500 adımda ezberlenmeli.
 6. SAR sıfırlanınca hasar çıktısı değişmeli (SAR dalı bağlı).
-7. Metrik uç durumları: kusursuz tahmin 1,0, hep arka plan tahmini yaklaşık 0,21.
+7. Metrik uç durumları: kusursuz tahmin 1,0, hep arka plan tahmini = arka plan piksel oranı / 4 (doğrulama kümesinden; ~0,21 kaba tahmin).
 8. 200 adımda hız, tepe VRAM ve CU projeksiyonu ölçülür; projeksiyon bütçeyi aşarsa eğitim başlamaz.
 9. 2× lr ile 500 adımda p90 gradyan normu ölçülür, kırpma eşiği yapılır.
 10. 60. adımda süreç öldürülür, devam testi yapılır; model, EMA, optimizer, zamanlayıcı, adım ve bütün RNG
