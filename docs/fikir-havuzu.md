@@ -36,9 +36,9 @@ Ret önerisi (araştırma zayıf buldu; karar noktasında kesinleşir).
 
 | Kod | Fikir | Ek tam eğitim | Rapor türü | Durum | Karar |
 |---|---|---|---|---|---|
-| A1 | Sentinel-1 koherans kanalı (ek girdi) | 1 (varyant olarak) | Ayrı satır: "ek girdi" | Aday · fizibilite Faz 2'de | KN1 |
+| A1 | Sentinel-1 koherans kanalı (ek girdi) | 1 (varyant olarak) | Ayrı satır: "ek girdi" | Aday · fizibilite geçti (14/14 olay, Faz 2) | KN1 |
 | A2 | ShakeMap sarsıntı öncülüyle Bayesçi son işlem | 0 | Ayrı satır | Aday | KN1 |
-| A3 | SAR dB/z-skoru ön işleme | 0 (küçük deneme) | Reçetenin parçası | Planlı · ölçüm Faz 4'te, karar 13 olaya göre ve `protokol-kilidi`'nden önce | Faz 4 |
+| A3 | SAR z-skoru ön işleme (değerler zaten log/dB benzeri; olay başına germe farklı) | 0 (küçük deneme) | Reçetenin parçası | Planlı · ölçüm Faz 4'te, karar 13 olaya göre ve `protokol-kilidi`'nden önce | Faz 4 |
 | B1 | Flip TTA + bina düzeyi oylama | 0 | İkincil satır | Planlı | – |
 | B2 | Heterojen topluluk: ana model + Zenodo'daki 5 hazır zero-shot checkpoint | 0 | Ayrı satır: "topluluk" | Aday | KN1 |
 | B3 | Ana model + varyant topluluğu | 0 | Ayrı satır: "topluluk" | Aday | KN1 |
@@ -56,6 +56,28 @@ Ret önerisi (araştırma zayıf buldu; karar noktasında kesinleşir).
 
 **Varyant (V) adayları:** A1, C2, C3, D1, D2, D4. KN1'de tek bir fikir seçilir (kural 3: tek fikirli varyant).
 Araştırmanın önceliği: A1 (fizibilite geçerse), sonra D1.
+
+### Faz 2 bulguları (13 olay ve yalnız meta veri)
+
+Sayıların kaynağı `results/arastirma/*.json`; betikler `scripts/arastirma/`.
+
+- **A1 fizibilitesi geçti** (`s1_kapsam.json`). 14 olayın hepsinde, Türkiye'de yedi şehrin her birinde, aynı yörüngede
+  olaydan önce en az iki ve olaydan sonra en az bir Sentinel-1 SLC çekimi var (pencere: 36 gün önce, 24 gün sonra).
+  İlk uygun sonrası çekim 0–8 gün içinde. Uyarılar: Beirut'ta "0 gün" çekimin patlama saatinden önce mi sonra mı
+  olduğu ayrıca denetlenmeli; Ukrayna'da hasar haftalara yayıldığı için olay tarihi yaklaşık. Koherans ürünü
+  (ör. ASF HyP3 InSAR) 40–80 m pikselde; BRIGHT karesinin (yaklaşık 300 m) birkaç pikseline düşer, yani A1 kare ya
+  da mahalle ölçeğinde bir öncül olur, bina ölçeğinde değil.
+- **A3 için SAR ölçeği** (`sar_olcek.json`). BRIGHT'taki uint8 SAR değerleri doğrusal genlik gibi davranmıyor:
+  8×8 bloklarda log(std)–log(ortalama) eğimi havuzda 0,2 (çarpımsal benekte ~1 beklenir), ham değerlerin çarpıklığı
+  0,43, log değerlerinki −1,69. Değerler log/dB benzeri, kırpılmış bir ölçekte. Olay ortalamaları 41–104 arasında
+  değişiyor: olay başına farklı bir germe uygulanmış olabilir. Bu, A3'ü (eğitim kümesi z-skoru) ve olay düzeyinde
+  normalizasyon sorusunu destekler; dB'ye dönüştürme adımı gerekmez.
+- **Bina örnekleri** (`ornek_etiket_kapsami.json`, `bina_birlesme.json`). CVPRW26 örnek etiketleri (COCO biçimi)
+  10 eğitim olayının zero-shot eğitim karelerinde var; doğrulama karelerinde ve Meksika, Myanmar, Ukrayna'da yok.
+  Türkiye'de 1.114 karenin 1.001'inde var (yalnız dosya adlarından sayıldı). Etiketteki 8-komşuluklu bağlı
+  bileşenler örnek sayısının yalnız 0,61'i kadar: bitişik binaların yaklaşık %39'u birleşiyor. Bina piksellerinin
+  %5,9'u birden çok hasar sınıfı içeren bileşenlerde. D2 (ayak izinde havuzlama) eğitimde örnek etiketlerini
+  kullanabilir; bağlı bileşenle yetinmek bina sayısını ciddi biçimde düşürür.
 
 ### Değerlendirme ve yenilik analizleri
 
