@@ -1,0 +1,62 @@
+# Ana eğitim yapılandırması (dondurulmuş reçete, docs/tasarim.md Bölüm 7).
+# Her alan varsayılan değeriyle açıkça yazılmıştır; bu dosya Config() ile birebir aynı yüklenir.
+
+experiment: ana  # deney adı; run_id'nin ön eki
+
+data:
+  protocol: zero_shot  # BRIGHT cross_event/zero_shot mantığı
+  test_event: turkey-earthquake  # tek seferlik test olayı
+  crop: 640  # kırpma boyutu; bellek yetmezse 512
+  workers: 8  # veri yükleyici süreç sayısı
+  nodata_ignore: true  # optik ve SAR'ın ikisi de 0 olan pikseller kayıpta yok sayılır
+
+aug:
+  flips: true  # yatay/dikey çevirme
+  rot90: true  # 90 derecelik döndürmeler
+  photometric: false  # fotometrik artırım yok (resmî reçete)
+
+norm:
+  optical: imagenet  # optik: ImageNet istatistikleri
+  sar: official  # SAR: resmî biçim, ADR-0004
+
+model:
+  name: changemamba_mmbda_tiny  # ana model
+  init: vssm_tiny_imagenet  # ImageNet başlangıç ağırlığı
+  fallback: damageformer_swin_t  # çekirdek derlenmezse otomatik yedek
+
+optim:
+  name: adamw
+  lr: 1.0e-4
+  weight_decay: 5.0e-3
+
+sched:
+  type: cosine  # kosinüs zamanlama
+  warmup_steps: 1500  # ısınma adımları
+  min_lr: 1.0e-6
+
+train:
+  batch: 16  # bellek yetmezse 8
+  steps: 40000  # adım sayısı; örnek sayısı değil (max_iters tuzağı)
+  amp: bf16  # karışık hassasiyet
+  ema: 0.999  # EMA ağırlık katsayısı
+  clip: null  # gradyan kırpma; ön kontrolde p90 normuyla belirlenecek
+  seed: 42
+
+loss:
+  ce_loc: 1.0  # bina başlığı CE ağırlığı
+  ce_clf: 1.0  # hasar başlığı CE ağırlığı
+  lovasz_loc: 0.5  # bina başlığı Lovász ağırlığı
+  lovasz_clf: 0.75  # hasar başlığı Lovász ağırlığı
+  class_weights: [1.0, 1.0, 1.0, 1.0]  # sınıf ağırlığı yok
+  ignore_index: 255  # yok sayılan etiket değeri
+  lovasz_fp32: true  # Lovász kaybı fp32'de
+
+eval:
+  every: 2000  # doğrulama sıklığı (adım); yalnız 13 olay, Türkiye eğitimde değerlendirilmez
+  select: ema_val_miou  # kayıt noktası seçimi
+
+ckpt:
+  every: 1000  # Drive'a kayıt sıklığı (adım)
+  keep_last: 2  # tutulan son kayıt sayısı
+  keep_best: 1  # tutulan en iyi kayıt sayısı
+  hub_every: 5000  # HF Hub'a kayıt sıklığı (adım)
