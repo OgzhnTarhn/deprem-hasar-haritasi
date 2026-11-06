@@ -7,8 +7,29 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 | Araştırma ve tasarım | Bitti (6 Kasım 2026) | `reports/` (üç rapor), `docs/tasarim.md` sürüm 3, `docs/fazlar.md` sürüm 2, `docs/fikir-havuzu.md` |
 | 0. Belgeler ve protokol taslağı | Bitti (6 Kasım 2026) | `docs/adr/` (0001–0006), `docs/protokol.md` 0.1, `docs/veri-lisans.md`, `docs/riskler.md`, `docs/sar-temelleri.md` |
 | 1. Depo iskeleti | Bitti (6 Kasım 2026) | `src/hasar/` paketi, `configs/ana.yaml`, sonuç şeması, Türkiye guard'ı, model sözleşmesi, CI; 125 kısa test (~3 sn) |
-| 2. Veri katmanı | Sırada | |
-| 3–9 | Bekliyor | |
+| 2. Veri katmanı | Bitti (6 Kasım 2026) | `src/hasar/data/` (8 modül), `hasar` komutu, `results/veri/bolme.json`, `results/arastirma/` (5 araştırma); 288 kısa test (~3,5 sn) |
+| 3. Metrik ve yeniden üretim | Sırada | İlk Colab oturumu |
+| 4–9 | Bekliyor | |
+
+## Faz 2'de kurulanlar ve ölçülenler
+
+- **Veri katmanı:** `events` (olay adı, zero-shot bölme, sızıntı denetimi, liste özeti), `io` (GeoTIFF okuma, nodata
+  maskesi, başlık meta verisi), `transforms` (eşleşik kırpma/çevirme/rot90), `sampler` (`seed + örnek sayacı` ile
+  tam devam edebilen örnekleyici; uzunluk `adım × batch`), `normalize` (resmî SAR biçimi ve A3 için akışlı eğitim
+  istatistiği), `dataset` (`BrightDataset`), `download` (HF'ten indirme, `.done` işaretli güvenli açma),
+  `summary` ve `hasar veri-ozet` / `hasar indir` komutları.
+- **Türkiye kapısı veri katmanında:** `io.read_tile`, `read_label`, `BrightDataset` ve `compute_sar_stats` Türkiye
+  adını `TurkeyAccess` olmadan diske dokunmadan reddeder; eğitim modunda Türkiye hiçbir koşulda kabul edilmez.
+- **Bölme (`results/veri/bolme.json`):** 2.795 / 337 / 1.114 kare. Arka plan piksel payı eğitimde %90,76, doğrulamada
+  %90,34 → kapı 7'nin beklenen değeri ≈ 0,226.
+- **SAR ölçeği:** doğrusal genlik değil, log/dB benzeri; olay ortalamaları 41–104 (`sar_olcek.json`).
+- **Bina örnekleri:** CVPRW26 örnek etiketleri eğitimde 10 olayda, doğrulamada hiç, Türkiye'de 1.001/1.114 karede.
+  Bağlı bileşen / örnek = 0,61 (binaların ~%39'u birleşiyor).
+- **Türkiye blokları (yalnız koordinat):** 7 şehir, 2 km ızgarada 64 blok.
+- **A1 fizibilitesi:** 14/14 olayda Sentinel-1 öncesi-öncesi ve öncesi-sonrası koherans çifti var; ilk sonrası çekim
+  0–8 gün.
+- **Araştırma betikleri** `scripts/arastirma/` altında; paket ve testler kullanmaz, ek bağımlılıkları `arastirma`
+  grubunda (`uv sync --group arastirma`).
 
 ## Faz 1'de kurulanlar
 
@@ -42,6 +63,8 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 - **ADR-0004 (SAR girdisi):** Önerilen seçenek C, kullanıcı onayı gelene kadar varsayılan olarak uygulanır; kod
   iki biçimi de yapılandırmayla destekler.
 - **Protokol §9 "eşit" kuralı:** Öneri bekliyor (Faz 4 öncesi).
+- **Protokol §6–8 (Faz 2 önerileri):** bina düzeyi metrik için CVPRW26 örnek etiketleri (1.001 kare), oylama birimi
+  olarak tahmin edilen bina bileşenleri, şehre göre katmanlı 2 km blok bootstrap. Onay Faz 4 öncesi.
 - Ana eğitimin yapılacağı ay için Colab Pro mu Pro+ mı (Faz 5'ten önce).
 - Fikir havuzundaki adaylar (KN1, Faz 6). N1 için kural 1 istisnasının genişletilmesi (KN1).
 
