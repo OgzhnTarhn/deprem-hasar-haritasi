@@ -1,0 +1,37 @@
+# Veri ve GPU gerektirmeyen kısa testler
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+
+      - name: Bağımlılıkları kur
+        run: uv sync
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format kontrolü
+        run: uv run ruff format --check .
+
+      - name: Testler
+        run: uv run pytest -q
+
+      - name: Notebook'lar temiz mi
+        run: |
+          shopt -s nullglob
+          files=(notebooks/*.ipynb)
+          if [ ${#files[@]} -gt 0 ]; then
+            uv run nbstripout --verify "${files[@]}"
+          fi
