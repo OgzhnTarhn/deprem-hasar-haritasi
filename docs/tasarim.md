@@ -185,7 +185,9 @@ Ayrıntılı düzen: [rapor, Bölüm 2](../reports/Eksik%20belgeler,%20modüler%
   etiketini ve temiz çalışma ağacını denetler.
 - **Tek çıkarım, çok analiz:** Türkiye'de model bir kez çalışır, olasılık haritaları önbelleğe yazılır; başlık
   satırı, ikincil satırlar, analizler ve demo bu önbelleği okur.
-- **Sonuç şeması:** `results/**/*.json` dosyalarında `metric_tag` zorunlu alandır.
+- **Sonuç şeması:** `results/**/*.json` dosyalarındaki her metrik kaydında `metric_tag` zorunlu alandır. Metrik
+  olmayan sayım ve araştırma dosyaları (`results/veri/`, `results/arastirma/`) bunun yerine `kind` alanı taşır
+  (`data-summary`, `research`); onlardaki sayılar metrik etiketi almaz ve 41,28 ile kıyaslanmaz.
 - **Üçüncü taraf kod** `third_party/` altında sabit commit, lisans ve yama listesiyle durur.
 - **Eklenmeyenler:** Hydra, eklenti sistemi, soyut Trainer hiyerarşisi.
 
