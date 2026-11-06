@@ -1,5 +1,5 @@
 # Veri ve model dosyaları
-data/
+/data/
 *.zip
 *.tif
 *.tiff
@@ -10,6 +10,7 @@ data/
 checkpoints/
 runs/
 wandb/
+/cache/
 
 # Python
 __pycache__/
