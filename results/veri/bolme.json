@@ -1,0 +1,69 @@
+{
+  "counts": {
+    "train": 2795,
+    "val": 337,
+    "test": 1114
+  },
+  "events": {
+    "train": {
+      "bata-explosion": 93,
+      "beirut-explosion": 116,
+      "congo-volcano": 108,
+      "haiti-earthquake": 63,
+      "hawaii-wildfire": 56,
+      "la_palma-volcano": 836,
+      "libya-flood": 109,
+      "marshall-wildfire": 69,
+      "mexico-hurricane": 192,
+      "morocco-earthquake": 508,
+      "myanmar-hurricane": 113,
+      "noto-earthquake": 70,
+      "ukraine-conflict": 462
+    },
+    "val": {
+      "bata-explosion": 14,
+      "beirut-explosion": 17,
+      "congo-volcano": 15,
+      "haiti-earthquake": 10,
+      "hawaii-wildfire": 9,
+      "la_palma-volcano": 97,
+      "libya-flood": 15,
+      "marshall-wildfire": 8,
+      "mexico-hurricane": 20,
+      "morocco-earthquake": 59,
+      "myanmar-hurricane": 13,
+      "noto-earthquake": 9,
+      "ukraine-conflict": 51
+    }
+  },
+  "test_event": "turkey-earthquake",
+  "test_count": 1114,
+  "class_pixels": {
+    "train": {
+      "pixels": {
+        "0": 2660089123,
+        "1": 195536234,
+        "2": 48297243,
+        "3": 26847320
+      },
+      "other": 0,
+      "tiles": 2795
+    },
+    "val": {
+      "pixels": {
+        "0": 319227976,
+        "1": 23060619,
+        "2": 5638241,
+        "3": 5443276
+      },
+      "other": 0,
+      "tiles": 337
+    }
+  },
+  "kind": "data-summary",
+  "lists": {
+    "train_set.txt": "4af77fe08239fd67b4d2630ef34f1b3e76b6287bc1a97fbb937c26e08f37fe4d",
+    "val_set.txt": "ab2454370e66cd043b2f4388cceeee4ec9c099b25556ed80a817bacc6fcac787",
+    "test_set.txt": "7476123238af8bdcdb2955f1880374b6159388404ba61dc2a38e289ce940a63d"
+  }
+}
