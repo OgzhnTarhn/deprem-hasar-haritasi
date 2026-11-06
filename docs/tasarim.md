@@ -1,7 +1,7 @@
 # Deprem Hasar Haritası: Tasarım Belgesi
 
-**Durum:** Onay bekliyor · **Sürüm:** 2 (5 Kasım 2026; tek koşu ve araştırma sonuçlarıyla güncellendi) ·
-**Süre:** 16 hafta
+**Durum:** Onay bekliyor · **Sürüm:** 3 (6 Kasım 2026; eksik belge, modüler yapı, yenilik ve iyileştirme
+araştırmasıyla güncellendi) · **Süre:** 16 hafta
 
 Bu belge bağlayıcıdır. Dayanakları [araştırma raporunda](../reports/Hasar%20haritası%20mimari%20ve%20rakip%20analizi.md).
 
@@ -37,12 +37,16 @@ Bu yüzden emek, tek ve doğru yapılmış bir ana eğitime ve **eğitim gerekti
 2. Tek, önceden kilitlenmiş bir ana eğitim ve Türkiye'de tek seferlik test.
 3. Sınıf bazlı ve bina düzeyinde metrikler, güven aralıkları.
 4. Aynı binalarda üç referansın kıyası: BRIGHT optik yorum etiketi, HOT/OSM yıkık bina katmanı, öğrenmesiz radar
-   tabanı (ARIA DPM).
+   tabanı (ARIA DPM). HOT/OSM de gönüllülerin hava görüntüsünden yaptığı optik yorumdur; BRIGHT etiketinden
+   bağımsız değildir. Çerçeve "iki optik yorum + bir radar sinyali".
 5. SAR hata analizi: Capella ve Umbra kırılımı, layover ve gölge, izole hasarlı binalar.
 6. Belirsizlik ölçümü (iddia değil): risk-kapsam eğrisi, ECE.
-7. Yabancı birinin tek komutla çalıştırabildiği açık kaynak depo, model kartı, kısa demo.
+7. Yabancı birinin tek komutla çalıştırabildiği açık kaynak depo, model kartı ve **gerçek 6 Şubat verisiyle**
+   (BRIGHT'ın Türkiye kareleri) kısa demo.
 8. Yenilik paketi (Y1–Y4): üç referanslı anlaşmazlık haritası, analist bütçeli önceliklendirme, etiketsiz SAR
    uyarlaması, tek fikirli varyant. Ayrıntı ve fazlar: [fazlar.md](fazlar.md).
+9. Araştırmada çıkan iyileştirme ve yenilik fikirleri [fikir-havuzu.md](fikir-havuzu.md)'de bekler; ana eğitimin
+   13 olaydaki sonucuna göre karar noktasında (KN1) seçilir.
 
 **Hedef olmayanlar (16 hafta içinde)**
 
@@ -50,6 +54,7 @@ Bu yüzden emek, tek ve doğru yapılmış bir ana eğitime ve **eğitim gerekti
 - Bina bazlı örnek segmentasyonu (`segm_AP`) ve yarışma sıralaması
 - Türkiye görüntüsünü kullanan yöntemler (pseudo-label, UDA); yapılırsa ayrı "transdüktif" tabloda
 - Birden çok mimari adayını eğitip karşılaştırmak
+- İstanbul'da hasar demosu: deprem olmadığı için afet sonrası görüntü yok
 
 **Anti-hedefler**
 
@@ -90,7 +95,9 @@ Bina sınıflarında bu kabaca ortalama 23 IoU demek. Gerçekçi beklenti 41,28 
 41,28 kıyası buradan gelir. Kendi değişikliği ikinci bir tam eğitimde, aynı protokol ve aynı reçeteyle denenir.
 
 - Değişiklik **tek bir fikir** olur; tek koşuda birden çok değişikliğin katkısı ayrılamaz.
-- Değişiklik yalnız araştırmadan ve 13 olayın doğrulama sonuçlarından türetilir.
+- Değişiklik yalnız araştırmadan ve 13 olayın doğrulama sonuçlarından türetilir. Adaylar (koherans kanalı, güçlü
+  bina bulucu, sıralı kayıp, havuzlayan başlık, modalite bırakma, olay dengeli örnekleme)
+  [fikir-havuzu.md](fikir-havuzu.md)'de; seçim KN1'de.
 - Tasarımı ve yapılandırması, ana modelin Türkiye sonucu görülmeden önce `varyant-kilidi` etiketli commit'e girer.
 - İki model de raporlanır; Türkiye sonucuna bakarak aralarından seçim yapılmaz. Fark 1–2 puanın altındaysa "eşit" yazılır.
 
@@ -106,8 +113,13 @@ Bina sınıflarında bu kabaca ortalama 23 IoU demek. Gerçekçi beklenti 41,28 
   seçilir.
 - **Kilit:** Yapılandırma, eşikler ve metrik yolu `protokol-kilidi` etiketli commit'e girer; `final` adımı bu etiket
   olmadan çalışmaz.
-- **Raporlama:** Sınıf başına IoU, üç bina sınıfının ortalaması, bina düzeyi makro F1, kareler üzerinde bootstrap güven
-  aralığı. 1–2 puanın altındaki fark "eşit" sayılır.
+- **Raporlama:** Sınıf başına IoU, üç bina sınıfının ortalaması, bina düzeyi makro F1, bootstrap güven aralığı.
+  Komşu kareler ilişkili olduğu için bootstrap birimi mekânsal blok veya şehirdir; iki model eşleştirilmiş bootstrap
+  ile kıyaslanır. "Eşit" kuralı tek bir eşik olarak protokolde kilitlenir.
+- **Protokol belgesi:** Başlık mIoU'nun tam hesabı (biriktirme, arka plan, değerlendirmede nodata, tam kare veya
+  kayan pencere), pikselden binaya geçiş, bootstrap ve "eşit" kuralı `docs/protokol.md`'de yazılır. Taslak Faz 0'da
+  hazırlanır, `protokol-kilidi` ile Faz 4'te kilitlenir. Değerlendirmede nodata resmî kodla aynı işlenir; eğitimdeki
+  yok sayma bizim reçetemizin parçasıdır.
 
 ## 7. Tek eğitim reçetesi
 
@@ -159,6 +171,21 @@ Notebook mantık içermez; `src/hasar` paketini çağırır ve "Run All" ile kop
     durumları geri gelmeli.
 11. ChangeMamba çekirdek derleme kapısı (en fazla 1 saat; Bölüm 5).
 
+## 8a. Kod mimarisi
+
+Ayrıntılı düzen: [rapor, Bölüm 2](../reports/Eksik%20belgeler,%20modüler%20yapı%20ve%20yenilik%20değerlendirmesi.md).
+
+- **Tek yönlü bağımlılık:** `data` ve `models` birbirini bilmez; `train` ikisini kullanır; `eval` `train`'i import
+  etmez; `analysis` modeli değil tahmin dosyalarını okur.
+- **Model sözleşmesi ve kayıt defteri:** Ana model, yedek ve varyant aynı arayüzü uygular; YAML'da tek satırla seçilir.
+- **Türkiye tek kapıdan:** Veri katmanı Türkiye karelerini yalnız `guard` üzerinden açar; `guard` `protokol-kilidi`
+  etiketini ve temiz çalışma ağacını denetler.
+- **Tek çıkarım, çok analiz:** Türkiye'de model bir kez çalışır, olasılık haritaları önbelleğe yazılır; başlık
+  satırı, ikincil satırlar, analizler ve demo bu önbelleği okur.
+- **Sonuç şeması:** `results/**/*.json` dosyalarında `metric_tag` zorunlu alandır.
+- **Üçüncü taraf kod** `third_party/` altında sabit commit, lisans ve yama listesiyle durur.
+- **Eklenmeyenler:** Hydra, eklenti sistemi, soyut Trainer hiyerarşisi.
+
 ## 9. Bütçe ve takvim
 
 Hiçbir süre Colab'da ölçülmedi; hepsi tahmindir ve ilk Colab oturumunda ölçülür.
@@ -177,15 +204,7 @@ Hiçbir süre Colab'da ölçülmedi; hepsi tahmindir ve ilk Colab oturumunda öl
 - Hazırlık birinci ayda, ana eğitim ikinci ayın taze 100 CU'su ile başlar.
 - High-RAM yakımı yaklaşık %39 artırır; kapalı tutulur.
 
-| Hafta | İş | CU |
-|---|---|---|
-| 1–2 | SAR temelleri, veri ve lisans tablosu, paket iskeleti, CPU testleri, protokol kilidi | 0 |
-| 3–4 | Colab: yeniden üretim, derleme kapısı, ön kontrol | 15–20 |
-| 5–6 | Ana eğitim | 50–75 |
-| 6 | Varyantı 13 olayın doğrulamasına bakarak tasarla, `varyant-kilidi`; ardından ana modelin Türkiye değerlendirmesi | < 5 |
-| 6–10 | Eğitimsiz analizler: HOT/OSM, ARIA DPM, sensör ve hata galerisi, belirsizlik | 2–5 |
-| 11–13 | Varyantın tam eğitimi ve Türkiye'de tek değerlendirmesi | 50–75 |
-| 14–16 | ONNX ve gecikme, model kartı, README, demo sayfası, olumsuz bulgular | < 2 |
+Haftalık plan, fazlar ve karar noktaları: [fazlar.md](fazlar.md) (Faz 0–9).
 
 İki tam eğitimle toplam tahminen 115–175 CU; 16 haftalık Pro'nun yaklaşık 400 CU'suna sığar, ama iki eğitim aynı aya
 düşmemeli. Bugün başlanırsa bitiş yaklaşık 25 Şubat 2027.
@@ -198,6 +217,7 @@ düşmemeli. Bugün başlanırsa bitiş yaklaşık 25 Şubat 2027.
 | CS437 group40 | BRIGHT optik + SAR, olay dışarıda, MC Dropout | İkili IoU, tek tohum, Fas ile Türkiye arasında büyük fark |
 | Enkaz | Optik + optik, kalibrasyon, bootstrap, iyi sunum | SAR yok |
 | DFC25 ve CVPRW26 kazananları | Yarışma reçeteleri | Türkiye eğitimde veya görev farklı; kodların bir kısmı erişilemez |
+| Improved MambaBDA (arXiv 2603.01116) | MambaBDA'ya odak kaybı, dikkat kapıları, hizalama; "görülmemiş afette %27'ye kadar" | BRIGHT protokolü yok, metrik türü belirsiz, kod yok; 41,28 ile kıyaslanamaz |
 
 **Fark (çoğu eğitim gerektirmez):** kilitli protokol, hazır checkpoint'lerle yeniden üretim, sınıf ve bina düzeyi
 metrikler, aynı binalarda üç referansın anlaşmazlık tablosu, SAR'a özgü hata analizi, ölçülmüş belirsizlik. Rakipler
@@ -208,6 +228,11 @@ README'de adıyla anılır ve farklar tabloyla gösterilir.
 1. **Kendi mimari katkısı: karar C (6 Kasım 2026).** Önce ChangeMamba olduğu gibi, kendi değişikliği ikinci tam
    eğitimde (+50–75 CU). Kurallar Bölüm 5'te.
 2. **Açık, 5. haftaya kadar:** Ana eğitimin yapılacağı ay için abonelik: Pro (tarayıcı açık, 1–2 devam) veya Pro+.
+3. **İyileştirme fikirleri ertelendi (6 Kasım 2026).** Araştırmada çıkan bütün fikirler not edilir; ana eğitimin
+   sonucuna göre KN1'de seçilir ([fikir-havuzu.md](fikir-havuzu.md)). Seçimi 13 olayın sonucu belirler, Türkiye
+   sonucu belirlemez.
+4. **Demo gerçek 6 Şubat verisiyle (6 Kasım 2026).** BRIGHT'ın Türkiye kareleri kullanılır. İstanbul hasar demosu
+   yapılmaz: afet sonrası görüntü yok.
 
 ## 12. Claude'un verdiği kararlar (itiraz edilebilir)
 
@@ -218,4 +243,8 @@ README'de adıyla anılır ve farklar tabloyla gösterilir.
 - Ukrayna, Myanmar ve Meksika optik görüntüleri veri sahibinin Hugging Face kopyasından kullanılır. Kaynakları
   README'de belirsiz olduğu için lisans tablosunda not düşülür.
 - İkinci referans HOT/OSM; CSB saha verisi erişilebilirse eklenir.
-- Uygulayana bırakılanlar: dosya düzeninin ayrıntısı, izleme aracı (JSONL zorunlu, W&B isteğe bağlı), testlerin biçimi.
+- Kod mimarisi Bölüm 8a'daki ilkelerle kurulur. Uygulayana bırakılanlar: dosya düzeninin ayrıntısı, izleme aracı
+  (JSONL zorunlu, W&B isteğe bağlı), testlerin biçimi.
+- ChangeMamba'nın özel CUDA çekirdeği büyük olasılıkla ONNX'e çıkmaz (doğrulanmadı). Faz 4'te 10 dakikalık bir
+  denemeyle ölçülür; dışa aktarım yolu buna göre seçilir.
+- Belge fazı (Faz 0) koddan önce gelir: ADR'ler, protokol taslağı, veri ve lisans tablosu, risk kaydı, SAR notu.
