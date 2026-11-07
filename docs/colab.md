@@ -61,10 +61,12 @@ SHA'sı verin; `STEPS_OVERRIDE = 2000` ile kısa prova yapılabilir. 4. hücre 1
 | 7 | Metrik uç durumları | kusursuz = 1,0; hep arka plan = arka plan oranı / 4 (≈ 0,226) |
 | 8 | Hız ve CU | projeksiyon ≤ 75 CU |
 | 9 | Gradyan kırpma | 2× lr'de p90 gradyan normu → `train.clip` |
-| 10 | Devam testi | 60. adımda kesilip devam eden koşu, kesintisiz koşuyla aynı ağırlıklar |
-| 11 | Çekirdek | `selective_scan` CUDA çekirdeği derlendi, 20 adım ileri-geri, torch yoluyla eşdeğer |
+| 10 | Devam testi | 60. adımda kesilip devam eden koşu, kesintisiz koşuyla aynı ağırlıklar (GPU'da `atol` 1e-3, kayıplar %1 içinde) |
+| 11 | Çekirdek | 20 adım ileri-geri sonlu; ChangeMamba CUDA çekirdeğiyle çalışıyorsa torch yoluyla fark < 1e-2. Kayıtta model ve tarama yolu yazar |
 
-Kapı 11 geçmezse eğitim otomatik olarak Swin-T DamageFormer yedeğiyle yapılır (tasarım §5).
+Çekirdek derlenmemişse model kurulurken otomatik olarak Swin-T DamageFormer yedeğine geçilir (tasarım §5) ve kapılar
+yedekle koşar; `preflight.json`'daki kapı 11 kaydında `model: BrightBaseline` görünür. Ana eğitimin ChangeMamba ile
+yapılacağından emin olmak için bu alana bakın.
 Kapı 9'un verdiği eşik `configs/ana.yaml` içinde `train.clip` alanına yazılıp commit'lenir.
 
 ## 3. Protokol kilidi

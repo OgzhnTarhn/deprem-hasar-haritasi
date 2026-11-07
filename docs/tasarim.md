@@ -171,7 +171,10 @@ Notebook mantık içermez; `src/hasar` paketini çağırır ve "Run All" ile kop
 8. 200 adımda hız, tepe VRAM ve CU projeksiyonu ölçülür; projeksiyon bütçeyi aşarsa eğitim başlamaz.
 9. 2× lr ile 500 adımda p90 gradyan normu ölçülür, kırpma eşiği yapılır.
 10. 60. adımda süreç öldürülür, devam testi yapılır; model, EMA, optimizer, zamanlayıcı, adım ve bütün RNG
-    durumları geri gelmeli.
+    durumları geri gelmeli. CPU'da birebir; GPU'da bazı geri yayılım çekirdekleri bit düzeyinde belirlenimci
+    olmadığından iki kesintisiz koşu bile ayrışır (yerelde ölçüldü), bu yüzden parametreler `atol` 1e-3 ve
+    devamdan sonraki kayıplar %1 içinde karşılaştırılır; BatchNorm istatistikleri ve onlara bağlı doğrulama
+    mIoU'su yalnız raporlanır.
 11. ChangeMamba çekirdek derleme kapısı (en fazla 1 saat; Bölüm 5).
 
 ## 8a. Kod mimarisi
