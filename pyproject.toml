@@ -19,6 +19,7 @@ hasar = "hasar.cli:main"
 train = [
     "torch",
     "timm",
+    "einops",
 ]
 
 [dependency-groups]
