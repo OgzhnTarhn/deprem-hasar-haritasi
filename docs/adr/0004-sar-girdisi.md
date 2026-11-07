@@ -40,6 +40,10 @@ havuzunda (A3) kalır; Faz 4'te kısa provada 13 olayın doğrulamasıyla ölç�
 ## Sonuçlar
 
 - Tasarım §7'nin normalizasyon satırı "SAR: resmî biçim (3 kanal, ImageNet)" olarak güncellendi.
-- Model sözleşmesindeki `post: B×1×H×W` korunur; 3 kanala kopyalama ChangeMamba sarmalayıcısının içinde yapılır.
-  Böylece öteki modeller ve analizler tek bantlı SAR görür.
+- ~~Model sözleşmesindeki `post: B×1×H×W` korunur; 3 kanala kopyalama ChangeMamba sarmalayıcısının içinde yapılır.~~
+  **Düzeltme (7 Kasım 2026, Faz 4):** Veri katmanı (`normalize.sar_to_input`) resmî modda kopyalamayı ve ImageNet
+  normalizasyonunu kendisi yapıp `3×H×W` döndürüyor; Zenodo checkpoint'leri de bu girdiyle eğitildi. Bu yüzden
+  sözleşme artık `post: B×C×H×W`: resmî modda C = 3, `train_stats` (A3) modunda C = 1. Üç kanal bekleyen bir
+  sarmalayıcı tek bantlı girdiyi kendisi kopyalar (ChangeMamba sarmalayıcısında test edildi). Analizler SAR'ı
+  modele değil ham `post` dosyasına bakarak okur.
 - Y3 (Türkiye istatistikleriyle yeniden standartlaştırma) bu girdi biçimi üzerinde tanımlanır.
