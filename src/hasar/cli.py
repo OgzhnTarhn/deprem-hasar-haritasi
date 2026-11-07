@@ -1,9 +1,12 @@
 """Command line interface of the ``hasar`` package.
 
-Ten subcommands are wired here:
+Eleven subcommands are wired here:
 
 ``indir``
     Download and extract the BRIGHT archives into a data root (resumable).
+``ornekler``
+    Download the instance-label archive and extract the listed tiles flat into a folder
+    through :mod:`hasar.data.download`.
 ``veri-ozet``
     Write a JSON summary of the zero-shot split, optionally with per-class label pixel
     counts for the train and val parts.
@@ -40,7 +43,7 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
-from hasar.data.download import prepare_bright
+from hasar.data.download import INSTANCE_SUFFIX, prepare_bright, prepare_instances
 from hasar.data.events import DEFAULT_LIST_DIR, list_digest, load_standard_lists, make_zero_shot_split
 from hasar.data.summary import build_split_report
 from hasar.report import check_readme, update_readme
@@ -101,6 +104,16 @@ def _build_parser() -> argparse.ArgumentParser:
     download = subparsers.add_parser("indir", help="BRIGHT veri setini indir ve aç.")
     download.add_argument("--root", type=Path, required=True, help="Verinin açılacağı kök klasör.")
     download.add_argument("--cache", type=Path, required=True, help="İndirilen arşivlerin önbellek klasörü.")
+
+    instances = subparsers.add_parser("ornekler", help="Bina örnek etiketlerini indir ve aç.")
+    instances.add_argument("--dest", type=Path, required=True, help="Etiketlerin açılacağı klasör.")
+    instances.add_argument("--cache", type=Path, required=True, help="İndirilen arşivin önbellek klasörü.")
+    instances.add_argument(
+        "--tiles",
+        type=Path,
+        default=Path("results") / "arastirma" / "turkiye_bina_kareleri.json",
+        help="Kare adlarını taşıyan JSON dosyası (varsayılan: protokol §7'nin sabit listesi).",
+    )
 
     summary = subparsers.add_parser("veri-ozet", help="Bölme özetini JSON olarak yaz.")
     summary.add_argument("--out", type=Path, required=True, help="Yazılacak JSON dosyası.")
@@ -191,6 +204,19 @@ def _build_parser() -> argparse.ArgumentParser:
 def _run_indir(args: argparse.Namespace) -> int:
     """Download and extract the BRIGHT archives."""
     prepare_bright(args.root, args.cache)
+    return 0
+
+
+def _run_ornekler(args: argparse.Namespace) -> int:
+    """Download and extract the instance labels and print the destination and file count."""
+    dest = prepare_instances(args.dest, args.cache, args.tiles)
+    dest = Path(dest)
+    count = (
+        sum(1 for path in dest.iterdir() if path.is_file() and path.name.endswith(INSTANCE_SUFFIX))
+        if dest.is_dir()
+        else 0
+    )
+    print(f"Örnek etiketleri: {dest} ({count} dosya)")
     return 0
 
 
@@ -335,6 +361,8 @@ def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     if args.command == "indir":
         return _run_indir(args)
+    if args.command == "ornekler":
+        return _run_ornekler(args)
     if args.command == "yeniden-uret":
         return _run_yeniden_uret(args)
     if args.command == "agirlik":

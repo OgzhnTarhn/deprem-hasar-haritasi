@@ -27,6 +27,7 @@ cannot escape the destination directory.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import zipfile
@@ -38,6 +39,8 @@ from hasar.data.io import tile_paths
 REPO_ID = "Kullervo/BRIGHT"
 REPO_TYPE = "dataset"
 ARCHIVES = ("pre-event.zip", "post-event.zip", "target.zip")
+INSTANCE_ARCHIVE = "cvprw26_trainval_instance_labels.zip"
+INSTANCE_SUFFIX = "_instance_damage.json"
 
 Downloader = Callable[..., str]
 
@@ -141,6 +144,63 @@ def prepare_bright(
             raise FileNotFoundError(f"Arşivde beklenen klasör yok: {expected} ({archive})")
 
     return root
+
+
+def prepare_instances(
+    dest: Path | str,
+    cache_dir: Path | str,
+    tiles_file: Path | str,
+    *,
+    downloader: Downloader | None = None,
+) -> Path:
+    """Download the instance-label archive and extract the listed tiles flat into ``dest``.
+
+    Protocol section 7: building-level F1 is computed on the 1,001 Turkey tiles fixed by
+    file names before the lock; only file names are used to select members, contents are
+    read later by the final step only.
+
+    ``tiles_file`` is a JSON file with a ``tiles`` key holding the tile names. Only members
+    whose base name is ``<tile>_instance_damage.json`` for a listed tile are written, and
+    they are written directly under ``dest`` (the archive's nested folders are dropped).
+    Every member name is validated before anything is written. A ``.instances.done`` marker
+    makes a rerun free; it is written only after a successful extract. Raises
+    :class:`ValueError` when a listed tile is missing from the archive.
+    """
+    dest = Path(dest)
+    marker = dest / ".instances.done"
+    if marker.is_file():
+        return dest
+
+    tiles = json.loads(Path(tiles_file).read_text(encoding="utf-8"))["tiles"]
+    wanted = set(tiles)
+
+    zip_path = fetch(INSTANCE_ARCHIVE, cache_dir, downloader=downloader)
+    with zipfile.ZipFile(zip_path) as archive:
+        names = archive.namelist()
+        for name in names:
+            if not _is_safe_member(name):
+                raise ValueError(f"Güvenli olmayan arşiv üyesi: {name!r} ({zip_path})")
+
+        selected: dict[str, str] = {}
+        for name in names:
+            base = name.replace("\\", "/").rsplit("/", 1)[-1]
+            if not base.endswith(INSTANCE_SUFFIX):
+                continue
+            tile = base[: -len(INSTANCE_SUFFIX)]
+            if tile in wanted:
+                selected[tile] = name
+
+        missing = sorted(wanted - set(selected))
+        if missing:
+            shown = ", ".join(missing[:5])
+            raise ValueError(f"Örnek etiketi eksik kareler: {shown} ({len(missing)} kare)")
+
+        dest.mkdir(parents=True, exist_ok=True)
+        for tile, name in selected.items():
+            (dest / f"{tile}{INSTANCE_SUFFIX}").write_bytes(archive.read(name))
+
+    _write_marker(marker)
+    return dest
 
 
 def missing_tiles(root: Path | str, names: Iterable[str]) -> list[str]:
