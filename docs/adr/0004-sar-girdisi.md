@@ -1,6 +1,6 @@
 # ADR-0004: SAR girdisi: resmî biçim (3 kanal, ImageNet normalizasyonu)
 
-- **Durum:** Önerildi (kullanıcı onayı bekliyor)
+- **Durum:** Kabul (7 Kasım 2026; kullanıcı bekleyen önerilerin hepsini kabul etti)
 - **Tarih:** 6 Kasım 2026
 - **İlgili:** tasarım §7 "Normalizasyon" satırı, fikir havuzu A3, [protokol.md](../protokol.md) §4
 
@@ -31,7 +31,7 @@ açıklanamaz hâle getiriyor.
 | B. Tasarımdaki yol: eğitim kümesi istatistiği | Fiziksel olarak daha temiz girdi | Resmî reçeteden sapma; etkisi ölçülmedi | 0 |
 | C. A ana eğitimde; B (ve dB/z-skoru) Faz 4'te kısa provada ölçülür, fikir havuzunda kalır | Ana model temiz kalır, soru kaybolmaz | Provanın 13 olayda ölçülmesi ~1–2 CU | ~1–2 CU |
 
-## Karar (önerilen)
+## Karar
 
 **C.** Ana eğitim resmî SAR biçimini kullanır. Eğitim kümesi istatistiği ve dB/z-skoru ön işlemesi fikir
 havuzunda (A3) kalır; Faz 4'te kısa provada 13 olayın doğrulamasıyla ölçülür. Ana reçeteye ancak `protokol-kilidi`
@@ -39,7 +39,7 @@ havuzunda (A3) kalır; Faz 4'te kısa provada 13 olayın doğrulamasıyla ölç�
 
 ## Sonuçlar
 
-- Onaylanırsa tasarım §7'nin normalizasyon satırı "SAR: resmî biçim (3 kanal, ImageNet)" olarak güncellenir.
+- Tasarım §7'nin normalizasyon satırı "SAR: resmî biçim (3 kanal, ImageNet)" olarak güncellendi.
 - Model sözleşmesindeki `post: B×1×H×W` korunur; 3 kanala kopyalama ChangeMamba sarmalayıcısının içinde yapılır.
   Böylece öteki modeller ve analizler tek bantlı SAR görür.
 - Y3 (Türkiye istatistikleriyle yeniden standartlaştırma) bu girdi biçimi üzerinde tanımlanır.

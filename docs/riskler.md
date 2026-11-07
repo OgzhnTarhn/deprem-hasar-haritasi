@@ -14,7 +14,7 @@
 | R6 | Oturum kopması, eksik devam durumu | Y | O | 12 saat sınırı, tarayıcı kapanması | Tam durum kaydı, atomik yazma, `seed + step` örnekleyici, kapı 10 | Drive + HF Hub iki kopya | 5, 8 |
 | R7 | Hugging Face veri kopyası kalkar veya değişir | D | Y | İndirme hatası veya özet uyuşmazlığı | İlk indirmede dosya özetleri `results/veri/`'ye yazılır; zip'ler Drive'da yedeklenir | Drive yedeği | 2 |
 | R8 | Türkiye bilgisi karar sürecine sızar (insan hatası) | O | Y | Türkiye'ye `final` dışından erişim | `guard`, git kilitleri, eğitim kodunda test yolu yok, protokol | Sızıntı olursa olay raporlanır, etkilenen sonuç "keşif" etiketi alır | 1–8 |
-| R9 | SAR girdi biçimi resmî reçeteden sapar | O | O | ADR-0004 onaylanmaz veya uygulanmaz | ADR-0004 seçenek C | Sapma raporda açıkça yazılır | 1, 4 |
+| R9 | SAR girdi biçimi resmî reçeteden sapar | O | O | ADR-0004 (kabul) uygulanmaz | ADR-0004 seçenek C | Sapma raporda açıkça yazılır | 1, 4 |
 | R10 | BRIGHT'ta bina örnek etiketi yok, bağlı bileşenler binaları birleştirir | O | O | Faz 2 incelemesi | 13 olayda birleşme oranı ölçülür | Bina düzeyi metrikler sınırlamasıyla raporlanır | 2 |
 | R11 | Sentinel-1 kapsamı A1 için yetersiz | O | D | Uygun çift < 10 olay | Faz 2 fizibilitesi | Varyant adayı D1'e geçer | 2 |
 | R12 | Dış katmanlar (HDX, ARIA, ShakeMap) taşınır veya kaldırılır | D | O | Bağlantı hatası | İndirildiği anda yerel kopya, özet ve tarih kaydı | Arşiv kopyaları (Wayback, NASA kataloğu) | 7 |

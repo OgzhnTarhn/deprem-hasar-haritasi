@@ -138,7 +138,7 @@ Dondurulmuş yapılandırma (`configs/ana.yaml`):
 | Hassasiyet ve EMA | bf16, EMA 0,999 | Düşük risk (yargı) |
 | Gradyan kırpma | Ön kontrolde ölçülen p90 gradyan normu | Ölçülecek |
 | Artırım | Flip, rot90; fotometrik yok | Resmî |
-| Normalizasyon | Optik ImageNet. SAR: **öneri** resmî biçim (3 kanala kopya, ImageNet istatistikleri); eğitim kümesi istatistiği fikir havuzunda (A3) | Kanıt (resmî kod); onay bekliyor ([ADR-0004](adr/0004-sar-girdisi.md)) |
+| Normalizasyon | Optik ImageNet. SAR: resmî biçim (3 kanala kopya, ImageNet istatistikleri); eğitim kümesi istatistiği fikir havuzunda (A3), Faz 4'te kısa provada ölçülür | Kanıt (resmî kod); kabul ([ADR-0004](adr/0004-sar-girdisi.md)) |
 | Nodata | Optik ve SAR'ın ikisi de 0 olan pikseller kayıpta yok sayılır | Yargı |
 | Doğrulama | 2.000 adımda bir, yalnız 13 olay | Türkiye eğitimde değerlendirilmez |
 | Kayıt | 1.000 adımda bir Drive'a (son 2 + en iyi), 5.000 adımda bir HF Hub özel repoya; atomik yazma | Kopmaya dayanıklılık |
