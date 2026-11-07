@@ -8,8 +8,32 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 | 0. Belgeler ve protokol taslağı | Bitti (6 Kasım 2026) | `docs/adr/` (0001–0006), `docs/protokol.md` 0.1, `docs/veri-lisans.md`, `docs/riskler.md`, `docs/sar-temelleri.md` |
 | 1. Depo iskeleti | Bitti (6 Kasım 2026) | `src/hasar/` paketi, `configs/ana.yaml`, sonuç şeması, Türkiye guard'ı, model sözleşmesi, CI; 125 kısa test (~3 sn) |
 | 2. Veri katmanı | Bitti (6 Kasım 2026) | `src/hasar/data/` (8 modül), `hasar` komutu, `results/veri/bolme.json`, `results/arastirma/` (5 araştırma); 288 kısa test (~3,5 sn) |
-| 3. Metrik ve yeniden üretim | Sırada | İlk Colab oturumu |
+| 3. Metrik ve yeniden üretim | Bitti (7 Kasım 2026) | `src/hasar/eval/` (metrik, bootstrap, bina F1, çıkarım, yeniden üretim), `hasar yeniden-uret`; 3 checkpoint ±0,3 içinde (yerel RTX 4060), DeepLabV3+ olumsuz bulgu |
 | 4–9 | Bekliyor | |
+
+## Faz 3'te kurulanlar ve ölçülenler
+
+- **Metrik (`hasar.eval.metrics`):** olay boyunca biriktirilen 4×4 matris, sınıf IoU'su (payda 1e-7), mIoU, bina
+  mIoU'su, piksel doğruluğu; kare başına matrisler `npz` olarak saklanır, bootstrap onları okur.
+- **Bootstrap (`hasar.eval.bootstrap`):** şehre göre katmanlı 2 km blok bootstrap (10.000 tekrar), eşleştirilmiş fark,
+  "eşit" kuralı (protokol §9) ve 41,28 çıpası yorumu.
+- **Bina düzeyi (`hasar.eval.building`):** CVPRW26 örnek etiketlerinden çoğunluk oyu, makro F1; bina maskeli ve oylama
+  satırları protokol §6'daki gibi `argmax(clf[1:]) + 1`.
+- **Çıkarım (`hasar.eval.predict`):** kareler tek tek okunur, olasılıklar `float16` önbelleğe yazılır (bir çıkarım,
+  çok analiz).
+- **Yeniden üretim (`hasar.eval.reproduce`, `hasar yeniden-uret`):** Zenodo 15349462 checkpoint'leri md5 denetimiyle
+  indirilir; Türkiye'ye `guard.require_reproduction_access` (yalnız bilinen 4 checkpoint adı, temiz çalışma ağacı)
+  ile erişilir; sonuç `[ZS-EVENT mIoU, repro]` etiketli.
+- **Sonuç (`results/yeniden-uretim/*_test.json`, commit 81e1b7e, yerel RTX 4060, model başına ~4 dk):** SiamCRNN,
+  UNet ve DamageFormer yayımlanan değerlere ±0,3 içinde (fark 0,01'in altında) → **çıkış ölçütü sağlandı**, hat
+  resmî değerlendiriciyle birebir.
+- **Olumsuz bulgu, DeepLabV3+:** `ckpt_DeepLabV3Plus_cross_event_zeroshot_turkey-earthquake.pth` Türkiye'de
+  yayımlanan değerin çok üstünde sonuç veriyor (`deeplabv3plus_test.json`, `within_tolerance: false`); hasarlı ve
+  yıkık sınıf IoU'ları bir zero-shot modelden beklenmeyecek kadar yüksek. Aynı hattan geçen öteki üç model birebir
+  tuttuğu için hata hatta değil, checkpoint'te: dosya büyük olasılıkla Türkiye'yi görmüş bir eğitimden
+  (yanlış adlandırılmış). Zenodo md5'i `standard_ML` ve `oneshot_turkey` dosyalarından farklı. **Karar:** bu
+  checkpoint kural 2'nin ruhuyla hiçbir topluluk (B2) veya analizde kullanılmaz; yalnız bu bulgu olarak raporlanır.
+- **13 olay doğrulaması (B2 adayı için):** `results/yeniden-uretim/*_val.json` `[VAL13 mIoU, repro]`.
 
 ## Faz 2'de kurulanlar ve ölçülenler
 

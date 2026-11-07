@@ -26,4 +26,4 @@
 
 | Tarih | Risk | Ne oldu | Ne yapıldı |
 |---|---|---|---|
-| – | – | – | – |
+| 7 Kasım 2026 | R3 (kısmen) | DeepLabV3+ Türkiye zero-shot checkpoint'i yayımlanan değeri tutmadı, çok üstünde çıktı; öteki üç model ±0,3 içinde | Hat doğru kabul edildi (3/3 hedef model birebir); DeepLabV3+ checkpoint'i Türkiye'yi görmüş sayılıp topluluk ve analizlerden çıkarıldı (`docs/durum.md` Faz 3) |

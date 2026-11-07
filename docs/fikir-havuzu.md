@@ -40,7 +40,7 @@ Ret önerisi (araştırma zayıf buldu; karar noktasında kesinleşir).
 | A2 | ShakeMap sarsıntı öncülüyle Bayesçi son işlem | 0 | Ayrı satır | Aday | KN1 |
 | A3 | SAR z-skoru ön işleme (değerler zaten log/dB benzeri; olay başına germe farklı) | 0 (küçük deneme) | Reçetenin parçası | Planlı · ölçüm Faz 4'te, karar 13 olaya göre ve `protokol-kilidi`'nden önce | Faz 4 |
 | B1 | Flip TTA + bina düzeyi oylama | 0 | İkincil satır | Planlı | – |
-| B2 | Heterojen topluluk: ana model + Zenodo'daki 5 hazır zero-shot checkpoint | 0 | Ayrı satır: "topluluk" | Aday | KN1 |
+| B2 | Heterojen topluluk: ana model + Zenodo'daki hazır zero-shot checkpoint'ler (DeepLabV3+ hariç: Faz 3'te Türkiye'yi görmüş çıktı) | 0 | Ayrı satır: "topluluk" | Aday | KN1 |
 | B3 | Ana model + varyant topluluğu | 0 | Ayrı satır: "topluluk" | Aday | KN1 |
 | C1 | Etiketsiz öncül (sınıf oranı) düzeltmesi, EM | 0 | Transdüktif tablo | Aday | KN1 |
 | C2 | Olay dengeli örnekleme | 1 | Varyant | Aday (V) | KN1 |
