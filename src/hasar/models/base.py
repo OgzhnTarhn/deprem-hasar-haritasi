@@ -2,9 +2,11 @@
 
 Every model in this project (the main ChangeMamba, the fallback DamageFormer, the single-idea
 variant and the Zenodo baselines) implements this contract: a ``forward(pre, post)`` call that
-returns a mapping with the ``loc`` and ``clf`` logits. ``post`` is single-band SAR of shape
-``B x 1 x H x W``; any channel replication (ADR-0004) happens inside the wrapper, never in the
-caller. Outputs are logits, not probabilities, so losses and metrics apply their own activation.
+returns a mapping with the ``loc`` and ``clf`` logits. ``post`` is the SAR tensor as produced by the
+data layer, ``B x C x H x W`` with ``C = 3`` in the official mode (band replicated, ImageNet
+statistics) or ``C = 1`` in the ``train_stats`` mode; a wrapper whose network needs three channels
+replicates a single band itself (ADR-0004). Outputs are logits, not probabilities, so losses and
+metrics apply their own activation.
 """
 
 from __future__ import annotations
