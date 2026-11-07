@@ -1,6 +1,6 @@
 """Command line interface of the ``hasar`` package.
 
-Eight subcommands are wired here:
+Nine subcommands are wired here:
 
 ``indir``
     Download and extract the BRIGHT archives into a data root (resumable).
@@ -21,6 +21,9 @@ Eight subcommands are wired here:
     :mod:`hasar.eval.final_run`.
 ``final``
     Run the single Turkey evaluation through :mod:`hasar.eval.final_run`.
+``readme``
+    Regenerate the README result table from the JSON files under ``results/`` through
+    :mod:`hasar.report`, or check with ``--check`` that it is current.
 
 The entry point is :func:`main`, which returns an exit code instead of calling
 :func:`sys.exit` so that tests can call it directly.
@@ -36,6 +39,7 @@ from types import SimpleNamespace
 from hasar.data.download import prepare_bright
 from hasar.data.events import DEFAULT_LIST_DIR, list_digest, load_standard_lists, make_zero_shot_split
 from hasar.data.summary import build_split_report
+from hasar.report import check_readme, update_readme
 
 #: Published checkpoint file of each baseline (kept here so parsing needs no torch).
 _REPRO_CHECKPOINTS: dict[str, str] = {
@@ -167,6 +171,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Bootstrap blok haritası JSON dosyası.",
     )
 
+    readme = subparsers.add_parser("readme", help="README sonuç tablosunu results/ dosyalarından üret.")
+    readme.add_argument("--readme", type=Path, default=Path("README.md"), help="Güncellenecek README dosyası.")
+    readme.add_argument("--results", type=Path, default=Path("results"), help="Sonuç JSON dosyalarının kökü.")
+    readme.add_argument("--check", action="store_true", help="Yazmadan yalnız güncel mi diye denetle.")
+
     return parser
 
 
@@ -278,6 +287,14 @@ def _run_final(args: argparse.Namespace) -> int:
     )
 
 
+def _run_readme(args: argparse.Namespace) -> int:
+    """Regenerate the README result table, or check it with ``--check`` (exit 1 when stale)."""
+    if args.check:
+        return 0 if check_readme(args.readme, args.results) else 1
+    update_readme(args.readme, args.results)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """Parse ``argv`` and run the selected subcommand; return its exit code."""
     args = _build_parser().parse_args(argv)
@@ -295,6 +312,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_sicaklik(args)
     if args.command == "final":
         return _run_final(args)
+    if args.command == "readme":
+        return _run_readme(args)
     return _run_veri_ozet(args)
 
 
