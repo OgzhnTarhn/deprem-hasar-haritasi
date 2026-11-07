@@ -6,7 +6,7 @@ Bu belge, kodu yazılmış ama GPU gerektirdiği için çalıştırılmamış ad
 
 | Adım | Faz | Nerede | Süre / CU (tahmin) | Geri alınabilir mi |
 |---|---|---|---|---|
-| 1. Yeniden üretim | 3 | Colab veya yerel GPU | 1–2 saat / ~5 CU | Evet |
+| 1. Yeniden üretim | 3 | **Yapıldı** (yerel RTX 4060, 7 Kasım 2026) | ~16 dk / 0 CU | Evet |
 | 2. Ön kontrol kapıları | 4 | Colab A100 | 1–1,5 saat / ~10 CU | Evet |
 | 3. `protokol-kilidi` etiketi | 4 | Yerel | 1 dk | Etiket silinebilir ama `final` sonrası anlamı kalmaz |
 | 4. Ana eğitim | 5 | Colab A100 | 40.000 adım / 50–75 CU | Evet (devam eder) |
@@ -23,6 +23,10 @@ Bu belge, kodu yazılmış ama GPU gerektirdiği için çalıştırılmamış ad
 - Drive'da `MyDrive/deprem-hasar/` klasörü defter tarafından açılır; kayıt noktaları oraya yazılır.
 
 ## 1. Faz 3: hazır modellerin yeniden üretimi
+
+> **Durum:** yerelde yapıldı ve commit'lendi (`results/yeniden-uretim/`): SiamCRNN, UNet, DamageFormer ±0,3 içinde;
+> DeepLabV3+ checkpoint'i tutmadı (Türkiye'yi görmüş görünüyor, `docs/durum.md` Faz 3). Defterin 4. hücresi bu
+> dosyaları bulduğu için adımı atlar. Aşağıdaki komutlar yalnız yeniden çalıştırmak gerekirse.
 
 Zenodo 15349462'deki Türkiye zero-shot checkpoint'leri, eğitim yapılmadan Türkiye'de çalıştırılır (kural 1'in
 birinci istisnası). Çıkış ölçütü: SiamCRNN 38,32, UNet 37,82, DamageFormer 37,20 `[ZS-EVENT mIoU]` değerlerine
