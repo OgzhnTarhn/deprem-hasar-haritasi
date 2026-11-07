@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
+
 from hasar.results import (
     BASE_TAGS,
     ResultRecord,

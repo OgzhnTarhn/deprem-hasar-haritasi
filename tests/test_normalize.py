@@ -9,6 +9,7 @@ import dataclasses
 
 import numpy as np
 import pytest
+
 from hasar.data.normalize import (
     IMAGENET_MEAN,
     IMAGENET_STD,
@@ -17,7 +18,6 @@ from hasar.data.normalize import (
     normalize_optical,
     sar_to_input,
 )
-
 from hasar.guard import TurkeyLockError
 
 

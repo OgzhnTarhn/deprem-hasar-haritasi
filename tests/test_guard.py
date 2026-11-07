@@ -11,6 +11,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+
 from hasar.guard import (
     TEST_EVENT,
     TurkeyAccess,

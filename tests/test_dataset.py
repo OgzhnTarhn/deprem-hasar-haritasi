@@ -14,8 +14,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 import tifffile
-from hasar.data.dataset import BrightDataset
 
+from hasar.data.dataset import BrightDataset
 from hasar.data.io import tile_paths
 from hasar.data.normalize import IMAGENET_MEAN, IMAGENET_STD, SarStats
 from hasar.guard import TurkeyAccess, TurkeyLockError

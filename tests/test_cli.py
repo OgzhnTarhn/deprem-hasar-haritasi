@@ -13,11 +13,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 import tifffile
-from hasar.cli import main
-from hasar.data.summary import build_split_report, label_histogram
 
+from hasar.cli import main
 from hasar.data.events import Split, load_standard_lists, make_zero_shot_split, split_summary
 from hasar.data.io import tile_paths
+from hasar.data.summary import build_split_report, label_histogram
 from hasar.guard import TurkeyAccess, TurkeyLockError
 
 TURKEY_NAME = "turkey-earthquake_00000001"

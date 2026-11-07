@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+
 from hasar.data.transforms import augment, random_crop, random_flip_rot
 
 H, W = 6, 8

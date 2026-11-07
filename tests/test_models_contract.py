@@ -5,6 +5,7 @@ from collections.abc import Mapping
 
 import numpy as np
 import pytest
+
 from hasar.models.base import (
     NUM_CLF_CLASSES,
     NUM_LOC_CLASSES,

@@ -42,10 +42,13 @@ packages = ["src/hasar"]
 line-length = 120
 target-version = "py310"
 src = ["src", "tests"]
-extend-exclude = ["third_party"]
+extend-exclude = ["third_party", "*.md"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["hasar"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

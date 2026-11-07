@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+
 from hasar.config import Config, ConfigError, config_hash, load_config, run_id
 
 REPO_ROOT = Path(__file__).parents[1]
