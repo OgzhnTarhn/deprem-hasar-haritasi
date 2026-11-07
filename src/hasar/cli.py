@@ -1,6 +1,6 @@
 """Command line interface of the ``hasar`` package.
 
-Three subcommands are wired here:
+Six subcommands are wired here:
 
 ``indir``
     Download and extract the BRIGHT archives into a data root (resumable).
@@ -9,6 +9,13 @@ Three subcommands are wired here:
     counts for the train and val parts.
 ``yeniden-uret``
     Re-run a published BRIGHT zero-shot baseline through :mod:`hasar.eval.reproduce`.
+``agirlik``
+    Download the allowed ImageNet VMamba-Tiny initial weight through
+    :mod:`hasar.models.weights`.
+``egit``
+    Run the single full training through :mod:`hasar.train.run`.
+``on-kontrol``
+    Run the pre-training gates of design section 8 through :mod:`hasar.train.run`.
 
 The entry point is :func:`main`, which returns an exit code instead of calling
 :func:`sys.exit` so that tests can call it directly.
@@ -46,8 +53,24 @@ def _load_reproduce() -> SimpleNamespace:
     return SimpleNamespace(reproduce=module.reproduce, download_checkpoint=download_checkpoint)
 
 
+def _load_training() -> SimpleNamespace:
+    """Import the training runner lazily and return its two entry points.
+
+    ``hasar.train.run`` imports torch at module top, so it is imported only when the ``egit`` or
+    ``on-kontrol`` subcommand actually runs.
+    """
+    from hasar.train import run as module
+
+    return SimpleNamespace(run_training=module.run_training, run_preflight=module.run_preflight)
+
+
+def _parse_gates(raw: str) -> list[int]:
+    """Parse a comma separated gate list such as ``"2,3,4"`` into ``[2, 3, 4]``."""
+    return [int(part) for part in raw.split(",") if part.strip()]
+
+
 def _build_parser() -> argparse.ArgumentParser:
-    """Build the argument parser with the ``indir``, ``veri-ozet`` and ``yeniden-uret`` subcommands."""
+    """Build the argument parser with every subcommand."""
     parser = argparse.ArgumentParser(prog="hasar", description="Deprem hasar haritası araçları.")
     subparsers = parser.add_subparsers(dest="command", required=True, metavar="komut")
 
@@ -74,6 +97,32 @@ def _build_parser() -> argparse.ArgumentParser:
     reproduce.add_argument("--cache", type=Path, default=None, help="Checkpoint önbellek klasörü.")
     reproduce.add_argument("--device", default="cpu", help="Çalıştırma aygıtı.")
     reproduce.add_argument("--tta", action="store_true", help="Test zamanı artırımı uygula.")
+
+    weights = subparsers.add_parser("agirlik", help="İzin verilen başlangıç ağırlığını indir.")
+    weights.add_argument(
+        "--out",
+        type=Path,
+        default=Path("data/checkpoints"),
+        help="Ağırlığın indirileceği klasör.",
+    )
+
+    train = subparsers.add_parser("egit", help="Tek tam eğitimi çalıştır.")
+    train.add_argument("--config", type=Path, required=True, help="Yapılandırma YAML dosyası.")
+    train.add_argument("--data", type=Path, required=True, help="BRIGHT veri kökü.")
+    train.add_argument("--out", type=Path, required=True, help="Çıktıların yazılacağı klasör.")
+    train.add_argument("--device", default="cuda", help="Çalıştırma aygıtı.")
+    train.add_argument("--pretrained", type=Path, default=None, help="Başlangıç ağırlığı (isteğe bağlı).")
+    train.add_argument("--commit", default=None, help="Kayda yazılacak commit SHA'sı (varsayılan: git HEAD).")
+    train.add_argument("--steps", type=int, default=None, help="Kısa prova için adım sayısını değiştir.")
+
+    preflight = subparsers.add_parser("on-kontrol", help="Eğitim öncesi kapıları çalıştır.")
+    preflight.add_argument("--config", type=Path, required=True, help="Yapılandırma YAML dosyası.")
+    preflight.add_argument("--data", type=Path, required=True, help="BRIGHT veri kökü.")
+    preflight.add_argument("--out", type=Path, required=True, help="Çıktıların yazılacağı klasör.")
+    preflight.add_argument("--device", default="cuda", help="Çalıştırma aygıtı.")
+    preflight.add_argument("--pretrained", type=Path, default=None, help="Başlangıç ağırlığı (isteğe bağlı).")
+    preflight.add_argument("--gates", default=None, help="Virgülle ayrılmış kapı numaraları (varsayılan: hepsi).")
+    preflight.add_argument("--repro-dir", type=Path, default=None, help="Yeniden üretim kayıtlarının klasörü.")
 
     return parser
 
@@ -121,6 +170,44 @@ def _run_yeniden_uret(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_agirlik(args: argparse.Namespace) -> int:
+    """Download the allowed pretrained weight and print its path."""
+    from hasar.models import weights
+
+    path = weights.download_pretrained(args.out)
+    print(path)
+    return 0
+
+
+def _run_egit(args: argparse.Namespace) -> int:
+    """Run the single full training and return its exit code."""
+    runner = _load_training()
+    return runner.run_training(
+        config=args.config,
+        data=args.data,
+        out=args.out,
+        device=args.device,
+        pretrained=args.pretrained,
+        commit=args.commit,
+        steps=args.steps,
+    )
+
+
+def _run_on_kontrol(args: argparse.Namespace) -> int:
+    """Run the pre-training gates and return 0 only if every selected gate passed."""
+    runner = _load_training()
+    gates = _parse_gates(args.gates) if args.gates is not None else None
+    return runner.run_preflight(
+        config=args.config,
+        data=args.data,
+        out=args.out,
+        device=args.device,
+        pretrained=args.pretrained,
+        gates=gates,
+        repro_dir=args.repro_dir,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     """Parse ``argv`` and run the selected subcommand; return its exit code."""
     args = _build_parser().parse_args(argv)
@@ -128,6 +215,12 @@ def main(argv: list[str] | None = None) -> int:
         return _run_indir(args)
     if args.command == "yeniden-uret":
         return _run_yeniden_uret(args)
+    if args.command == "agirlik":
+        return _run_agirlik(args)
+    if args.command == "egit":
+        return _run_egit(args)
+    if args.command == "on-kontrol":
+        return _run_on_kontrol(args)
     return _run_veri_ozet(args)
 
 
