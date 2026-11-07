@@ -13,8 +13,24 @@ depreminde, eğitimde hiç görülmeden, **bir kez** test edilir. Kıyas çıpas
 Her sayı `results/**/*.json` dosyasından üretilir ve yanında metrik türünü taşır. Yalnız `[ZS-EVENT mIoU]`
 41,28 ile kıyaslanır; fark protokol §9'daki "eşit" kuralına göre yazılır.
 
+Şimdilik tabloda yalnız Faz 3'ün yeniden üretim satırları (`repro`) var: hazır BRIGHT checkpoint'lerinin yayımlanan
+değerleri tutturup tutturmadığını gösterir, bu projenin modeli değildir. DeepLabV3+ satırı **olumsuz bulgudur**:
+"zero-shot" diye yayımlanan checkpoint yayımlanan değerin çok üstünde çıktı ve Türkiye'yi görmüş sayıldı
+([docs/bulgular.md](docs/bulgular.md)). Ana modelin satırları Colab'daki eğitim ve tek `final` adımından sonra
+`hasar readme` ile eklenir.
+
 <!-- sonuclar:basla -->
-Henüz sonuç yok.
+Bu tablo `hasar readme` ile results/ dosyalarından üretildi; elle düzenlemeyin.
+
+| Model | Bölme | Metrik | Değer | Kaynak |
+| --- | --- | --- | --- | --- |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, repro] | 37,20 | `yeniden-uretim/damageformer_test.json` |
+| bright_damageformer | zero_shot/val | [VAL13 mIoU, repro] | 74,48 | `yeniden-uretim/damageformer_val.json` |
+| bright_deeplabv3plus | zero_shot/test | [ZS-EVENT mIoU, repro] | 65,16 | `yeniden-uretim/deeplabv3plus_test.json` |
+| bright_siamcrnn | zero_shot/test | [ZS-EVENT mIoU, repro] | 38,32 | `yeniden-uretim/siamcrnn_test.json` |
+| bright_siamcrnn | zero_shot/val | [VAL13 mIoU, repro] | 73,32 | `yeniden-uretim/siamcrnn_val.json` |
+| bright_unet | zero_shot/test | [ZS-EVENT mIoU, repro] | 37,82 | `yeniden-uretim/unet_test.json` |
+| bright_unet | zero_shot/val | [VAL13 mIoU, repro] | 70,69 | `yeniden-uretim/unet_val.json` |
 <!-- sonuclar:bitir -->
 
 ## Hızlı başlangıç
