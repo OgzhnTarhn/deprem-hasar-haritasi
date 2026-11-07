@@ -1,0 +1,26 @@
+{
+  "commit": "81e1b7e81be4c8044d130fdffffc7f3d30ef50fb",
+  "config_hash": "none",
+  "created_at": "2026-11-07T12:01:57.651448+00:00",
+  "extra": {
+    "checkpoint": "ckpt_DamageFormer_cross_event_zeroshot_turkey-earthquake.pth",
+    "tiles": 1114,
+    "tolerance_pct": 0.3,
+    "tta": false,
+    "within_tolerance": true
+  },
+  "metric_tag": "[ZS-EVENT mIoU, repro]",
+  "model": "bright_damageformer",
+  "seed": null,
+  "split": "zero_shot/test",
+  "values": {
+    "building_miou_pct": 19.41955336043842,
+    "diff_pct": -0.0013870123909640597,
+    "iou_background_pct": 90.53579186912091,
+    "iou_damaged_pct": 3.309174201235321,
+    "iou_destroyed_pct": 0.3670810565464741,
+    "iou_intact_pct": 54.58240482353347,
+    "miou_pct": 37.19861298760904,
+    "published_pct": 37.2
+  }
+}

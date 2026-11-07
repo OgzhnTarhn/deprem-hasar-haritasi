@@ -1,0 +1,26 @@
+{
+  "commit": "81e1b7e81be4c8044d130fdffffc7f3d30ef50fb",
+  "config_hash": "none",
+  "created_at": "2026-11-07T11:49:22.110959+00:00",
+  "extra": {
+    "checkpoint": "ckpt_SiamCRNN_cross_event_zeroshot_turkey-earthquake.pth",
+    "tiles": 1114,
+    "tolerance_pct": 0.3,
+    "tta": false,
+    "within_tolerance": true
+  },
+  "metric_tag": "[ZS-EVENT mIoU, repro]",
+  "model": "bright_siamcrnn",
+  "seed": null,
+  "split": "zero_shot/test",
+  "values": {
+    "building_miou_pct": 21.43309822068399,
+    "diff_pct": 0.0013577680211156462,
+    "iou_background_pct": 88.98613641003249,
+    "iou_damaged_pct": 2.8336745261747374,
+    "iou_destroyed_pct": 0.19778098392045346,
+    "iou_intact_pct": 61.26783915195679,
+    "miou_pct": 38.321357768021116,
+    "published_pct": 38.32
+  }
+}
