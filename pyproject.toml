@@ -8,6 +8,8 @@ dependencies = [
     "pyyaml>=6.0",
     "tifffile>=2023.1",
     "huggingface_hub>=0.20",
+    "scipy>=1.11",
+    "pillow>=10",
 ]
 
 [project.scripts]
