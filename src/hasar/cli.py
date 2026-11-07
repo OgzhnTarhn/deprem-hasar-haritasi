@@ -154,7 +154,10 @@ def _build_parser() -> argparse.ArgumentParser:
     final.add_argument("--device", default="cuda", help="Çalıştırma aygıtı.")
     final.add_argument("--out", type=Path, default=Path("results") / "ana", help="Sonuçların yazılacağı klasör.")
     final.add_argument(
-        "--cache", type=Path, default=None, help="Kare olasılık önbelleği (varsayılan: data/final_cache)."
+        "--cache",
+        type=Path,
+        default=None,
+        help="Kare olasılık önbelleğinin kökü; model başına <kök>/<run_id> kullanılır (varsayılan: data/final_cache).",
     )
     final.add_argument("--instances", type=Path, default=None, help="Bina örnek (instance) klasörü.")
     final.add_argument(

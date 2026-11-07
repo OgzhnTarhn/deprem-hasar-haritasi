@@ -232,3 +232,24 @@ def test_model_label_names_the_fallback_when_it_took_over() -> None:
     assert model_label(cfg, torch.nn.Linear(1, 1)) == "damageformer_swin_t"
     other = SimpleNamespace(model=SimpleNamespace(name="damageformer_swin_t", fallback="damageformer_swin_t"))
     assert model_label(other, torch.nn.Linear(1, 1)) == "damageformer_swin_t"
+
+
+def test_cache_folder_is_separate_per_run_id(tmp_path) -> None:
+    from types import SimpleNamespace
+
+    pytest.importorskip("torch")
+    import hasar.eval.final_run as final_run
+
+    main = SimpleNamespace(name="ana")
+    variant = SimpleNamespace(name="varyant")
+    ids = {"ana": "ana-1111", "varyant": "varyant-2222"}
+    original = final_run.run_id
+    final_run.run_id = lambda cfg: ids[cfg.name]
+    try:
+        a = final_run._resolve_cache(tmp_path, main)
+        b = final_run._resolve_cache(tmp_path, variant)
+    finally:
+        final_run.run_id = original
+    assert a == tmp_path / "ana-1111"
+    assert b == tmp_path / "varyant-2222"
+    assert a != b

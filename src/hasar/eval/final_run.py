@@ -128,11 +128,15 @@ def _read_temperature(out_dir: Path) -> float | None:
     return float(read_result(path).values["temperature"])
 
 
-def _resolve_cache(cache: Path | str | None) -> Path:
-    """Return the given cache folder, or the Colab default when its parent exists."""
-    if cache is not None:
-        return Path(cache)
-    return COLAB_CACHE if COLAB_CACHE.parent.is_dir() else LOCAL_CACHE
+def _resolve_cache(cache: Path | str | None, cfg) -> Path:
+    """Return the per-model cache folder ``<base>/<run_id(cfg)>``.
+
+    ``base`` is the given folder, or the Colab default when its parent exists. The run id
+    subfolder keeps the main model's and the variant's caches apart: :func:`run_final` reuses any
+    cached tile, so a shared folder would silently hand one model's probabilities to the other.
+    """
+    base = Path(cache) if cache is not None else (COLAB_CACHE if COLAB_CACHE.parent.is_dir() else LOCAL_CACHE)
+    return base / run_id(cfg)
 
 
 def run_final_cli(
@@ -160,7 +164,7 @@ def run_final_cli(
         model,
         data,
         out_dir,
-        _resolve_cache(cache),
+        _resolve_cache(cache, cfg),
         model_name=model_label(cfg, model),
         config_hash=config_hash(cfg),
         temperature=temperature,
