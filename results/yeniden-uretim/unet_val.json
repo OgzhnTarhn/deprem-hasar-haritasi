@@ -1,0 +1,22 @@
+{
+  "commit": "552e55ee5b49b3e9511baf8fd2c1e6a1e6008142",
+  "config_hash": "none",
+  "created_at": "2026-11-07T12:09:00.082684+00:00",
+  "extra": {
+    "checkpoint": "ckpt_UNet_cross_event_zeroshot_turkey-earthquake.pth",
+    "tiles": 337,
+    "tta": false
+  },
+  "metric_tag": "[VAL13 mIoU, repro]",
+  "model": "bright_unet",
+  "seed": null,
+  "split": "zero_shot/val",
+  "values": {
+    "building_miou_pct": 61.83087332014411,
+    "iou_background_pct": 97.2574866617087,
+    "iou_damaged_pct": 49.48671902781037,
+    "iou_destroyed_pct": 67.69947312584561,
+    "iou_intact_pct": 68.30642780677633,
+    "miou_pct": 70.68752665553525
+  }
+}
