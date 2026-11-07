@@ -320,6 +320,10 @@ def train(
     if last_ckpt_step != total_steps:
         save_state(total_steps)
 
+    # Protocol section 5: the raw (non-EMA) weights are validated once, at the end, for the report
+    # only; they never take part in the selection.
+    raw_miou = float(summary(evaluate(model, val_set, device=device).total)["miou"])
+
     write_result(
         out / "val13.json",
         ResultRecord(
@@ -331,6 +335,7 @@ def train(
             values={
                 "best_miou_pct": best_miou * 100.0,
                 "last_miou_pct": last_miou * 100.0,
+                "last_raw_miou_pct": raw_miou * 100.0,
             },
             extra={"best_step": best_step, "steps": step, "skipped": skipped},
         ),

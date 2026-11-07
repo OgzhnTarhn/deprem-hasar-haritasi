@@ -164,6 +164,7 @@ def test_full_run_writes_expected_artifacts(tmp_path: Path) -> None:
     record = read_result(tmp_path / "val13.json")
     assert record.metric_tag == "[VAL13 mIoU, ema]"
     assert "best_miou_pct" in record.values
+    assert "last_raw_miou_pct" in record.values
 
 
 def test_resume_is_deterministic(tmp_path: Path) -> None:
