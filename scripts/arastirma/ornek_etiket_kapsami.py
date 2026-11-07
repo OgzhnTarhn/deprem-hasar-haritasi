@@ -3,12 +3,17 @@
 YALNIZ dosya adları: zip'in merkez dizini HTTP aralık isteğiyle okunur; hiçbir JSON açılmaz. Türkiye için yalnız
 "kaç karede örnek etiketi var" sayılır.
 
-Kullanım: uv run python scripts/arastirma/ornek_etiket_kapsami.py --out results/arastirma/ornek_etiket_kapsami.json
+Protokol §7, bina düzeyi metriğin hesaplanacağı Türkiye karelerinin listesini kilitten önce sabitler: bu liste de
+yalnız dosya adlarından çıkar ve `--tiles-out` dosyasına (ad listesi ve sha256'sı) yazılır.
+
+Kullanım: uv run python scripts/arastirma/ornek_etiket_kapsami.py --out results/arastirma/ornek_etiket_kapsami.json \
+    --tiles-out results/arastirma/turkiye_bina_kareleri.json
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections import Counter
@@ -25,6 +30,7 @@ SUFFIX = "_instance_damage.json"
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--tiles-out", type=Path, default=None)
     a = ap.parse_args()
 
     zf, _ = open_zip("cvprw26_trainval_instance_labels.zip")
@@ -48,6 +54,17 @@ def main() -> int:
     }
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    if a.tiles_out is not None:
+        tiles = sorted(n for n in split.test if n in have)
+        listing = {
+            "kind": "research",
+            "question": "Protokol §7: bina düzeyi metrik hangi Türkiye karelerinde hesaplanır (yalnız dosya adları)",
+            "source": "Kullervo/BRIGHT cvprw26_trainval_instance_labels.zip merkez dizini",
+            "count": len(tiles),
+            "sha256": hashlib.sha256("\n".join(tiles).encode("utf-8")).hexdigest(),
+            "tiles": tiles,
+        }
+        a.tiles_out.write_text(json.dumps(listing, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(out["test"]), out["unlisted_names"])
     for part in ("train", "val"):
         print(part, {k: v["with_instances"] for k, v in out[part].items()})
