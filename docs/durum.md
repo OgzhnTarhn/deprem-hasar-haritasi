@@ -9,7 +9,25 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 | 1. Depo iskeleti | Bitti (6 Kasım 2026) | `src/hasar/` paketi, `configs/ana.yaml`, sonuç şeması, Türkiye guard'ı, model sözleşmesi, CI; 125 kısa test (~3 sn) |
 | 2. Veri katmanı | Bitti (6 Kasım 2026) | `src/hasar/data/` (8 modül), `hasar` komutu, `results/veri/bolme.json`, `results/arastirma/` (5 araştırma); 288 kısa test (~3,5 sn) |
 | 3. Metrik ve yeniden üretim | Bitti (7 Kasım 2026) | `src/hasar/eval/` (metrik, bootstrap, bina F1, çıkarım, yeniden üretim), `hasar yeniden-uret`; 3 checkpoint ±0,3 içinde (yerel RTX 4060), DeepLabV3+ olumsuz bulgu |
-| 4–9 | Bekliyor | |
+| 4. Model, eğitim motoru, ön kontrol | Kod bitti (7 Kasım 2026); Colab adımları kullanıcıda | `models/changemamba.py`, `train/` (kayıp, zamanlayıcı, EMA, kayıt, döngü), `preflight/gates.py` (11 kapı), `hasar agirlik/egit/on-kontrol`, protokol 1.0; kapılar 1–4, 6, 7, 10, 11 yerel GPU'da geçti |
+| 5–9 | Bekliyor | |
+
+## Faz 4'te kurulanlar ve ölçülenler
+
+- **Model:** `ChangeMambaWrapper` resmî 0229flex yapılandırmasıyla; tek bantlı SAR'ı kendisi 3 kanala kopyalar.
+  ImageNet VMamba-Tiny ağırlığı 222 tensörün 200'ünü yükler. Yedek: torchvision ImageNet Swin-T ile DamageFormer.
+- **Tarama yolu:** derlenmiş `selective_scan_cuda_oflex` yoksa saf PyTorch taraması çalışır, ama çok yavaş
+  (yerel RTX 4060'ta 2×256 kare, bf16: adım başına ~25 sn, 3,8 GB). Bu yüzden çekirdek derlenmezse eğitim
+  otomatik olarak DamageFormer yedeğine geçer (`train/run.py`).
+- **Eğitim motoru:** ısınma + kosinüs, EMA 0,999, atomik tam durum kaydı (model, EMA, optimizer, zamanlayıcı, adım,
+  örnek sayacı, bütün RNG'ler), `DONE` ile tekrar çalıştırmada atlama, farklı yapılandırmayla devamı reddetme,
+  yalnız 13 olayda doğrulama, son adımda ham ağırlık doğrulaması.
+- **Ön kontrol (yerel GPU duman testi, DamageFormer yedeğiyle):** kapı 1 (3 zorunlu model ±0,3; DeepLabV3+ ek kayıt
+  olarak raporlanır), 2, 3, 4, 6, 7, 10, 11 geçti. Duman testi sentetik testlerin kaçırdığı hataları buldu: kapı 4–6'da
+  cihaz uyuşmazlığı, kapı 10'da tohumlanmamış model kurulumu ve GPU belirlenimsizliği. İki kesintisiz koşu bile
+  GPU'da ayrışıyor (parametreler ~1e-4, BatchNorm istatistikleri yüzde düzeyinde); kapı 10 buna göre ölçüt kullanır.
+- **Colab'da kalanlar:** kapı 5, 8, 9 (A100 ve ChangeMamba çekirdeği gerekir), `train.clip`, `protokol-kilidi`.
+  Adımlar: `docs/colab.md`.
 
 ## Faz 3'te kurulanlar ve ölçülenler
 
