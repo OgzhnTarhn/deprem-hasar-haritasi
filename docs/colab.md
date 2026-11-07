@@ -96,39 +96,69 @@ görülmeden.** `final` komutu bu etiket olmadan çalışmaz.
 
 ## 6. Faz 6: Türkiye'de tek değerlendirme
 
+Defterde `REF = "varyant-kilidi"`, `RUN_FINAL = True` ile "Run All". 6. hücre sırayla şunları yapar (elle de
+çalıştırılabilir; çıktılar depo dışına yazılır, çünkü `final` temiz çalışma ağacı ister):
+
 ```bash
-hasar sicaklik --config configs/ana.yaml --data /content/data/bright --runs /content/drive/MyDrive/deprem-hasar/kosular
-hasar final    --config configs/ana.yaml --data /content/data/bright --runs /content/drive/MyDrive/deprem-hasar/kosular \
-               --instances <CVPRW26 örnek etiketleri klasörü>
+R=/content/drive/MyDrive/deprem-hasar
+hasar ornekler --dest /content/data/ornekler --cache /content/data/cache        # yalnız sabit 1.001 kare
+hasar sicaklik --config configs/ana.yaml --data /content/data/bright --runs $R/kosular --device cuda --out $R/sonuclar/ana
+hasar final    --config configs/ana.yaml --data /content/data/bright --runs $R/kosular --device cuda --out $R/sonuclar/ana                --cache /content/data/final_cache --instances /content/data/ornekler
 ```
 
-Defterde `RUN_FINAL = True` aynı şeyi yapar. Sonuçlar `results/ana/turkiye*.json`; olasılık önbelleği
-`data/final_cache/` (Drive'a kopyalayın: analizler ve demo onu okur). `final` ikinci kez çalışmaz.
+Sonra yerelde `MyDrive/deprem-hasar/sonuclar/ana/` içeriği `results/ana/` altına kopyalanıp commit'lenir;
+önbellek `MyDrive/deprem-hasar/final_cache/<run_id>/` altında kalır (analizler ve demo onu okur).
 
-- `sicaklik` yalnız 13 olayın doğrulamasını okur (337 kare, A100'de ~15–30 dk; NLL ızgarası CPU'da). Sonucu
-  `results/ana/sicaklik.json`; `final` bu dosyayı okur, yoksa uyarıp T=1 ile devam eder. Önce `sicaklik`.
+- `final` yalnız `protokol-kilidi` ve `varyant-kilidi` etiketleri HEAD'in atasıysa ve ağaç temizse çalışır.
+- `sicaklik` yalnız 13 olayın doğrulamasını okur (337 kare; yerel denemede kare başına ~6 sn, A100'de daha kısa;
+  NLL ızgarası CPU'da). Sonucu `--out` klasöründeki `sicaklik.json`; `final` aynı klasörden okur, yoksa uyarıp
+  T=1 ile devam eder. Önce `sicaklik`.
 - `--instances` klasörü `results/arastirma/turkiye_bina_kareleri.json` listesindeki 1.001 kareyle birebir
-  tutmalı; tutmazsa `final` Türkiye'ye dokunmadan durur.
+  tutmalı; tutmazsa `final` Türkiye'ye dokunmadan durur. `hasar ornekler` tam bu klasörü üretir.
 - Bootstrap blokları varsayılan olarak `results/arastirma/turkiye_bloklar.json`'dan okunur (protokol §8).
+- Önbellek model başına ayrıdır (`<cache>/<run_id>/`): varyantın `final`'i ana modelin olasılıklarını okuyamaz.
 - Yarıda kalırsa aynı komutu yeniden çalıştırın: biten kareler önbellekten okunur. Başlık dosyası
   (`turkiye.json`) en son yazılır; o yazıldıktan sonra komut reddedilir.
 - Sonuç kayıtlarındaki `model` alanı gerçekten çalışan modeli yazar (çekirdek yoksa `damageformer_swin_t`).
   Ana eğitim ChangeMamba ile yapıldıysa `final` da çekirdeği derlenmiş bir oturumda çalışmalıdır; aksi hâlde
   ağırlıklar yedek modele yüklenemez ve komut hata verir.
 
-## 7–9. Analizler, varyant, demo
+## 7. Faz 7: Analizler (yerel CPU)
 
-- Analizler önbellekten, yerel CPU'da (model yeniden çalışmaz; `results/ana/turkiye.json` yoksa reddeder):
+Model yeniden çalışmaz; `results/ana/turkiye.json` yoksa reddeder. Önbellek ve örnek etiketleri yerele indirilir:
 
-  ```python
-  from hasar.analysis.runner import run_cache_analyses
-  from hasar.guard import require_turkey_access
-  run_cache_analyses("data/final_cache", "data/bright", "<örnek etiketleri klasörü>", "results/analiz",
-                     final_dir="results/ana", access=require_turkey_access("."))
-  ```
+```python
+from hasar.analysis.runner import run_cache_analyses
+from hasar.guard import require_turkey_access
+run_cache_analyses("data/final_cache/<run_id>", "data/bright", "data/ornekler", "results/analiz",
+                   final_dir="results/ana", access=require_turkey_access("."))
+```
 
-  Çıktılar: `results/analiz/y2_butce.json`, `y2_risk_kapsam.json`, `galeri/`. Y1 için HOT/OSM ve ARIA DPM
-  katmanları ayrıca indirilir ve karenin koordinat sistemine çevrilir (`docs/veri-lisans.md` §4;
-  `hasar.analysis.agreement`). Y3 (transdüktif) Türkiye'de yeniden çıkarım ister; ayrı tabloda raporlanır.
-- Varyant: aynı defter, `configs/varyant.yaml` ile; iki modelin farkı `hasar.eval.compare` ile "eşit" kuralına göre.
-- Demo: `hasar demo --cache data/final_cache --data data/bright --out demo/`; README tablosu: `hasar readme`.
+Çıktılar: `results/analiz/y2_butce.json`, `y2_risk_kapsam.json`, `galeri/`. Y1 için HOT/OSM ve ARIA DPM
+katmanları ayrıca indirilir ve karenin koordinat sistemine çevrilir (`docs/veri-lisans.md` §4;
+`hasar.analysis.agreement`). Y3 (transdüktif) Türkiye'de yeniden çıkarım ister; ayrı tabloda raporlanır.
+Bulgular `docs/bulgular.md`'ye işlenir.
+
+## 8. Faz 8: Varyant
+
+Aynı defter `CONFIG = "configs/varyant.yaml"`, `NAME = "varyant"` ile: ön kontrol, eğitim, `RUN_FINAL = True`
+ile tek `final`. İki modelin farkı kare matrislerinden, eşleştirilmiş blok bootstrap ile:
+
+```python
+from hasar.eval.bootstrap import turkey_blocks
+from hasar.eval.compare import compare_models, compare_record
+from hasar.eval.metrics import ConfusionAccumulator
+a = ConfusionAccumulator.load_npz("results/ana/turkiye_kare_matrisleri_headline.npz").per_tile
+b = ConfusionAccumulator.load_npz("results/varyant/turkiye_kare_matrisleri_headline.npz").per_tile
+result = compare_models(a, b, blocks=turkey_blocks("results/arastirma/turkiye_bloklar.json"))
+```
+
+Sonuç "eşit" kuralına göre yazılır (protokol §9); seçim Türkiye sonucuna göre yapılmaz.
+
+## 9. Faz 9: Demo, README, dışa aktarım
+
+- README tablosu: `uv run hasar readme` (denetim: `--check`). Elle sayı yazılmaz.
+- Demo: `uv run hasar demo --cache data/final_cache/<run_id> --data data/bright --out demo/`. `demo/` git dışında
+  (Maxar CC BY-NC görüntü içerir); yayımlama kararı sizde.
+- Dışa aktarım: `uv run python scripts/disa_aktar.py --model <ad> --checkpoint best.pt` →
+  `results/arastirma/disa_aktarim_<ad>.json` (ONNX için `onnx` paketi gerekir).
