@@ -18,8 +18,8 @@ sayfasından teyit edilir. README'deki atıf tablosu bu dosyadan üretilir.
 
 | Kaynak | İçerik | Lisans | Kullanım | Durum |
 |---|---|---|---|---|
-| Zenodo 14037769 | ImageNet `vssm_tiny` | CC BY 4.0 | Ana model başlangıcı | Doğrulanacak (Faz 4) |
-| Zenodo 14037769 | `ckpt_ChangeMamba_bright_standard_ML_split.pth` | CC BY 4.0 | **Kullanılmaz** (Türkiye'yi gördü, ADR-0003) | – |
+| Zenodo 14037769 (güncel sürüm 15479555) | ImageNet `vssm_tiny_0230_ckpt_epoch_262.pth`, md5 `d64653bba8f6e5c0d6f4ac6275e1be61` | CC BY 4.0 | Ana model başlangıcı (`hasar agirlik`) | ✅ Faz 4'te API'den doğrulandı (7 Kasım 2026); eski kayıt adresi 404 verir, indirme 15479555'ten |
+| Zenodo 14037769 / 15479555 | `ckpt_ChangeMamba_bright_standard_ML_split.pth` | CC BY 4.0 | **Kullanılmaz** (Türkiye'yi gördü, ADR-0003); `hasar.models.weights` bu adı reddeder | – |
 | Zenodo 15349462 | Türkiye zero-shot checkpoint'leri: UNet, SiamCRNN, SiamAttnUNet, DeepLabV3+, DamageFormer | CC BY 4.0 | Yeniden üretim (Faz 3); KN1'de kabul edilirse topluluk ve güven aralığı analizi | ✅ |
 | Swin-T ImageNet ağırlıkları | DamageFormer yedeği için | timm / Microsoft (MIT) | Yalnız yedeğe geçilirse | Doğrulanacak (Faz 4) |
 | MaRS, DINOv3 | SAR ve optik temel modeller | Belirsiz / kullanım kısıtlı | **Kullanılmaz** (ADR-0003) | – |
