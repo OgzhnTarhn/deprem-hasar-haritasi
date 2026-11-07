@@ -1,0 +1,28 @@
+{
+  "kind": "research",
+  "question": "ImageNet vssm_tiny_0230 ağırlığı resmî 0229flex ChangeMamba kodlayıcısına ne kadar yükleniyor?",
+  "source": "Zenodo 15479555 vssm_tiny_0230_ckpt_epoch_262.pth; third_party/changemamba checkpoints.load_encoder_pretrained_weights",
+  "checkpoint_md5": "d64653bba8f6e5c0d6f4ac6275e1be61",
+  "encoder_depths": [
+    2,
+    2,
+    4,
+    2
+  ],
+  "checkpoint_stage3_blocks": 5,
+  "loaded": 200,
+  "checkpoint_tensors": 222,
+  "missing": [
+    "outnorm0.bias",
+    "outnorm0.weight",
+    "outnorm1.bias",
+    "outnorm1.weight",
+    "outnorm2.bias",
+    "outnorm2.weight",
+    "outnorm3.bias",
+    "outnorm3.weight"
+  ],
+  "unexpected_count": 22,
+  "mismatched_count": 0,
+  "note": "Ağırlığın 3. aşamasında checkpoint_stage3_blocks kadar blok var, 0229flex yapılandırması 4 blok kullanır; ilk 4 blok yüklenir, fazlası (unexpected) kullanılmaz. Resmî BRIGHT eğitimi de aynı yüklemeyle çalışır ('olduğu gibi' ilkesi). Eksik olanlar yalnız yeni çıkış normları (outnorm0-3)."
+}
