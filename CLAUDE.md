@@ -43,7 +43,8 @@ eğitilir; 6 Şubat 2023 Türkiye depreminde, eğitimde hiç görülmeden **bir 
 4. **Metrik etiketleri karışmaz.** Her sayının yanında türü yazılır: `[ZS-EVENT mIoU]`, `[STD-EVENT mIoU]`,
    `[STD-SET mIoU]`, `[DFC-TEST mIoU]`, `[CVPR-TEST segm_AP]`. Yalnız `[ZS-EVENT mIoU]` 41,28 ile kıyaslanır.
 5. **Sayılar dosyadan gelir.** README ve raporlardaki her sayı `results/**/*.json` dosyasından üretilir; elle yazılmaz.
-6. **Olumsuz sonuç da yazılır.** 1–2 puanın altındaki farklar "eşit" diye raporlanır.
+6. **Olumsuz sonuç da yazılır.** Fark 1,0 puanın altındaysa veya eşleştirilmiş bootstrap farkının %95 aralığı 0'ı
+   içeriyorsa "eşit" diye raporlanır ([protokol.md](docs/protokol.md) §9).
 
 ## Bilinen tuzaklar
 
