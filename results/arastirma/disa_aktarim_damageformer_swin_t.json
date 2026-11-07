@@ -1,0 +1,26 @@
+{
+  "kind": "research",
+  "question": "Model dağıtım için hangi biçimde dışa aktarılabiliyor ve CPU gecikmesi ne?",
+  "model": "damageformer_swin_t",
+  "checkpoint": null,
+  "size": 256,
+  "device": "cpu",
+  "torch_version": "2.14.1+cu126",
+  "scan_backend": "torch",
+  "latency_ms": 407.871850002266,
+  "formats": {
+    "torch-export": {
+      "ok": true,
+      "error": null,
+      "seconds": 6.558606300000974,
+      "path": "model.pt2"
+    },
+    "onnx": {
+      "ok": true,
+      "error": null,
+      "seconds": 8.848596499999985,
+      "path": "model.onnx"
+    }
+  },
+  "note": "Faz 4 ONNX denemesi; Faz 9 dışa aktarım kararına girdi. Metrik kaydı değildir."
+}
