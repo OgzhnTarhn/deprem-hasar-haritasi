@@ -7,6 +7,8 @@ eğitilir; 6 Şubat 2023 Türkiye depreminde, eğitimde hiç görülmeden **bir 
 - Bağlayıcı tasarım: [docs/tasarim.md](docs/tasarim.md). Değişen karar orada ve ADR'de güncellenir.
 - Faz planı ve yenilik paketi: [docs/fazlar.md](docs/fazlar.md). Güncel durum: [docs/durum.md](docs/durum.md); her faz sonunda güncellenir.
 - Ertelenmiş fikirler ve karar noktaları (KN1–KN3): [docs/fikir-havuzu.md](docs/fikir-havuzu.md).
+- Görsel genel bakış (bütün fazlar, her parça neye yarıyor): [docs/proje-haritasi.md](docs/proje-haritasi.md).
+- Ders kitabı (26 ders, elle çözülmüş örnekler ve sorularla): [docs/dersler.md](docs/dersler.md).
 - Bütün tekniklerin baştan sona anlatımı: [docs/ogrenme-rehberi.md](docs/ogrenme-rehberi.md). Teknik bir karar değişince güncellenir.
 - Araştırma raporları: `reports/` (mimari ve rakip analizi; eksik belgeler, modüler yapı ve yenilik; ChangeMamba'nın ötesi).
 - Ham notlar: `research_notes/`. Bu klasörlerin içeriği değiştirilmez; yeni araştırma yeni klasöre gider.
