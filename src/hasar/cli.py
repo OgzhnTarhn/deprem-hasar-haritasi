@@ -1,6 +1,6 @@
 """Command line interface of the ``hasar`` package.
 
-Six subcommands are wired here:
+Eight subcommands are wired here:
 
 ``indir``
     Download and extract the BRIGHT archives into a data root (resumable).
@@ -16,6 +16,11 @@ Six subcommands are wired here:
     Run the single full training through :mod:`hasar.train.run`.
 ``on-kontrol``
     Run the pre-training gates of design section 8 through :mod:`hasar.train.run`.
+``sicaklik``
+    Fit the single ``clf`` temperature on the 13-event validation split through
+    :mod:`hasar.eval.final_run`.
+``final``
+    Run the single Turkey evaluation through :mod:`hasar.eval.final_run`.
 
 The entry point is :func:`main`, which returns an exit code instead of calling
 :func:`sys.exit` so that tests can call it directly.
@@ -62,6 +67,17 @@ def _load_training() -> SimpleNamespace:
     from hasar.train import run as module
 
     return SimpleNamespace(run_training=module.run_training, run_preflight=module.run_preflight)
+
+
+def _load_final() -> SimpleNamespace:
+    """Import the Turkey evaluation runner lazily and return its two entry points.
+
+    ``hasar.eval.final_run`` imports torch at module top, so it is imported only when the ``final``
+    or ``sicaklik`` subcommand actually runs.
+    """
+    from hasar.eval import final_run as module
+
+    return SimpleNamespace(run_final_cli=module.run_final_cli, fit_temperature_cli=module.fit_temperature_cli)
 
 
 def _parse_gates(raw: str) -> list[int]:
@@ -123,6 +139,30 @@ def _build_parser() -> argparse.ArgumentParser:
     preflight.add_argument("--pretrained", type=Path, default=None, help="Başlangıç ağırlığı (isteğe bağlı).")
     preflight.add_argument("--gates", default=None, help="Virgülle ayrılmış kapı numaraları (varsayılan: hepsi).")
     preflight.add_argument("--repro-dir", type=Path, default=None, help="Yeniden üretim kayıtlarının klasörü.")
+
+    sicaklik = subparsers.add_parser("sicaklik", help="13 olay doğrulamasında sıcaklığı seç.")
+    sicaklik.add_argument("--config", type=Path, required=True, help="Yapılandırma YAML dosyası.")
+    sicaklik.add_argument("--data", type=Path, required=True, help="BRIGHT veri kökü.")
+    sicaklik.add_argument("--runs", type=Path, required=True, help="Eğitim çıktılarının kök klasörü.")
+    sicaklik.add_argument("--device", default="cuda", help="Çalıştırma aygıtı.")
+    sicaklik.add_argument("--out", type=Path, default=Path("results") / "ana", help="Sonuçların yazılacağı klasör.")
+
+    final = subparsers.add_parser("final", help="Tek Türkiye değerlendirmesini çalıştır.")
+    final.add_argument("--config", type=Path, required=True, help="Yapılandırma YAML dosyası.")
+    final.add_argument("--data", type=Path, required=True, help="BRIGHT veri kökü.")
+    final.add_argument("--runs", type=Path, required=True, help="Eğitim çıktılarının kök klasörü.")
+    final.add_argument("--device", default="cuda", help="Çalıştırma aygıtı.")
+    final.add_argument("--out", type=Path, default=Path("results") / "ana", help="Sonuçların yazılacağı klasör.")
+    final.add_argument(
+        "--cache", type=Path, default=None, help="Kare olasılık önbelleği (varsayılan: data/final_cache)."
+    )
+    final.add_argument("--instances", type=Path, default=None, help="Bina örnek (instance) klasörü.")
+    final.add_argument(
+        "--blocks",
+        type=Path,
+        default=Path("results") / "arastirma" / "turkiye_bloklar.json",
+        help="Bootstrap blok haritası JSON dosyası.",
+    )
 
     return parser
 
@@ -208,6 +248,33 @@ def _run_on_kontrol(args: argparse.Namespace) -> int:
     )
 
 
+def _run_sicaklik(args: argparse.Namespace) -> int:
+    """Fit the temperature on the validation split and return its exit code."""
+    runner = _load_final()
+    return runner.fit_temperature_cli(
+        config=args.config,
+        data=args.data,
+        runs=args.runs,
+        device=args.device,
+        out=args.out,
+    )
+
+
+def _run_final(args: argparse.Namespace) -> int:
+    """Run the single Turkey evaluation and return its exit code."""
+    runner = _load_final()
+    return runner.run_final_cli(
+        config=args.config,
+        data=args.data,
+        runs=args.runs,
+        device=args.device,
+        out=args.out,
+        cache=args.cache,
+        instances=args.instances,
+        blocks=args.blocks,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     """Parse ``argv`` and run the selected subcommand; return its exit code."""
     args = _build_parser().parse_args(argv)
@@ -221,6 +288,10 @@ def main(argv: list[str] | None = None) -> int:
         return _run_egit(args)
     if args.command == "on-kontrol":
         return _run_on_kontrol(args)
+    if args.command == "sicaklik":
+        return _run_sicaklik(args)
+    if args.command == "final":
+        return _run_final(args)
     return _run_veri_ozet(args)
 
 
