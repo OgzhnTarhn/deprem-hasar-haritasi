@@ -1,6 +1,6 @@
 # Değerlendirme Protokolü (önceden kayıt)
 
-- **Durum:** Son metin, sürüm 1.0 (7 Kasım 2026; Faz 4 kodu bitti). Ön kontrol kapıları Colab'da geçip
+- **Durum:** Son metin, sürüm 1.1 (7 Kasım 2026; Faz 6 kodu bitti). Ön kontrol kapıları Colab'da geçip
   `train.clip` yazıldıktan sonra kullanıcı `protokol-kilidi` etiketini atar; bu dosya o commit'e girer. Kilitten sonra bu dosya değiştirilmez; değişiklik gerekirse yeni sürüm, gerekçesi ve
   tarihiyle §14'e yazılır ve başlık sonucunu etkileyen her değişiklik raporda belirtilir.
 - **Kapsam:** Türkiye'deki tek değerlendirmenin bütün hesap kuralları: bölme, başlık metriği, girdi işleme, kayıt
@@ -52,7 +52,7 @@ Etiket: `[ZS-EVENT mIoU]`. Resmî kod yolu (ADR-0005):
 5. **mIoU:** dört sınıfın (arka plan, sağlam, hasarlı, yıkık) ortalaması.
 6. **Kıyas:** Yalnız bu sayı 41,28 ile kıyaslanır; fark §9'daki kurala göre yazılır.
 
-Her karenin 4×4 matrisi ayrıca saklanır (`results/<model>/turkiye_kare_matrisleri.npz`). Bootstrap (§8) ve bütün
+Her karenin 4×4 matrisi ayrıca saklanır (`results/<model>/turkiye_kare_matrisleri_<satır>.npz`; başlık için `_headline`). Bootstrap (§8) ve bütün
 alt kırılımlar bu matrislerden hesaplanır; model yeniden çalıştırılmaz.
 
 ## 4. Girdi işleme
@@ -86,8 +86,8 @@ Bütün ikincil satırlar Faz 6'daki tek çıkarımın önbelleğinden hesaplan�
 | Nodata yok sayılmış | §3'te nodata pikselleri matrise alınmaz | Ayar yok | ✅ |
 | Topluluk satırları | B2/B3 (fikir havuzu); DeepLabV3+ zero-shot checkpoint'i hariç (Faz 3'te Türkiye'yi görmüş çıktı, `results/yeniden-uretim/deeplabv3plus_test.json`) | KN1'de kabul edilirse ağırlıklar 13 olayda | ⬜ KN1 |
 
-Her satırın etiketi `[ZS-EVENT mIoU]` ile birlikte satır adını taşır (ör. `[ZS-EVENT mIoU, flip-TTA]`); başlık
-kıyası yalnız §3 ile yapılır.
+Her satırın etiketi `[ZS-EVENT mIoU]` ile birlikte satır adını taşır: `flip-tta`, `bina-maskeli`, `bina-oylama`,
+`nodata-yok` (ör. `[ZS-EVENT mIoU, flip-tta]`, dosya `turkiye_flip-tta.json`); başlık kıyası yalnız §3 ile yapılır.
 
 ## 7. Bina düzeyi metrikler ✅
 
@@ -101,7 +101,7 @@ kıyası yalnız §3 ile yapılır.
   bina düzeyi metriğe girmez (piksel metrikleri bütün 1.114 karede).
 - **Gerçek sınıf:** Örneğin etiket piksellerinin çoğunluk sınıfı.
 - **Tahmin sınıfı:** Örneğin içindeki piksellerin `argmax(clf)` çoğunluğu; arka plan çoğunluktaysa "kaçırıldı".
-- **Metrik:** Sağlam, hasarlı ve yıkık sınıflarının F1'leri ve makro ortalaması `[ZS-EVENT bina makro F1]`.
+- **Metrik:** Sağlam, hasarlı ve yıkık sınıflarının F1'leri ve makro ortalaması `[ZS-EVENT bina-makro-F1]` (`turkiye_bina_f1.json`).
 - Ayrıca piksel düzeyi "üç bina sınıfının IoU ortalaması" raporlanır.
 
 ## 8. Güven aralıkları
@@ -164,3 +164,4 @@ hesaplar). Kalan tek açık madde KN1'e bağlı:
 | 0.2 | 6 Kasım 2026 | Faz 2 ölçümleri: SAR ölçeği (§4 ✅), bölme özetleri (§2), bina örnek kaynağı ve oylama birimi önerisi (§6–7 🟨), katmanlı blok bootstrap önerisi (§8 🟨), kapı 7 beklenen değeri |
 | 0.3 | 7 Kasım 2026 | Kullanıcı bekleyen önerilerin hepsini kabul etti: SAR girdisi (§4, ADR-0004 C), oylama birimi (§6), bina örnek kaynağı (§7), şehre göre katmanlı blok bootstrap (§8), "eşit" kuralı (§9) ✅ |
 | 1.0 | 7 Kasım 2026 | Faz 3–4 sonrası son metin. Faz 3: SiamCRNN, UNet, DamageFormer ±0,3 içinde (`results/yeniden-uretim/`), hat resmî değerlendiriciyle birebir; DeepLabV3+ zero-shot checkpoint'i yayımlanan değerin çok üstünde çıktı, Türkiye'yi görmüş sayılıp topluluk adaylarından çıkarıldı (§6). Kapı 1 yalnız bu üç modeli şart koşar. §5: ham ağırlıkların doğrulaması son adımda bir kez. §6 flip TTA kodda dört görünüm. Kapı 10'un GPU ölçütü (tasarım §7): parametreler `atol` 1e-3, kayıplar %1; BatchNorm istatistikleri yalnız raporlanır. Kapı 7 kapandı. §7 bina karesi listesi dosyaya sabitlendi |
+| 1.1 | 7 Kasım 2026 | Faz 6 kodu: adlar koddakiyle hizalandı (§3 kare matrisi dosyası satır başına, §6 satır etiketleri, §7 `[ZS-EVENT bina-makro-F1]`). `final` başlık dosyasını (`turkiye.json`) bütün öteki kayıtlardan sonra yazar; yarıda kalan koşu önbellekten devam eder, başlık yazıldıktan sonra ikinci koşu reddedilir. Hesap kuralı değişmedi |
