@@ -118,7 +118,17 @@ Defterde `RUN_FINAL = True` aynı şeyi yapar. Sonuçlar `results/ana/turkiye*.j
 
 ## 7–9. Analizler, varyant, demo
 
-- Analizler önbellekten, yerel CPU'da: `hasar.analysis.runner.run_cache_analyses(...)`. Y1 için HOT/OSM ve ARIA DPM
-  katmanları ayrıca indirilir (`docs/veri-lisans.md` §4).
+- Analizler önbellekten, yerel CPU'da (model yeniden çalışmaz; `results/ana/turkiye.json` yoksa reddeder):
+
+  ```python
+  from hasar.analysis.runner import run_cache_analyses
+  from hasar.guard import require_turkey_access
+  run_cache_analyses("data/final_cache", "data/bright", "<örnek etiketleri klasörü>", "results/analiz",
+                     final_dir="results/ana", access=require_turkey_access("."))
+  ```
+
+  Çıktılar: `results/analiz/y2_butce.json`, `y2_risk_kapsam.json`, `galeri/`. Y1 için HOT/OSM ve ARIA DPM
+  katmanları ayrıca indirilir ve karenin koordinat sistemine çevrilir (`docs/veri-lisans.md` §4;
+  `hasar.analysis.agreement`). Y3 (transdüktif) Türkiye'de yeniden çıkarım ister; ayrı tabloda raporlanır.
 - Varyant: aynı defter, `configs/varyant.yaml` ile; iki modelin farkı `hasar.eval.compare` ile "eşit" kuralına göre.
 - Demo: `hasar demo --cache data/final_cache --data data/bright --out demo/`; README tablosu: `hasar readme`.
