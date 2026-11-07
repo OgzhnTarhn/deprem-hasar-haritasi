@@ -244,6 +244,7 @@ def train(
         prune_checkpoints(out, keep=cfg.ckpt.keep_last)
         last_ckpt_step = at_step
 
+    last_tick = time.monotonic()
     for batch_items in loader:
         if step >= total_steps:
             # A run resumed after its last step has nothing left to do.
@@ -288,8 +289,11 @@ def train(
                     "grad_norm": grad_norm,
                     "samples": samples,
                     "seconds": time.monotonic() - started,
+                    # Wall time since the previous logged step, data loading included (gate 8).
+                    "wall": time.monotonic() - last_tick,
                 },
             )
+            last_tick = time.monotonic()
 
         if step % cfg.eval.every == 0 or step == total_steps:
             run_eval(step)
