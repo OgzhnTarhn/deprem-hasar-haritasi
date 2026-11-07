@@ -1,6 +1,6 @@
 """Command line interface of the ``hasar`` package.
 
-Nine subcommands are wired here:
+Ten subcommands are wired here:
 
 ``indir``
     Download and extract the BRIGHT archives into a data root (resumable).
@@ -24,6 +24,9 @@ Nine subcommands are wired here:
 ``readme``
     Regenerate the README result table from the JSON files under ``results/`` through
     :mod:`hasar.report`, or check with ``--check`` that it is current.
+``demo``
+    Build the static Faz 9 demo site from the Faz 6 cache through :mod:`hasar.demo`; the model
+    is never rerun.
 
 The entry point is :func:`main`, which returns an exit code instead of calling
 :func:`sys.exit` so that tests can call it directly.
@@ -33,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -176,6 +180,11 @@ def _build_parser() -> argparse.ArgumentParser:
     readme.add_argument("--results", type=Path, default=Path("results"), help="Sonuç JSON dosyalarının kökü.")
     readme.add_argument("--check", action="store_true", help="Yazmadan yalnız güncel mi diye denetle.")
 
+    demo = subparsers.add_parser("demo", help="Faz 6 önbelleğinden statik demo sitesi üret.")
+    demo.add_argument("--cache", type=Path, required=True, help="Faz 6 kare olasılık önbelleği.")
+    demo.add_argument("--data", type=Path, required=True, help="BRIGHT veri kökü.")
+    demo.add_argument("--out", type=Path, required=True, help="Sitenin yazılacağı klasör.")
+
     return parser
 
 
@@ -295,6 +304,32 @@ def _run_readme(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_demo(args: argparse.Namespace) -> int:
+    """Build the static demo site from the Faz 6 cache and print the page path."""
+    from hasar import demo
+    from hasar.guard import require_turkey_access
+
+    access = require_turkey_access(Path.cwd())
+
+    to_lonlat = None
+    epsg = demo.first_epsg(args.cache, args.data)
+    if epsg is not None and epsg != demo.WGS84:
+        try:
+            from pyproj import Transformer
+        except ImportError:
+            print(
+                "Kareler EPSG 4326 konumunda değil ve pyproj kurulu değil: "
+                "`uv sync --group arastirma` ile arastirma grubunu kurun.",
+                file=sys.stderr,
+            )
+            return 1
+        to_lonlat = Transformer.from_crs(epsg, demo.WGS84, always_xy=True).transform
+
+    index = demo.build_demo(args.cache, args.data, args.out, access=access, to_lonlat=to_lonlat)
+    print(index)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """Parse ``argv`` and run the selected subcommand; return its exit code."""
     args = _build_parser().parse_args(argv)
@@ -314,6 +349,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_final(args)
     if args.command == "readme":
         return _run_readme(args)
+    if args.command == "demo":
+        return _run_demo(args)
     return _run_veri_ozet(args)
 
 
