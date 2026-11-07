@@ -27,3 +27,4 @@
 | Tarih | Risk | Ne oldu | Ne yapıldı |
 |---|---|---|---|
 | 7 Kasım 2026 | R3 (kısmen) | DeepLabV3+ Türkiye zero-shot checkpoint'i yayımlanan değeri tutmadı, çok üstünde çıktı; öteki üç model ±0,3 içinde | Hat doğru kabul edildi (3/3 hedef model birebir); DeepLabV3+ checkpoint'i Türkiye'yi görmüş sayılıp topluluk ve analizlerden çıkarıldı (`docs/durum.md` Faz 3) |
+| 8 Kasım 2026 | R4 (gerçekleşmedi) | ChangeMamba (saf torch tarama yolu) ve DamageFormer yedeği CPU'da, 256 pikselde hem `torch.export` hem ONNX'e aktarıldı (`results/arastirma/disa_aktarim_<model>.json`). CUDA çekirdekli yol denenmedi; ONNX için `onnx` paketi gerekir | Faz 9'da dışa aktarım ONNX ile yapılabilir; gecikme ve çekirdekli yol eğitilmiş ağırlıkla yeniden ölçülür |
