@@ -122,6 +122,24 @@ def test_predict_tta_changes_asymmetric_model() -> None:
     assert torch.allclose(tta_clf.sum(dim=1), torch.ones(2, SIZE, SIZE), atol=1e-6)
 
 
+def test_predict_tta_averages_the_four_flip_views() -> None:
+    model = AsymmetricModel()
+    pre, post = _inputs()
+
+    tta_clf, tta_loc = predict(model, pre, post, tta=True)
+
+    expected_clf = torch.zeros_like(tta_clf)
+    expected_loc = torch.zeros_like(tta_loc)
+    with torch.no_grad():
+        for dims in ([], [-1], [-2], [-2, -1]):
+            flip = (lambda t, d=dims: torch.flip(t, dims=d)) if dims else (lambda t: t)
+            logits = model(flip(pre), flip(post))
+            expected_clf += flip(torch.softmax(logits["clf"], dim=1)) / 4
+            expected_loc += flip(torch.softmax(logits["loc"], dim=1)) / 4
+    assert torch.allclose(tta_clf, expected_clf, atol=1e-6)
+    assert torch.allclose(tta_loc, expected_loc, atol=1e-6)
+
+
 # --------------------------------------------------------------------------- evaluate
 
 

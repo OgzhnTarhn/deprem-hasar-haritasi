@@ -10,7 +10,7 @@ is far below the rounding that could change an ``argmax``, so every downstream a
 same prediction as the headline path.
 
 The headline path is ``tta=False`` with ``pred = argmax(clf)``; flip TTA is the pre-declared
-secondary row and averages the probabilities of the image and its horizontal mirror.
+secondary row and averages the probabilities of four flip views (identity, horizontal, vertical, both).
 """
 
 from __future__ import annotations
@@ -36,18 +36,31 @@ def predict(
     """Return the ``clf`` and ``loc`` probabilities of one batch of pre/post tiles.
 
     ``pre`` and ``post`` are ``B x C x H x W`` tensors on the model's device. With ``tta=True``
-    the probabilities of the image and its horizontal mirror are averaged; the mirror is flipped
-    back before averaging, so the output keeps the input orientation.
+    the softmax probabilities of the four views of protocol section 6 (identity, horizontal flip,
+    vertical flip, both) are averaged; every flipped view is flipped back before averaging, so the
+    output keeps the input orientation.
     """
+    views = TTA_FLIPS if tta else ((),)
     with torch.inference_mode():
-        logits = model(pre, post)
-        clf = torch.softmax(logits["clf"], dim=1)
-        loc = torch.softmax(logits["loc"], dim=1)
-        if tta:
-            flipped = model(torch.flip(pre, dims=[-1]), torch.flip(post, dims=[-1]))
-            clf = (clf + torch.flip(torch.softmax(flipped["clf"], dim=1), dims=[-1])) / 2
-            loc = (loc + torch.flip(torch.softmax(flipped["loc"], dim=1), dims=[-1])) / 2
+        clf = loc = None
+        for dims in views:
+            logits = model(_flip(pre, dims), _flip(post, dims))
+            view_clf = _flip(torch.softmax(logits["clf"], dim=1), dims)
+            view_loc = _flip(torch.softmax(logits["loc"], dim=1), dims)
+            clf = view_clf if clf is None else clf + view_clf
+            loc = view_loc if loc is None else loc + view_loc
+        clf = clf / len(views)
+        loc = loc / len(views)
     return clf, loc
+
+
+#: Flip TTA views of protocol section 6: identity, horizontal, vertical and both (dims of B x C x H x W).
+TTA_FLIPS: tuple[tuple[int, ...], ...] = ((), (-1,), (-2,), (-2, -1))
+
+
+def _flip(tensor: torch.Tensor, dims: tuple[int, ...]) -> torch.Tensor:
+    """Flip ``tensor`` along ``dims``; the identity view returns it unchanged."""
+    return torch.flip(tensor, dims=list(dims)) if dims else tensor
 
 
 def _save_cache(path: Path, clf: np.ndarray, loc: np.ndarray) -> None:
