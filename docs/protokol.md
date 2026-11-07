@@ -1,7 +1,7 @@
 # Değerlendirme Protokolü (önceden kayıt)
 
-- **Durum:** Taslak, sürüm 0.3 (7 Kasım 2026; bekleyen öneriler kabul edildi). Faz 4 sonunda son hâline getirilir ve `protokol-kilidi`
-  etiketli commit'e girer. Kilitten sonra bu dosya değiştirilmez; değişiklik gerekirse yeni sürüm, gerekçesi ve
+- **Durum:** Son metin, sürüm 1.0 (7 Kasım 2026; Faz 4 kodu bitti). Ön kontrol kapıları Colab'da geçip
+  `train.clip` yazıldıktan sonra kullanıcı `protokol-kilidi` etiketini atar; bu dosya o commit'e girer. Kilitten sonra bu dosya değiştirilmez; değişiklik gerekirse yeni sürüm, gerekçesi ve
   tarihiyle §14'e yazılır ve başlık sonucunu etkileyen her değişiklik raporda belirtilir.
 - **Kapsam:** Türkiye'deki tek değerlendirmenin bütün hesap kuralları: bölme, başlık metriği, girdi işleme, kayıt
   noktası seçimi, ikincil satırlar, bina düzeyi metrikler, güven aralıkları, "eşit" kuralı, kalibrasyon.
@@ -70,7 +70,8 @@ alt kırılımlar bu matrislerden hesaplanır; model yeniden çalıştırılmaz.
 - Her 2.000 adımda **EMA** ağırlıkları doğrulama kümesinin (337 kare) tamamında §3'teki yoldan değerlendirilir
   (tam kare, `argmax(clf)`, maskesiz).
 - En yüksek doğrulama mIoU'su seçilir; eşitlikte erken adım.
-- Ham (EMA'sız) ağırlıkların doğrulama sonucu da kaydedilir ama seçimde kullanılmaz.
+- Ham (EMA'sız) ağırlıkların doğrulama sonucu son adımda bir kez kaydedilir (`val13.json`, `last_raw_miou_pct`);
+  seçimde kullanılmaz.
 - Bu seçimin zayıf olduğu (doğrulama-test sıralama korelasyonu 0,35, CVPRW26) raporda yazılır.
 
 ## 6. İkincil satırlar (önceden ilan)
@@ -83,7 +84,7 @@ Bütün ikincil satırlar Faz 6'daki tek çıkarımın önbelleğinden hesaplan�
 | Bina maskeli harita | `loc` argmax'ı 0 olan piksellerde tahmin arka plan; ötekilerde `argmax(clf[1:]) + 1` | Ayar yok | ✅ |
 | Bina düzeyi oylama | Tahmin edilen bina maskesinin (`loc` argmax) 8-komşuluklu bağlı bileşenlerinde `argmax(clf[1:]) + 1` çoğunluğu; birim tahminden gelir, Türkiye etiketi kullanılmaz | Ayar yok | ✅ |
 | Nodata yok sayılmış | §3'te nodata pikselleri matrise alınmaz | Ayar yok | ✅ |
-| Topluluk satırları | B2/B3 (fikir havuzu) | KN1'de kabul edilirse ağırlıklar 13 olayda | ⬜ KN1 |
+| Topluluk satırları | B2/B3 (fikir havuzu); DeepLabV3+ zero-shot checkpoint'i hariç (Faz 3'te Türkiye'yi görmüş çıktı, `results/yeniden-uretim/deeplabv3plus_test.json`) | KN1'de kabul edilirse ağırlıklar 13 olayda | ⬜ KN1 |
 
 Her satırın etiketi `[ZS-EVENT mIoU]` ile birlikte satır adını taşır (ör. `[ZS-EVENT mIoU, flip-TTA]`); başlık
 kıyası yalnız §3 ile yapılır.
@@ -95,7 +96,8 @@ kıyası yalnız §3 ile yapılır.
   binaların yaklaşık %39'u birleşiyor (`results/arastirma/bina_birlesme.json`). Bağlı bileşen bina birimi olarak
   zayıf.
 - **Örnek kaynağı:** CVPRW26 örnek etiketleri. Metrik örnek etiketi olan 1.001 karede hesaplanır; kare listesi
-  dosya adlarından `protokol-kilidi`'nden önce sabitlenir ve sonuçta "1.001 kare" diye yazılır. Kalan 113 kare
+  dosya adlarından `protokol-kilidi`'nden önce sabitlendi (`results/arastirma/turkiye_bina_kareleri.json`, sha256
+  `1db74d313eff…`), `final` bu listeyle tutmayan örnek klasörünü reddeder; sonuçta "1.001 kare" diye yazılır. Kalan 113 kare
   bina düzeyi metriğe girmez (piksel metrikleri bütün 1.114 karede).
 - **Gerçek sınıf:** Örneğin etiket piksellerinin çoğunluk sınıfı.
 - **Tahmin sınıfı:** Örneğin içindeki piksellerin `argmax(clf)` çoğunluğu; arka plan çoğunluktaysa "kaçırıldı".
@@ -147,10 +149,12 @@ Her sonuç `results/**/*.json`'a `metric_tag`, commit SHA, config hash ve tohuml
 
 ## 13. Açık maddeler
 
+Kapı 7'nin beklenen değeri Faz 3'te kapandı (arka plan oranı / 4, ≈ 0,226; kapı kodu doğrulama etiketlerinden
+hesaplar). Kalan tek açık madde KN1'e bağlı:
+
 | Madde | Bölüm | Ne zaman | Girdi |
 |---|---|---|---|
 | Topluluk satırları | §6 | KN1 | Fikir havuzu B2/B3 |
-| Ön kontrol kapısı 7'nin beklenen değeri | – | Faz 3 | "Hep arka plan" mIoU'su = arka plan oranı / 4. Doğrulama kümesinde arka plan %90,34 (`results/veri/bolme.json`) → beklenen ≈ 0,226 |
 
 ## 14. Değişiklik günlüğü
 
@@ -159,3 +163,4 @@ Her sonuç `results/**/*.json`'a `metric_tag`, commit SHA, config hash ve tohuml
 | 0.1 | 6 Kasım 2026 | İlk taslak; BRIGHT ve ChangeMamba değerlendirici kodu okunarak yazıldı |
 | 0.2 | 6 Kasım 2026 | Faz 2 ölçümleri: SAR ölçeği (§4 ✅), bölme özetleri (§2), bina örnek kaynağı ve oylama birimi önerisi (§6–7 🟨), katmanlı blok bootstrap önerisi (§8 🟨), kapı 7 beklenen değeri |
 | 0.3 | 7 Kasım 2026 | Kullanıcı bekleyen önerilerin hepsini kabul etti: SAR girdisi (§4, ADR-0004 C), oylama birimi (§6), bina örnek kaynağı (§7), şehre göre katmanlı blok bootstrap (§8), "eşit" kuralı (§9) ✅ |
+| 1.0 | 7 Kasım 2026 | Faz 3–4 sonrası son metin. Faz 3: SiamCRNN, UNet, DamageFormer ±0,3 içinde (`results/yeniden-uretim/`), hat resmî değerlendiriciyle birebir; DeepLabV3+ zero-shot checkpoint'i yayımlanan değerin çok üstünde çıktı, Türkiye'yi görmüş sayılıp topluluk adaylarından çıkarıldı (§6). Kapı 1 yalnız bu üç modeli şart koşar. §5: ham ağırlıkların doğrulaması son adımda bir kez. §6 flip TTA kodda dört görünüm. Kapı 10'un GPU ölçütü (tasarım §7): parametreler `atol` 1e-3, kayıplar %1; BatchNorm istatistikleri yalnız raporlanır. Kapı 7 kapandı. §7 bina karesi listesi dosyaya sabitlendi |
