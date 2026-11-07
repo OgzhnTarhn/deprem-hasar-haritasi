@@ -10,7 +10,9 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 | 2. Veri katmanı | Bitti (6 Kasım 2026) | `src/hasar/data/` (8 modül), `hasar` komutu, `results/veri/bolme.json`, `results/arastirma/` (5 araştırma); 288 kısa test (~3,5 sn) |
 | 3. Metrik ve yeniden üretim | Bitti (7 Kasım 2026) | `src/hasar/eval/` (metrik, bootstrap, bina F1, çıkarım, yeniden üretim), `hasar yeniden-uret`; 3 checkpoint ±0,3 içinde (yerel RTX 4060), DeepLabV3+ olumsuz bulgu |
 | 4. Model, eğitim motoru, ön kontrol | Kod bitti (7 Kasım 2026); Colab adımları kullanıcıda | `models/changemamba.py`, `train/` (kayıp, zamanlayıcı, EMA, kayıt, döngü), `preflight/gates.py` (11 kapı), `hasar agirlik/egit/on-kontrol`, protokol 1.0; kapılar 1–4, 6, 7, 10, 11 yerel GPU'da geçti |
-| 5–9 | Bekliyor | |
+| 5. Ana eğitim | Kullanıcıda (Colab A100) | Kod hazır: `hasar egit`, `notebooks/ana_egitim.ipynb` |
+| 6. Türkiye final | Kod bitti (7 Kasım 2026); çalıştırma kullanıcıda | `eval/rows.py`, `eval/calibration.py`, `eval/final.py`, `eval/final_run.py`, `hasar sicaklik/final`; protokol 1.1. `sicaklik` yolu yerel GPU'da gerçek doğrulama kareleriyle denendi; `final` Türkiye'de **çalıştırılmadı** |
+| 7–9 | Bekliyor | |
 
 ## Faz 4'te kurulanlar ve ölçülenler
 

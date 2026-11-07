@@ -105,6 +105,17 @@ hasar final    --config configs/ana.yaml --data /content/data/bright --runs /con
 Defterde `RUN_FINAL = True` aynı şeyi yapar. Sonuçlar `results/ana/turkiye*.json`; olasılık önbelleği
 `data/final_cache/` (Drive'a kopyalayın: analizler ve demo onu okur). `final` ikinci kez çalışmaz.
 
+- `sicaklik` yalnız 13 olayın doğrulamasını okur (337 kare, A100'de ~15–30 dk; NLL ızgarası CPU'da). Sonucu
+  `results/ana/sicaklik.json`; `final` bu dosyayı okur, yoksa uyarıp T=1 ile devam eder. Önce `sicaklik`.
+- `--instances` klasörü `results/arastirma/turkiye_bina_kareleri.json` listesindeki 1.001 kareyle birebir
+  tutmalı; tutmazsa `final` Türkiye'ye dokunmadan durur.
+- Bootstrap blokları varsayılan olarak `results/arastirma/turkiye_bloklar.json`'dan okunur (protokol §8).
+- Yarıda kalırsa aynı komutu yeniden çalıştırın: biten kareler önbellekten okunur. Başlık dosyası
+  (`turkiye.json`) en son yazılır; o yazıldıktan sonra komut reddedilir.
+- Sonuç kayıtlarındaki `model` alanı gerçekten çalışan modeli yazar (çekirdek yoksa `damageformer_swin_t`).
+  Ana eğitim ChangeMamba ile yapıldıysa `final` da çekirdeği derlenmiş bir oturumda çalışmalıdır; aksi hâlde
+  ağırlıklar yedek modele yüklenemez ve komut hata verir.
+
 ## 7–9. Analizler, varyant, demo
 
 - Analizler önbellekten, yerel CPU'da: `hasar.analysis.runner.run_cache_analyses(...)`. Y1 için HOT/OSM ve ARIA DPM
