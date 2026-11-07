@@ -11,6 +11,11 @@ BRIGHT checkpoints in Phase 3. That path does no training and its results are ta
 so it does not need the protocol tag; it does need a clean working tree, so the commit that
 produced the numbers is recorded. :func:`require_reproduction_access` grants it for the known
 checkpoint names only.
+
+The ``final`` step needs both locks. Rule 1 and the Phase 6 order (KN1 -> ``varyant-kilidi`` ->
+the main model's single Turkey run) mean the variant design is frozen before the headline result
+is seen, so :func:`require_final_access` requires the protocol tag and the variant tag to be
+ancestors of ``HEAD`` on a clean working tree.
 """
 
 from __future__ import annotations
@@ -21,6 +26,7 @@ from pathlib import Path
 
 TEST_EVENT = "turkey-earthquake"
 PROTOCOL_TAG = "protokol-kilidi"
+VARIANT_TAG = "varyant-kilidi"
 REPRODUCTION_TAG = "faz3-yeniden-uretim"
 
 REPRODUCTION_CHECKPOINTS = frozenset(
@@ -105,6 +111,39 @@ def require_turkey_access(repo_root: Path | str, tag: str = PROTOCOL_TAG) -> Tur
     _require_clean_tree(repo_root, tag)
 
     return TurkeyAccess(tag=tag, commit=tag_commit)
+
+
+def _require_ancestor(repo_root: Path, tag: str) -> None:
+    """Raise :class:`TurkeyLockError` unless ``tag`` exists and is an ancestor of ``HEAD``."""
+    tagged = _git(repo_root, "rev-parse", "--verify", f"{tag}^{{commit}}")
+    if tagged.returncode != 0:
+        raise TurkeyLockError(f"'{tag}' etiketi bulunamadı ({repo_root}): Türkiye erişimi kapalı.")
+    ancestor = _git(repo_root, "merge-base", "--is-ancestor", tag, "HEAD")
+    if ancestor.returncode != 0:
+        raise TurkeyLockError(f"'{tag}' etiketi HEAD'in atası değil ({repo_root}): Türkiye erişimi kapalı.")
+
+
+def require_final_access(repo_root: Path | str) -> TurkeyAccess:
+    """Verify both locks of the ``final`` step and return a :class:`TurkeyAccess` token.
+
+    The protocol tag (:data:`PROTOCOL_TAG`) and the variant tag (:data:`VARIANT_TAG`) must exist
+    and be ancestors of ``HEAD``, and the working tree must be clean (untracked files count as
+    dirty). Any failure raises :class:`TurkeyLockError`. The returned token carries the variant
+    tag and the ``HEAD`` commit.
+    """
+    repo_root = Path(repo_root)
+
+    _require_ancestor(repo_root, PROTOCOL_TAG)
+    _require_ancestor(repo_root, VARIANT_TAG)
+
+    head = _git(repo_root, "rev-parse", "HEAD")
+    if head.returncode != 0:
+        raise TurkeyLockError(f"'{VARIANT_TAG}' etiketi doğrulanamadı ({repo_root}): HEAD okunamadı.")
+    head_commit = head.stdout.strip()
+
+    _require_clean_tree(repo_root, VARIANT_TAG)
+
+    return TurkeyAccess(tag=VARIANT_TAG, commit=head_commit)
 
 
 def require_reproduction_access(repo_root: Path | str, checkpoint: str) -> TurkeyAccess:

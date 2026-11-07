@@ -24,6 +24,7 @@ from hasar.eval.calibration import NllAccumulator
 from hasar.eval.final import run_final
 from hasar.eval.metrics import ConfusionAccumulator, miou
 from hasar.eval.predict import predict
+from hasar.guard import require_final_access
 from hasar.results import ResultRecord, read_result, write_result
 from hasar.train.checkpoint import load_checkpoint
 from hasar.train.run import _git_commit, build_datasets, build_model
@@ -166,6 +167,7 @@ def run_final_cli(
         blocks=block_map,
         instances_dir=instances,
         device=device,
+        access_fn=lambda repo_root: require_final_access(repo_root),
     )
     headline = records["headline"]
     print(f"Türkiye {headline.values['miou_pct']:.2f} {headline.metric_tag}")
