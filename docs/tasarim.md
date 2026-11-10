@@ -151,7 +151,7 @@ Notebook mantık içermez; `src/hasar` paketini çağırır ve "Run All" ile kop
 | Hücre | İş | Kopma sonrası |
 |---|---|---|
 | 1 | Drive'ı bağla, etiketli commit'i klonla, `pip install -e .`, sırları oku | Commit SHA kaydedilir, kirli çalışma ağacı reddedilir |
-| 2 | Ortam kapısı: A100, VRAM, High-RAM kapalı, disk ≥ 60 GB | Koşul tutmazsa durur |
+| 2 | Ortam kapısı: A100 (Colab vermezse L4 22 GB), High-RAM kapalı, disk ≥ 60 GB | Koşul tutmazsa durur |
 | 3 | Veriyi VM diskine indir, aç, bütünlüğünü denetle | `.done` varsa atlanır |
 | 4 | Ön kontrol kapıları, sonuçlar `preflight.json`'a | Config hash'i aynıysa atlanır |
 | 5 | Ana eğitim | `latest.pt` varsa tam durumla devam eder |

@@ -58,7 +58,7 @@ eğitilir; 6 Şubat 2023 Türkiye depreminde, eğitimde hiç görülmeden **bir 
 
 ## Ortam
 
-- **Eğitim:** Colab Pro, A100. Colab'ın kurulu `torch` ve `timm` sürümleri kullanılır; venv açılmaz, torch yeniden
+- **Eğitim:** Colab Pro, A100 (Colab vermezse L4). Colab'ın kurulu `torch` ve `timm` sürümleri kullanılır; venv açılmaz, torch yeniden
   kurulmaz. High-RAM kapalı. Veri her oturumda Hugging Face'ten VM diskine indirilir.
 - **Yerel:** RTX 4060 8 GB yalnız hata ayıklama ve küçük denemeler için. Yerel ortam `uv`; `pyproject.toml` torch'u
   sabitlemez.

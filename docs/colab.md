@@ -19,6 +19,9 @@ Bu belge, kodu yazılmış ama GPU gerektirdiği için çalıştırılmamış ad
 ## 0. Hazırlık (bir kez)
 
 - Colab'da **A100** seçin, High-RAM kapalı kalsın. Colab'ın kurulu `torch` ve `timm` sürümleri kullanılır.
+  Colab A100 seçili görünse de bazen **L4** (22 GB) veriyor (`!nvidia-smi` gerçek kartı gösterir). Defter L4'ü de
+  kabul eder: kapı 8 CU'yu karta göre (A100 ~13, L4 ~5 CU/saat) hesaplar; bellek yetmezse kapılarda bellek hatası
+  görülür ve `train.batch` protokol kilidinden önce birlikte düşürülür.
 - Colab "Secrets" bölümüne `HF_TOKEN` ekleyin (Hugging Face indirme hızı için; zorunlu değil).
 - Drive'da `MyDrive/deprem-hasar/` klasörü defter tarafından açılır; kayıt noktaları oraya yazılır.
 
