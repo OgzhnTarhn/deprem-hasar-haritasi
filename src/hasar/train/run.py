@@ -55,8 +55,17 @@ from hasar.train.loop import VAL_TAG, train
 #: Default folder of the Phase 3 reproduction records (gate 1).
 DEFAULT_REPRO_DIR = Path("results") / "yeniden-uretim"
 
-#: CU price per hour used by the speed projection (gate 8).
-CU_PER_HOUR = 13.0
+#: Approximate Colab CU price per hour by GPU (gate 8); an unknown GPU uses the A100 price.
+CU_PER_HOUR = {"A100": 13.0, "L4": 5.0}
+
+
+def cu_per_hour(device_name: str) -> float:
+    """Return the CU price per hour for a GPU name such as ``"NVIDIA L4"`` (A100 price if unknown)."""
+    for key, price in CU_PER_HOUR.items():
+        if key in device_name:
+            return price
+    return CU_PER_HOUR["A100"]
+
 
 #: CU budget of the single full training (gate 8).
 CU_BUDGET = 75.0
@@ -259,7 +268,8 @@ def run_preflight(
             # Wall time per step (data loading included); the first steps are warm-up (cuDNN
             # autotuning, worker start) and would inflate the projection.
             seconds = [float(entry.get("wall", entry["seconds"])) for entry in log][10:]
-            results.append(gate_speed(seconds, cfg.train.steps, CU_PER_HOUR, CU_BUDGET))
+            gpu = torch.cuda.get_device_name(0) if str(device).startswith("cuda") else ""
+            results.append(gate_speed(seconds, cfg.train.steps, cu_per_hour(gpu), CU_BUDGET))
         elif gate == 9:
             doubled = dataclasses.replace(cfg, optim=dataclasses.replace(cfg.optim, lr=cfg.optim.lr * 2.0))
             log = _short_train(doubled, build_model(cfg, pretrained, device), train_set, val_set, device, 500)
