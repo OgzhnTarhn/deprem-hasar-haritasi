@@ -461,3 +461,56 @@ def test_gate_resume_with_tolerance_reports_atol(gates, tmp_path: Path) -> None:
 
 def test_gate_kernel_on_cpu_model_reports_no_scan_backend(gates) -> None:
     assert gates._scan_backend_of(TinyModel()) == "none"
+
+
+# --- failed_gate ------------------------------------------------------------
+
+
+def test_failed_gate_records_the_exception(gates) -> None:
+    result = gates.failed_gate(5, RuntimeError("boom"))
+
+    assert result.passed is False
+    assert result.name == gates.GATE_NAMES[4]
+    assert result.value["error"] == "RuntimeError"
+    assert "boom" in result.value["message"]
+    assert result.detail.startswith("Kapı çöktü: ")
+    assert "RuntimeError" in result.detail
+
+
+def test_failed_gate_truncates_a_long_message(gates) -> None:
+    result = gates.failed_gate(5, RuntimeError("x" * 5000))
+
+    assert len(result.value["message"]) <= 2000
+
+
+# --- write_preflight: complete flag -----------------------------------------
+
+
+def test_write_preflight_incomplete_run_is_not_all_passed(gates, tmp_path: Path) -> None:
+    path = tmp_path / "preflight.json"
+
+    gates.write_preflight(path, _results(gates), config_hash="abc123", commit="deadbeef", complete=False)
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["complete"] is False
+    assert payload["all_passed"] is False
+    assert gates.preflight_is_current(path, "abc123") is False
+
+
+def test_write_preflight_defaults_to_complete(gates, tmp_path: Path) -> None:
+    path = tmp_path / "preflight.json"
+
+    gates.write_preflight(path, _results(gates), config_hash="abc123", commit="deadbeef")
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["complete"] is True
+
+
+# --- gate_overfit: amp keyword ----------------------------------------------
+
+
+def test_gate_overfit_accepts_amp_on_cpu(gates) -> None:
+    result = gates.gate_overfit(make_model(0), make_batch(labels="constant"), steps=150, lr=1e-2, amp=True)
+
+    assert result.gate == 5
+    assert result.passed is True

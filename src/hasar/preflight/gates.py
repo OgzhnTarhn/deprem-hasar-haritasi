@@ -30,6 +30,7 @@ programming error (a wrong argument type, a broken import) raises. Every value s
 
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import os
@@ -86,6 +87,18 @@ class GateResult:
 def _result(gate: int, passed: bool, value: dict[str, Any], detail: str) -> GateResult:
     """Build a :class:`GateResult` with the gate's canonical Turkish label."""
     return GateResult(gate=gate, name=GATE_NAMES[gate - 1], passed=passed, value=value, detail=detail)
+
+
+def failed_gate(gate: int, exc: BaseException) -> GateResult:
+    """Build a failed :class:`GateResult` for a gate that crashed with ``exc``.
+
+    A gate never raises for a failed check, but a programming error (a wrong argument type, a broken
+    import) does raise. The caller catches it and records it here so the run still writes a
+    ``preflight.json`` that says which gate crashed and why.
+    """
+    message = str(exc)[:2000]
+    value: dict[str, Any] = {"error": type(exc).__name__, "message": message}
+    return _result(gate, False, value, f"Kapı çöktü: {type(exc).__name__}: {message}")
 
 
 # --- gate 1: reproduction ---------------------------------------------------
@@ -233,24 +246,39 @@ def gate_overfit(
     steps: int = 300,
     lr: float = 1e-3,
     ratio: float = 0.2,
+    amp: bool = True,
 ) -> GateResult:
-    """Check that a fixed batch is memorised: the final loss falls below ``ratio`` of the initial."""
+    """Check that a fixed batch is memorised: the final loss falls below ``ratio`` of the initial.
+
+    With ``amp`` the gate trains in bf16 like the real training (fp32 at crop 640 ran out of memory
+    on a 22 GB L4): every forward and loss runs inside ``torch.autocast`` when the model is on CUDA,
+    while backward and the optimizer step stay in fp32. On CPU the autocast is a no-op.
+    """
+    device = next(model.parameters()).device
+    use_amp = amp and device.type == "cuda"
+
+    def autocast() -> Any:
+        if use_amp:
+            return torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+        return contextlib.nullcontext()
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     model.eval()
-    with torch.no_grad():
+    with torch.no_grad(), autocast():
         _, initial_parts = _batch_loss(model, batch)
     initial = initial_parts["total"]
 
     model.train()
     for _ in range(steps):
         optimizer.zero_grad(set_to_none=True)
-        loss, _ = _batch_loss(model, batch)
+        with autocast():
+            loss, _ = _batch_loss(model, batch)
         loss.backward()
         optimizer.step()
 
     model.eval()
-    with torch.no_grad():
+    with torch.no_grad(), autocast():
         _, final_parts = _batch_loss(model, batch)
     final = final_parts["total"]
 
@@ -261,6 +289,7 @@ def gate_overfit(
         "ratio": float(achieved),
         "threshold": float(ratio),
         "steps": int(steps),
+        "amp": bool(use_amp),
     }
     if achieved < ratio:
         return _result(5, True, value, f"Sabit parti ezberlendi: kayıp oranı {achieved:.4f} < {ratio}.")
@@ -580,14 +609,21 @@ def write_preflight(
     results: list[GateResult],
     config_hash: str,
     commit: str,
+    complete: bool = True,
 ) -> Path:
-    """Write the gate results and their provenance to ``path`` as JSON."""
+    """Write the gate results and their provenance to ``path`` as JSON.
+
+    ``complete`` says whether every gate has run. Partial files are written after every gate with
+    ``complete=False`` so an interrupted run is never taken as current; ``all_passed`` is only true
+    for a complete run in which every gate passed.
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "config_hash": config_hash,
         "commit": commit,
-        "all_passed": all(result.passed for result in results),
+        "complete": bool(complete),
+        "all_passed": bool(complete) and all(result.passed for result in results),
         "gates": [
             {
                 "gate": result.gate,
