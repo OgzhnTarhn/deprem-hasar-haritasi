@@ -16,9 +16,11 @@ torch is imported at module top: this module is only imported where torch exists
 from __future__ import annotations
 
 import dataclasses
+import gc
 import json
 import subprocess
 import tempfile
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +38,7 @@ from hasar.data.sampler import StepSampler
 from hasar.data.summary import label_histogram
 from hasar.models import registry
 from hasar.preflight.gates import (
+    failed_gate,
     gate_grad_clip,
     gate_initial_loss,
     gate_kernel,
@@ -227,7 +230,12 @@ def run_preflight(
     gates: list[int] | None = None,
     repro_dir: Path | str | None = None,
 ) -> int:
-    """Run the selected pre-training gates and return 0 only if every one passed."""
+    """Run the selected pre-training gates and return 0 only if every one passed.
+
+    ``preflight.json`` is rewritten after every gate with ``complete=False``, so an interrupted run
+    is never taken as current. A gate that crashes is recorded as failed (with its traceback in the
+    log) and the run continues with the next gate.
+    """
     cfg = load_config(config)
     out_dir = Path(out)
     preflight_path = out_dir / "preflight.json"
@@ -242,56 +250,58 @@ def run_preflight(
 
     split, train_set, val_set = build_datasets(cfg, data)
     results = []
+    commit = _git_commit()
 
     for gate in selected:
-        if gate == 1:
-            results.append(gate_reproduction(repro))
-        elif gate == 2:
-            results.append(gate_split(split))
-        elif gate == 3:
-            results.append(gate_sampler_length(len(train_set), cfg.train.batch, cfg.train.steps, seed=cfg.train.seed))
-        elif gate == 4:
-            batch = _train_batch(train_set, cfg)
-            results.append(gate_initial_loss(build_model(cfg, pretrained, device), batch))
-        elif gate == 5:
-            batch = _fixed_batch(train_set, cfg)
-            results.append(gate_overfit(build_model(cfg, pretrained, device), batch))
-        elif gate == 6:
-            batch = _train_batch(train_set, cfg)
-            results.append(gate_sar_connected(build_model(cfg, pretrained, device), batch))
-        elif gate == 7:
-            histogram = label_histogram(data, split.val)
-            counts = np.array([int(histogram["pixels"][str(index)]) for index in range(4)], dtype=np.int64)
-            results.append(gate_metric_edges(counts))
-        elif gate == 8:
-            log = _short_train(cfg, build_model(cfg, pretrained, device), train_set, val_set, device, 200)
-            # Wall time per step (data loading included); the first steps are warm-up (cuDNN
-            # autotuning, worker start) and would inflate the projection.
-            seconds = [float(entry.get("wall", entry["seconds"])) for entry in log][10:]
-            gpu = torch.cuda.get_device_name(0) if str(device).startswith("cuda") else ""
-            results.append(gate_speed(seconds, cfg.train.steps, cu_per_hour(gpu), CU_BUDGET))
-        elif gate == 9:
-            doubled = dataclasses.replace(cfg, optim=dataclasses.replace(cfg.optim, lr=cfg.optim.lr * 2.0))
-            log = _short_train(doubled, build_model(cfg, pretrained, device), train_set, val_set, device, 500)
-            results.append(gate_grad_clip([float(entry["grad_norm"]) for entry in log]))
-        elif gate == 10:
-            resume_cfg = dataclasses.replace(
-                cfg,
-                data=dataclasses.replace(cfg.data, crop=256),
-                train=dataclasses.replace(cfg.train, steps=80, batch=2),
-            )
-            _, resume_train, resume_val = build_datasets(resume_cfg, data)
-            # Both runs validate once at their final step; eight tiles are enough to compare them.
-            resume_val = BrightDataset(
-                data,
-                list(resume_val.names)[:8],
-                mode="eval",
-                sar_mode=resume_cfg.norm.sar,
-                sar_stats=resume_val.sar_stats,
-            )
-            with tempfile.TemporaryDirectory() as tmp:
-                results.append(
-                    gate_resume(
+        result = None
+        try:
+            if gate == 1:
+                result = gate_reproduction(repro)
+            elif gate == 2:
+                result = gate_split(split)
+            elif gate == 3:
+                result = gate_sampler_length(len(train_set), cfg.train.batch, cfg.train.steps, seed=cfg.train.seed)
+            elif gate == 4:
+                batch = _train_batch(train_set, cfg)
+                result = gate_initial_loss(build_model(cfg, pretrained, device), batch)
+            elif gate == 5:
+                batch = _fixed_batch(train_set, cfg)
+                result = gate_overfit(build_model(cfg, pretrained, device), batch)
+            elif gate == 6:
+                batch = _train_batch(train_set, cfg)
+                result = gate_sar_connected(build_model(cfg, pretrained, device), batch)
+            elif gate == 7:
+                histogram = label_histogram(data, split.val)
+                counts = np.array([int(histogram["pixels"][str(index)]) for index in range(4)], dtype=np.int64)
+                result = gate_metric_edges(counts)
+            elif gate == 8:
+                log = _short_train(cfg, build_model(cfg, pretrained, device), train_set, val_set, device, 200)
+                # Wall time per step (data loading included); the first steps are warm-up (cuDNN
+                # autotuning, worker start) and would inflate the projection.
+                seconds = [float(entry.get("wall", entry["seconds"])) for entry in log][10:]
+                gpu = torch.cuda.get_device_name(0) if str(device).startswith("cuda") else ""
+                result = gate_speed(seconds, cfg.train.steps, cu_per_hour(gpu), CU_BUDGET)
+            elif gate == 9:
+                doubled = dataclasses.replace(cfg, optim=dataclasses.replace(cfg.optim, lr=cfg.optim.lr * 2.0))
+                log = _short_train(doubled, build_model(cfg, pretrained, device), train_set, val_set, device, 500)
+                result = gate_grad_clip([float(entry["grad_norm"]) for entry in log])
+            elif gate == 10:
+                resume_cfg = dataclasses.replace(
+                    cfg,
+                    data=dataclasses.replace(cfg.data, crop=256),
+                    train=dataclasses.replace(cfg.train, steps=80, batch=2),
+                )
+                _, resume_train, resume_val = build_datasets(resume_cfg, data)
+                # Both runs validate once at their final step; eight tiles are enough to compare them.
+                resume_val = BrightDataset(
+                    data,
+                    list(resume_val.names)[:8],
+                    mode="eval",
+                    sar_mode=resume_cfg.norm.sar,
+                    sar_stats=resume_val.sar_stats,
+                )
+                with tempfile.TemporaryDirectory() as tmp:
+                    result = gate_resume(
                         resume_cfg,
                         lambda: build_model(cfg, pretrained, device),
                         resume_train,
@@ -300,11 +310,23 @@ def run_preflight(
                         stop=60,
                         device=device,
                     )
-                )
-        elif gate == 11:
-            results.append(gate_kernel(lambda: build_model(cfg, pretrained, device), device))
+            elif gate == 11:
+                result = gate_kernel(lambda: build_model(cfg, pretrained, device), device)
+        except Exception as exc:
+            traceback.print_exc()
+            result = failed_gate(gate, exc)
 
-    write_preflight(preflight_path, results, cfg_hash, _git_commit())
+        if result is None:
+            continue
+        results.append(result)
+        write_preflight(preflight_path, results, cfg_hash, commit, complete=False)
+        verdict = "geçti" if result.passed else "kaldı"
+        print(f"{result.gate:>4}  {result.name:<24}  {verdict:<6}  {result.detail}", flush=True)
+        if torch.cuda.is_available():
+            gc.collect()
+            torch.cuda.empty_cache()
+
+    write_preflight(preflight_path, results, cfg_hash, commit, complete=True)
 
     print(f"{'Kapı':>4}  {'Ad':<24}  {'Sonuç':<6}  Ayrıntı")
     for result in results:
