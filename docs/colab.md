@@ -20,8 +20,11 @@ Bu belge, kodu yazılmış ama GPU gerektirdiği için çalıştırılmamış ad
 
 - Colab'da **A100** seçin, High-RAM kapalı kalsın. Colab'ın kurulu `torch` ve `timm` sürümleri kullanılır.
   Colab A100 seçili görünse de bazen **L4** (22 GB) veriyor (`!nvidia-smi` gerçek kartı gösterir). Defter L4'ü de
-  kabul eder: kapı 8 CU'yu karta göre (A100 ~13, L4 ~5 CU/saat) hesaplar; bellek yetmezse kapılarda bellek hatası
-  görülür ve `train.batch` protokol kilidinden önce birlikte düşürülür.
+  kabul eder: kapı 8 CU'yu karta göre (A100 ~13, L4 ~5 CU/saat) hesaplar. Bellek yetmezse eğitim döngüsü mikro
+  partiyi kendisi yarıya indirir ve gradyanları biriktirir; etkin batch 16 kalır (`train.micro_batch`).
+- ChangeMamba çekirdeği Colab'ın CUDA 13'ünde ancak yamayla derlenir (`cub::LaneId`, `cub::CTA_SYNC` kaldırıldı,
+  sm_70 desteklenmiyor). Defterin 2. hücresi yamayı kendisi uygular ve derlenen tekerleği
+  `MyDrive/deprem-hasar/wheels/` altına kaydeder; sonraki oturumlar derlemeden kurar.
 - Colab "Secrets" bölümüne `HF_TOKEN` ekleyin (Hugging Face indirme hızı için; zorunlu değil).
 - Drive'da `MyDrive/deprem-hasar/` klasörü defter tarafından açılır; kayıt noktaları oraya yazılır.
 
