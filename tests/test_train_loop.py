@@ -253,3 +253,93 @@ def test_all_void_batch_is_skipped(tmp_path: Path) -> None:
     done = json.loads((tmp_path / "DONE").read_text(encoding="utf-8"))
     assert done["steps"] == 6
     assert done["skipped"] >= 1
+
+
+# --- micro-batch (gradient accumulation) ------------------------------------
+
+
+class OomModel(torch.nn.Module):
+    """Wrap ``model`` and raise a fake CUDA OOM when a chunk is larger than ``limit`` rows."""
+
+    def __init__(self, model: torch.nn.Module, limit: int) -> None:
+        super().__init__()
+        self.model = model
+        self.limit = limit
+        self.seen: list[int] = []
+
+    def forward(self, pre: torch.Tensor, post: torch.Tensor) -> dict[str, torch.Tensor]:
+        self.seen.append(int(pre.shape[0]))
+        if pre.shape[0] > self.limit:
+            raise torch.OutOfMemoryError("fake oom")
+        return self.model(pre, post)
+
+
+def make_micro_cfg(micro_batch: int | None) -> Config:
+    """Return the tiny configuration with batch 4, no Lovász term and the given micro-batch."""
+    cfg = make_cfg()
+    return dataclasses.replace(
+        cfg,
+        train=dataclasses.replace(cfg.train, batch=4, micro_batch=micro_batch),
+        loss=dataclasses.replace(cfg.loss, lovasz_loc=0.0, lovasz_clf=0.0),
+    )
+
+
+def test_micro_batch_matches_full_batch(tmp_path: Path) -> None:
+    model_a = make_model(0)
+    model_a.drop.p = 0.0
+    model_b = make_model(0)
+    model_b.drop.p = 0.0
+
+    out_a = tmp_path / "a"
+    out_b = tmp_path / "b"
+    state_a = train(make_micro_cfg(None), model_a, FakeTrainSet(), FakeValSet(), out_a, device="cpu", commit="test")
+    state_b = train(make_micro_cfg(2), model_b, FakeTrainSet(), FakeValSet(), out_b, device="cpu", commit="test")
+
+    assert state_a.done is True
+    assert state_b.done is True
+    assert state_a.step == state_b.step == 6
+
+    for (name, param_a), (other_name, param_b) in zip(
+        model_a.state_dict().items(), model_b.state_dict().items(), strict=True
+    ):
+        assert name == other_name
+        assert torch.allclose(param_a, param_b, atol=1e-5), name
+
+
+def test_train_log_records_effective_micro_batch(tmp_path: Path) -> None:
+    cfg = make_micro_cfg(None)
+    train(cfg, make_model(0), FakeTrainSet(), FakeValSet(), tmp_path, device="cpu", commit="test")
+
+    entries = read_jsonl(tmp_path / "train_log.jsonl")
+    assert len(entries) == 6
+    for entry in entries:
+        assert "micro_batch" in entry
+        assert entry["micro_batch"] == 4
+
+
+def test_oom_halves_micro_batch_until_it_fits(tmp_path: Path) -> None:
+    cfg = make_micro_cfg(None)
+    model = OomModel(make_model(0), limit=2)
+    state = train(cfg, model, FakeTrainSet(), FakeValSet(), tmp_path, device="cpu", commit="test")
+
+    assert state.done is True
+    assert state.step == 6
+    # The first attempt used the whole batch and hit the fake OOM before the loop shrank it.
+    assert model.seen[0] == 4
+    assert all(size <= 2 for size in model.seen[1:])
+
+    entries = read_jsonl(tmp_path / "train_log.jsonl")
+    assert len(entries) == 6
+    for entry in entries:
+        assert entry["micro_batch"] == 2
+
+
+def test_oom_at_micro_batch_one_is_raised(tmp_path: Path) -> None:
+    cfg = make_micro_cfg(None)
+    model = OomModel(make_model(0), limit=0)
+    with pytest.raises(torch.OutOfMemoryError):
+        train(cfg, model, FakeTrainSet(), FakeValSet(), tmp_path, device="cpu", commit="test")
+
+    # The loop halved 4 -> 2 -> 1 and only gave up once a single row still did not fit.
+    assert 1 in model.seen
+    assert all(size in (1, 2, 4) for size in model.seen)

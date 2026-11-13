@@ -17,6 +17,14 @@ highest validation mIoU. That is a *weak* selection: the validation events are t
 the model is trained on, so the number is optimistic and is reported as ``[VAL13 mIoU, ema]``, never
 as the headline ``[ZS-EVENT mIoU]``.
 
+Gradient accumulation and the adaptive micro-batch
+--------------------------------------------------
+One optimizer step may be split into several forward/backward passes over chunks of at most
+``train.micro_batch`` samples; the gradients accumulate, so the effective batch stays
+``train.batch``. When a chunk does not fit in memory the micro-batch is halved and the same batch
+is retried, down to a single sample. The Lovász term is computed per chunk, which is an
+approximation of the whole-batch Lovász.
+
 Colab resume semantics
 ----------------------
 A Colab session can die at any step. Every checkpoint holds the model, EMA, optimizer, scheduler,
@@ -28,6 +36,7 @@ instead of silently mixing two runs.
 
 from __future__ import annotations
 
+import gc
 import json
 import os
 import time
@@ -105,6 +114,44 @@ def _autocast(cfg: Config, device: str) -> Any:
     return nullcontext()
 
 
+def _backward_chunks(
+    model: torch.nn.Module,
+    cfg: Config,
+    device: str,
+    pre: torch.Tensor,
+    post: torch.Tensor,
+    loc: torch.Tensor,
+    clf: torch.Tensor,
+    ignore: int,
+    micro: int,
+) -> dict[str, float]:
+    """Backpropagate one batch in chunks of at most ``micro`` samples and return the loss parts.
+
+    Each kept chunk is weighted by its share of the kept samples, so the accumulated gradient is
+    the gradient of the whole-batch loss (up to the per-chunk Lovász approximation). A chunk with
+    no valid pixel is skipped: it contributes nothing to the loss.
+    """
+    size = int(pre.shape[0])
+    chunks = [(start, min(start + micro, size)) for start in range(0, size, micro)]
+    kept = [(start, end) for start, end in chunks if bool((clf[start:end] != ignore).any())]
+    total = sum(end - start for start, end in kept)
+    single = len(kept) == 1
+
+    sums: dict[str, float] = {}
+    for start, end in kept:
+        weight = (end - start) / total
+        with _autocast(cfg, device):
+            outputs = model(pre[start:end], post[start:end])
+        loss, parts = damage_loss(outputs, loc[start:end], clf[start:end], cfg.loss)
+        if single:
+            loss.backward()
+        else:
+            (loss * weight).backward()
+        for key, value in parts.items():
+            sums[key] = sums.get(key, 0.0) + weight * value
+    return sums
+
+
 def train(
     cfg: Config,
     model: torch.nn.Module,
@@ -128,6 +175,7 @@ def train(
     run_hash = config_hash(cfg)
     total_steps = cfg.train.steps
     batch = cfg.train.batch
+    micro = cfg.train.micro_batch or batch
     ignore = cfg.loss.ignore_index
 
     done_path = out / "DONE"
@@ -264,10 +312,20 @@ def train(
         lr = float(optimizer.param_groups[0]["lr"])
 
         optimizer.zero_grad(set_to_none=True)
-        with _autocast(cfg, device):
-            outputs = model(pre, post)
-        loss, parts = damage_loss(outputs, loc, clf, cfg.loss)
-        loss.backward()
+        while True:
+            try:
+                parts = _backward_chunks(model, cfg, device, pre, post, loc, clf, ignore, micro)
+                break
+            except torch.OutOfMemoryError:
+                if micro <= 1:
+                    raise
+            # Freed outside the except block: the exception's traceback keeps the activations alive.
+            optimizer.zero_grad(set_to_none=True)
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            micro = max(1, micro // 2)
+            print(f"Bellek yetmedi: mikro parti {micro} oldu (etkin batch {batch} aynı).", flush=True)
         max_norm = cfg.train.clip if cfg.train.clip is not None else float("inf")
         grad_norm = float(torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm))
         optimizer.step()
@@ -287,6 +345,7 @@ def train(
                     "lovasz_loc": parts["lovasz_loc"],
                     "lovasz_clf": parts["lovasz_clf"],
                     "grad_norm": grad_norm,
+                    "micro_batch": micro,
                     "samples": samples,
                     "seconds": time.monotonic() - started,
                     # Wall time since the previous logged step, data loading included (gate 8).
