@@ -36,6 +36,7 @@ sched:
 
 train:
   batch: 16  # bellek yetmezse 8
+  micro_batch: null  # tek ileri-geri geçişteki en büyük parça; null = batch. Bellek yetmezse döngü yarıya indirir (etkin batch değişmez)
   steps: 40000  # adım sayısı; örnek sayısı değil (max_iters tuzağı)
   amp: bf16  # karışık hassasiyet
   ema: 0.999  # EMA ağırlık katsayısı

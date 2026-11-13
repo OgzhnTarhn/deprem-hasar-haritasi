@@ -118,9 +118,15 @@ class Sched:
 
 @dataclass(frozen=True)
 class Train:
-    """Training loop: ``steps`` counts optimizer steps, not samples."""
+    """Training loop: ``steps`` counts optimizer steps, not samples.
+
+    ``micro_batch`` is the largest chunk one forward/backward pass handles; the gradients of the
+    chunks are accumulated into one optimizer step of ``batch`` samples. ``None`` means the whole
+    batch; on CUDA out-of-memory the loop halves it automatically.
+    """
 
     batch: int = 16
+    micro_batch: int | None = None
     steps: int = 40000
     amp: str = "bf16"
     ema: float = 0.999
@@ -130,6 +136,8 @@ class Train:
     def __post_init__(self) -> None:
         if self.batch <= 0:
             raise ConfigError(f"train.batch: pozitif olmalı, {self.batch} verildi.")
+        if self.micro_batch is not None and not 1 <= self.micro_batch <= self.batch:
+            raise ConfigError(f"train.micro_batch: None veya 1..batch aralığında olmalı, {self.micro_batch} verildi.")
         if self.steps <= 0:
             raise ConfigError(f"train.steps: pozitif olmalı, {self.steps} verildi.")
         if self.amp not in ("bf16", "fp32"):

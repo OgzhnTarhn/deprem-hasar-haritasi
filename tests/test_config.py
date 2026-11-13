@@ -57,6 +57,7 @@ def test_defaults() -> None:
     assert cfg.sched.min_lr == 1e-6
 
     assert cfg.train.batch == 16
+    assert cfg.train.micro_batch is None
     assert cfg.train.steps == 40000
     assert cfg.train.amp == "bf16"
     assert cfg.train.ema == 0.999
@@ -139,6 +140,19 @@ def test_valid_non_default_values_load(tmp_path: Path) -> None:
     assert cfg.train.amp == "fp32"
     assert cfg.train.clip == 1.0
     assert cfg.sched.type == "linear"
+
+
+def test_micro_batch_defaults_to_none_and_loads_from_yaml(tmp_path: Path) -> None:
+    assert Config().train.micro_batch is None
+    cfg = load_payload(tmp_path, {"train": {"batch": 16, "micro_batch": 4}})
+    assert cfg.train.micro_batch == 4
+    assert cfg.train.batch == 16
+
+
+@pytest.mark.parametrize("micro_batch", [0, 17])
+def test_micro_batch_out_of_range_raises(tmp_path: Path, micro_batch: int) -> None:
+    with pytest.raises(ConfigError):
+        load_payload(tmp_path, {"train": {"batch": 16, "micro_batch": micro_batch}})
 
 
 # --- unknown keys -----------------------------------------------------------
