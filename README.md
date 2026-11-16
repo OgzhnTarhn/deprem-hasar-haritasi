@@ -42,7 +42,16 @@ uv run hasar indir --root data/bright --cache data/cache   # BRIGHT'ı Hugging F
 uv run hasar veri-ozet --root data/bright                  # bölme özeti -> results/veri/bolme.json
 ```
 
-Eğitim Colab A100'de, ince defterle yapılır: [notebooks/ana_egitim.ipynb](notebooks/ana_egitim.ipynb).
+Eğitim Colab'da, ince defterle yapılır: [notebooks/ana_egitim.ipynb](notebooks/ana_egitim.ipynb). Adımlar
+[docs/colab.md](docs/colab.md)'de.
+
+- **GPU:** A100 hedeflenir; Colab L4 verirse defter onu da kabul eder ve kapı 8 maliyeti çalışan karta göre hesaplar.
+- **Bellek:** bir adım belleğe sığmazsa eğitim döngüsü mikro partiyi yarıya indirip gradyan biriktirir; etkin batch
+  değişmez (`train.micro_batch`).
+- **ChangeMamba çekirdeği:** Colab'ın CUDA 13'ünde yamayla derlenir; defter yamayı kendisi uygular ve derlenen
+  tekerleği Drive'da saklar, sonraki oturumlar derlemeden kurar.
+
+Sonuç tablosu `uv run hasar readme` ile yenilenir (`--check` güncel olup olmadığını denetler).
 
 ## Değişmez kurallar (özet)
 
