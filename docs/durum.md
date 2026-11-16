@@ -32,6 +32,12 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
   GPU'da ayrışıyor (parametreler ~1e-4, BatchNorm istatistikleri yüzde düzeyinde); kapı 10 buna göre ölçüt kullanır.
 - **Colab'da kalanlar:** kapı 5, 8, 9 (A100 ve ChangeMamba çekirdeği gerekir), `train.clip`, `protokol-kilidi`.
   Adımlar: `docs/colab.md`.
+- **Colab'a uyum (12–13 Kasım 2026):** ilk Colab denemelerinde çıkan sorunlara göre düzeltildi. Kapı 5 bf16'da
+  koşuyor; ön kontrolde çöken kapı kaydediliyor ve sonuç her kapıdan sonra diske yazılıyor (yarım kayıt
+  kaybolmuyor). Colab A100 yerine L4 verirse defter onu da kabul ediyor, kapı 8 maliyeti çalışan karta göre
+  hesaplıyor. Bellek yetmezse eğitim döngüsü mikro partiyi yarıya indirip gradyan biriktiriyor, etkin batch
+  değişmiyor (`train.micro_batch`). ChangeMamba çekirdeği CUDA 13 için yamayla derleniyor, tekerlek Drive'da
+  saklanıyor.
 
 ## Faz 3'te kurulanlar ve ölçülenler
 
