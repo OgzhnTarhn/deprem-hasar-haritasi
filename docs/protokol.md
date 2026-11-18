@@ -1,7 +1,8 @@
 # Değerlendirme Protokolü (önceden kayıt)
 
-- **Durum:** Son metin, sürüm 1.1 (7 Kasım 2026; Faz 6 kodu bitti). Ön kontrol kapıları Colab'da geçip
-  `train.clip` yazıldıktan sonra kullanıcı `protokol-kilidi` etiketini atar; bu dosya o commit'e girer. Kilitten sonra bu dosya değiştirilmez; değişiklik gerekirse yeni sürüm, gerekçesi ve
+- **Durum:** Son metin, sürüm 1.2 (18 Kasım 2026). `protokol-kilidi` etiketi bu sürümün commit'ine atılır.
+  `train.clip` yapılandırmada boş kalır; eğitim eşiği aynı yapılandırmanın geçmiş ön kontrolünün 9. kapısından
+  kendisi okur (tasarım §7–8). Bu yüzden kilit, ön kontrolden önce atılabilir. Kilitten sonra bu dosya değiştirilmez; değişiklik gerekirse yeni sürüm, gerekçesi ve
   tarihiyle §14'e yazılır ve başlık sonucunu etkileyen her değişiklik raporda belirtilir.
 - **Kapsam:** Türkiye'deki tek değerlendirmenin bütün hesap kuralları: bölme, başlık metriği, girdi işleme, kayıt
   noktası seçimi, ikincil satırlar, bina düzeyi metrikler, güven aralıkları, "eşit" kuralı, kalibrasyon.
@@ -165,3 +166,4 @@ hesaplar). Kalan tek açık madde KN1'e bağlı:
 | 0.3 | 7 Kasım 2026 | Kullanıcı bekleyen önerilerin hepsini kabul etti: SAR girdisi (§4, ADR-0004 C), oylama birimi (§6), bina örnek kaynağı (§7), şehre göre katmanlı blok bootstrap (§8), "eşit" kuralı (§9) ✅ |
 | 1.0 | 7 Kasım 2026 | Faz 3–4 sonrası son metin. Faz 3: SiamCRNN, UNet, DamageFormer ±0,3 içinde (`results/yeniden-uretim/`), hat resmî değerlendiriciyle birebir; DeepLabV3+ zero-shot checkpoint'i yayımlanan değerin çok üstünde çıktı, Türkiye'yi görmüş sayılıp topluluk adaylarından çıkarıldı (§6). Kapı 1 yalnız bu üç modeli şart koşar. §5: ham ağırlıkların doğrulaması son adımda bir kez. §6 flip TTA kodda dört görünüm. Kapı 10'un GPU ölçütü (tasarım §7): parametreler `atol` 1e-3, kayıplar %1; BatchNorm istatistikleri yalnız raporlanır. Kapı 7 kapandı. §7 bina karesi listesi dosyaya sabitlendi |
 | 1.1 | 7 Kasım 2026 | Faz 6 kodu: adlar koddakiyle hizalandı (§3 kare matrisi dosyası satır başına, §6 satır etiketleri, §7 `[ZS-EVENT bina-makro-F1]`). `final` başlık dosyasını (`turkiye.json`) bütün öteki kayıtlardan sonra yazar; yarıda kalan koşu önbellekten devam eder, başlık yazıldıktan sonra ikinci koşu reddedilir. Hesap kuralı değişmedi |
+| 1.2 | 18 Kasım 2026 | Gradyan kırpma eşiği elle yazılmıyor: `train.clip: null` iken `hasar egit` eşiği, yapılandırma hash'i tutan, tamamlanmış ve bütün kapıları geçmiş `preflight.json`'ın 9. kapısından (2× lr'de 500 adım, p90 gradyan normu) okur; kayıt yoksa ya da tutmazsa eğitim başlamaz. Kural önceden sabit olduğu için kilit ön kontrolden önce atılır ve Colab defteri tek "Run All" ile ön kontrol + eğitim yapar. Eşik Türkiye'ye dokunmadan seçilir; hesap kuralı değişmedi |

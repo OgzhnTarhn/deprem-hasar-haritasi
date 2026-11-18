@@ -136,7 +136,7 @@ Dondurulmuş yapılandırma (`configs/ana.yaml`):
 | Süre | 40.000 adım (640.000 örnek) | 50.000 adım Pro bütçesine dar (yargı) |
 | Zamanlama | 1.500 adım warmup, kosinüs, min lr 1e-6 | Düşük risk (yargı) |
 | Hassasiyet ve EMA | bf16, EMA 0,999 | Düşük risk (yargı) |
-| Gradyan kırpma | Ön kontrolde ölçülen p90 gradyan normu | Ölçülecek |
+| Gradyan kırpma | Ön kontrolde ölçülen p90 gradyan normu; `train.clip: null` iken eğitim `preflight.json`'ın 9. kapısından okur | Ölçülecek (kural sabit) |
 | Artırım | Flip, rot90; fotometrik yok | Resmî |
 | Normalizasyon | Optik ImageNet. SAR: resmî biçim (3 kanala kopya, ImageNet istatistikleri); eğitim kümesi istatistiği fikir havuzunda (A3), Faz 4'te kısa provada ölçülür | Kanıt (resmî kod); kabul ([ADR-0004](adr/0004-sar-girdisi.md)) |
 | Nodata | Optik ve SAR'ın ikisi de 0 olan pikseller kayıpta yok sayılır | Yargı |
@@ -150,7 +150,7 @@ Notebook mantık içermez; `src/hasar` paketini çağırır ve "Run All" ile kop
 
 | Hücre | İş | Kopma sonrası |
 |---|---|---|
-| 1 | Drive'ı bağla, etiketli commit'i klonla, `pip install -e .`, sırları oku | Commit SHA kaydedilir, kirli çalışma ağacı reddedilir |
+| 1 | Drive'ı bağla, depoyu klonla, aşamayı etiketlerden seç (`protokol-kilidi` yoksa yalnız ön kontrol; `varyant-kilidi` varsa final de), `pip install -e .`, sırları oku | Commit SHA kaydedilir, kirli çalışma ağacı reddedilir |
 | 2 | Ortam kapısı: A100 (Colab vermezse L4 22 GB), High-RAM kapalı, disk ≥ 60 GB | Koşul tutmazsa durur |
 | 3 | Veriyi VM diskine indir, aç, bütünlüğünü denetle | `.done` varsa atlanır |
 | 4 | Ön kontrol kapıları, sonuçlar `preflight.json`'a | Config hash'i aynıysa atlanır |
@@ -169,7 +169,7 @@ Notebook mantık içermez; `src/hasar` paketini çağırır ve "Run All" ile kop
 6. SAR sıfırlanınca hasar çıktısı değişmeli (SAR dalı bağlı).
 7. Metrik uç durumları: kusursuz tahmin 1,0, hep arka plan tahmini = arka plan piksel oranı / 4 (doğrulama kümesinden; ~0,21 kaba tahmin).
 8. 200 adımda hız, tepe VRAM ve CU projeksiyonu ölçülür; projeksiyon bütçeyi aşarsa eğitim başlamaz.
-9. 2× lr ile 500 adımda p90 gradyan normu ölçülür, kırpma eşiği yapılır.
+9. 2× lr ile 500 adımda p90 gradyan normu ölçülür, kırpma eşiği yapılır (eğitim bu değeri `preflight.json`'dan kendisi okur).
 10. 60. adımda süreç öldürülür, devam testi yapılır; model, EMA, optimizer, zamanlayıcı, adım ve bütün RNG
     durumları geri gelmeli. CPU'da birebir; GPU'da bazı geri yayılım çekirdekleri bit düzeyinde belirlenimci
     olmadığından iki kesintisiz koşu bile ayrışır (yerelde ölçüldü), bu yüzden parametreler `atol` 1e-3 ve
