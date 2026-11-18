@@ -38,6 +38,7 @@ from hasar.data.sampler import StepSampler
 from hasar.data.summary import label_histogram
 from hasar.models import registry
 from hasar.preflight.gates import (
+    clip_from_preflight,
     failed_gate,
     gate_grad_clip,
     gate_initial_loss,
@@ -154,15 +155,30 @@ def run_training(
     pretrained: Path | str | None = None,
     commit: str | None = None,
     steps: int | None = None,
+    preflight: Path | str | None = None,
 ) -> int:
-    """Run the single full training and return 0."""
+    """Run the single full training and return 0.
+
+    When the YAML leaves ``train.clip`` null, the clipping threshold is read from gate 9 of the
+    preflight record (``preflight``, default ``<out>/preflight.json``) with the hash of the YAML
+    configuration, before the ``steps`` override. The run folder is named after the configuration
+    with the ``steps`` override but the clip still as in the YAML, so a short run lands in the same
+    folder as the full one.
+    """
     cfg = load_config(config)
+    if cfg.train.clip is None:
+        preflight_path = Path(preflight) if preflight is not None else Path(out) / "preflight.json"
+        clip = clip_from_preflight(preflight_path, config_hash(cfg))
+        print(f"Gradyan kırpma eşiği: {clip:.4f} (9. kapıdan)")
+    else:
+        clip = cfg.train.clip
     if steps is not None:
         cfg = dataclasses.replace(cfg, train=dataclasses.replace(cfg.train, steps=steps))
     if commit is None:
         commit = _git_commit()
 
     out_dir = Path(out) / run_id(cfg)
+    cfg = dataclasses.replace(cfg, train=dataclasses.replace(cfg.train, clip=clip))
     _, train_set, val_set = build_datasets(cfg, data)
     model = build_model(cfg, pretrained, device)
 

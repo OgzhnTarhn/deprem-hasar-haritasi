@@ -15,7 +15,8 @@ The eleven gates of design section 8 are implemented here, one function each, pl
 7. ``gate_metric_edges`` -- a perfect prediction scores 1.0 and an always-background prediction
    scores the background fraction / 4.
 8. ``gate_speed`` -- the measured step time projects to a CU cost within budget.
-9. ``gate_grad_clip`` -- the p90 gradient norm is finite and becomes the clipping threshold.
+9. ``gate_grad_clip`` -- the p90 gradient norm is finite and becomes the clipping threshold; training
+   reads that value back through :func:`clip_from_preflight` when ``train.clip`` is null.
 10. ``gate_resume`` -- a run killed mid-training resumes to exactly the uninterrupted result.
 11. ``gate_kernel`` -- the ChangeMamba selective-scan kernel compiles and survives a short
     forward-backward test.
@@ -654,3 +655,35 @@ def preflight_is_current(path: Path | str, config_hash: str) -> bool:
     except (OSError, json.JSONDecodeError):
         return False
     return payload.get("config_hash") == config_hash and payload.get("all_passed") is True
+
+
+def clip_from_preflight(path: Path | str, config_hash: str) -> float:
+    """Return gate 9's clipping threshold from a current, complete, all-passed ``preflight.json``.
+
+    Training calls this when ``train.clip`` is null: the threshold is measured once by gate 9 and
+    stored in the record instead of being guessed in the YAML. A missing file, a file written for
+    another configuration, an incomplete or failed run, a missing gate 9 and a missing or
+    non-positive clip all raise ``RuntimeError`` with a Turkish message.
+    """
+    path = Path(path)
+    if not path.exists():
+        raise RuntimeError(f"ön kontrol kaydı yok: {path}; önce `hasar on-kontrol` çalıştırın.")
+    try:
+        payload = read_preflight(path)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"ön kontrol kaydı okunamadı: {path}: {exc}") from exc
+
+    found = payload.get("config_hash")
+    if found != config_hash:
+        raise RuntimeError(f"ön kontrol başka bir yapılandırmaya ait ({found} != {config_hash}).")
+    if payload.get("complete") is not True or payload.get("all_passed") is not True:
+        raise RuntimeError(f"ön kontrol tamamlanmamış ya da bir kapı kaldı: {path}.")
+
+    for entry in payload.get("gates", []):
+        if entry.get("gate") != 9:
+            continue
+        clip = entry.get("value", {}).get("clip")
+        if isinstance(clip, (int, float)) and not isinstance(clip, bool) and clip > 0:
+            return float(clip)
+        break
+    raise RuntimeError("ön kontrolde 9. kapının kırpma eşiği yok ya da pozitif değil.")

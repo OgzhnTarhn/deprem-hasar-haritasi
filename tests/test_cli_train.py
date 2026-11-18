@@ -78,6 +78,7 @@ def test_egit_passes_arguments_through(tmp_path: Path, fake: SimpleNamespace) ->
     assert call["pretrained"] == pretrained
     assert call["commit"] == "abc1234"
     assert call["steps"] == 12
+    assert call["preflight"] is None
     assert fake.preflight.calls == []
 
 
@@ -97,6 +98,7 @@ def test_egit_defaults(tmp_path: Path, fake: SimpleNamespace) -> None:
     assert call["pretrained"] is None
     assert call["commit"] is None
     assert call["steps"] is None
+    assert call["preflight"] is None
 
 
 def test_egit_returns_runner_value(tmp_path: Path, fake: SimpleNamespace) -> None:

@@ -151,6 +151,12 @@ def _build_parser() -> argparse.ArgumentParser:
     train.add_argument("--pretrained", type=Path, default=None, help="Başlangıç ağırlığı (isteğe bağlı).")
     train.add_argument("--commit", default=None, help="Kayda yazılacak commit SHA'sı (varsayılan: git HEAD).")
     train.add_argument("--steps", type=int, default=None, help="Kısa prova için adım sayısını değiştir.")
+    train.add_argument(
+        "--preflight",
+        type=Path,
+        default=None,
+        help="Ön kontrol kaydı (varsayılan: <out>/preflight.json); train.clip boşsa eşik buradan okunur.",
+    )
 
     preflight = subparsers.add_parser("on-kontrol", help="Eğitim öncesi kapıları çalıştır.")
     preflight.add_argument("--config", type=Path, required=True, help="Yapılandırma YAML dosyası.")
@@ -277,6 +283,7 @@ def _run_egit(args: argparse.Namespace) -> int:
         pretrained=args.pretrained,
         commit=args.commit,
         steps=args.steps,
+        preflight=args.preflight,
     )
 
 
