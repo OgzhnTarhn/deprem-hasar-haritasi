@@ -13,7 +13,9 @@ etiketlerine bakıp aşamasını kendisi seçer:
 | `protokol-kilidi` | Ön kontrol (geçtiyse atlanır) → ana eğitim (`last.pt`'den devam, `DONE` ise atlanır) |
 | `protokol-kilidi` + `varyant-kilidi` | Yukarıdakiler + Türkiye'de tek `sicaklik` ve `final` |
 
-Yalnız varyant (Faz 8) için `CONFIG` ve `NAME` değiştirilir.
+Defter her zaman güncel `main`'i çeker; kilitli dosyalar (`configs/ana.yaml`, `docs/protokol.md`; varyant
+kilidinden sonra `configs/`) etiketten beri değiştiyse durur. Yalnız varyant (Faz 8) için `CONFIG` ve `NAME`
+değiştirilir.
 
 | Adım | Faz | Nerede | Süre / CU (tahmin) | Geri alınabilir mi |
 |---|---|---|---|---|
@@ -34,7 +36,7 @@ Yalnız varyant (Faz 8) için `CONFIG` ve `NAME` değiştirilir.
   kabul eder: kapı 8 CU'yu karta göre (A100 ~13, L4 ~5 CU/saat) hesaplar. Bellek yetmezse eğitim döngüsü mikro
   partiyi kendisi yarıya indirir ve gradyanları biriktirir; etkin batch 16 kalır (`train.micro_batch`).
 - ChangeMamba çekirdeği Colab'ın CUDA 13'ünde ancak yamayla derlenir (`cub::LaneId`, `cub::CTA_SYNC` kaldırıldı,
-  sm_70 desteklenmiyor). Defterin 2. hücresi yamayı kendisi uygular ve derlenen tekerleği
+  sm_70 desteklenmiyor; torch 2.14 başlıkları C++20 istediği için `-std=c++17` → `-std=c++20`). Defterin 2. hücresi yamayı kendisi uygular ve derlenen tekerleği
   `MyDrive/deprem-hasar/wheels/` altına kaydeder; sonraki oturumlar derlemeden kurar.
 - Colab "Secrets" bölümüne `HF_TOKEN` ekleyin (Hugging Face indirme hızı için; zorunlu değil).
 - Drive'da `MyDrive/deprem-hasar/` klasörü defter tarafından açılır; kayıt noktaları oraya yazılır.
