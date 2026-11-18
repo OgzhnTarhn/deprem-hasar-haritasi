@@ -4,11 +4,22 @@ Bu belge, kodu yazılmış ama GPU gerektirdiği için çalıştırılmamış ad
 `src/hasar` paketinde; defter yalnız komutları çağırır. Her adım yapılmış işi atlar: kopma olursa aynı defter
 "Run All" ile kaldığı yerden devam eder.
 
+**Defterde doldurulacak alan yok.** `notebooks/ana_egitim.ipynb` Colab'a yüklenip "Run All" denir. Defter git
+etiketlerine bakıp aşamasını kendisi seçer:
+
+| Etiketler | Defterin yaptığı |
+|---|---|
+| `protokol-kilidi` yok | Yalnız ön kontrol (eğitim başlamaz) |
+| `protokol-kilidi` | Ön kontrol (geçtiyse atlanır) → ana eğitim (`last.pt`'den devam, `DONE` ise atlanır) |
+| `protokol-kilidi` + `varyant-kilidi` | Yukarıdakiler + Türkiye'de tek `sicaklik` ve `final` |
+
+Yalnız varyant (Faz 8) için `CONFIG` ve `NAME` değiştirilir.
+
 | Adım | Faz | Nerede | Süre / CU (tahmin) | Geri alınabilir mi |
 |---|---|---|---|---|
 | 1. Yeniden üretim | 3 | **Yapıldı** (yerel RTX 4060, 7 Kasım 2026) | ~16 dk / 0 CU | Evet |
-| 2. Ön kontrol kapıları | 4 | Colab A100 | 1–1,5 saat / ~10 CU | Evet |
-| 3. `protokol-kilidi` etiketi | 4 | Yerel | 1 dk | Etiket silinebilir ama `final` sonrası anlamı kalmaz |
+| 2. `protokol-kilidi` etiketi | 4 | **Atıldı** (18 Kasım 2026) | – | Etiket silinebilir ama `final` sonrası anlamı kalmaz |
+| 3. Ön kontrol kapıları | 4 | Colab A100 (defter, eğitimle aynı "Run All") | 1–1,5 saat / ~10 CU | Evet |
 | 4. Ana eğitim | 5 | Colab A100 | 40.000 adım / 50–75 CU | Evet (devam eder) |
 | 5. KN1 ve `varyant-kilidi` | 6 | Yerel (karar) | – | Evet |
 | 6. Sıcaklık ve Türkiye `final` | 6 | Colab A100 | < 1 saat / < 5 CU | **Hayır: Türkiye bir kez değerlendirilir** |
@@ -52,9 +63,9 @@ Sonuçlar `results/yeniden-uretim/<model>_test.json` dosyalarına `[ZS-EVENT mIo
 
 ## 2. Faz 4: ön kontrol kapıları
 
-Defter (`notebooks/ana_egitim.ipynb`) ilk satırında `REF` olarak henüz etiket yoksa `main` ya da bir commit
-SHA'sı verin; `STEPS_OVERRIDE = 2000` ile kısa prova yapılabilir. 4. hücre 11 kapıyı çalıştırır ve
-`MyDrive/deprem-hasar/kosular/preflight.json` dosyasını yazar:
+Defterin 4. hücresi 11 kapıyı çalıştırır ve `MyDrive/deprem-hasar/kosular/onkontrol/<NAME>/preflight.json`
+dosyasını yazar; kapıları tek tek yazdırır. Kapılardan biri kalırsa defter durur: o dosyayı Claude'a gönderin.
+(`STEPS_OVERRIDE = 2000` ile kısa eğitim provası yapılabilir; asıl eğitimde `None`.)
 
 | # | Kapı | Geçme koşulu |
 |---|---|---|
@@ -73,23 +84,19 @@ SHA'sı verin; `STEPS_OVERRIDE = 2000` ile kısa prova yapılabilir. 4. hücre 1
 Çekirdek derlenmemişse model kurulurken otomatik olarak Swin-T DamageFormer yedeğine geçilir (tasarım §5) ve kapılar
 yedekle koşar; `preflight.json`'daki kapı 11 kaydında `model: BrightBaseline` görünür. Ana eğitimin ChangeMamba ile
 yapılacağından emin olmak için bu alana bakın.
-Kapı 9'un verdiği eşik `configs/ana.yaml` içinde `train.clip` alanına yazılıp commit'lenir.
+Kapı 9'un verdiği eşik elle yazılmaz (protokol 1.2): `train.clip: null` iken `hasar egit --preflight <dosya>`
+eşiği, aynı yapılandırmanın tamamlanmış ve bütün kapıları geçmiş kaydının 9. kapısından okur. Kayıt yoksa,
+başka bir yapılandırmaya aitse ya da bir kapı kaldıysa eğitim başlamaz.
 
 ## 3. Protokol kilidi
 
-Bütün kapılar geçtikten ve `train.clip` yazıldıktan sonra, yerelde:
-
-```bash
-git status            # temiz olmalı
-git tag protokol-kilidi
-git push origin main --tags
-```
-
-Bu etiketten sonra `configs/ana.yaml` ve `docs/protokol.md` değiştirilmez.
+`protokol-kilidi` etiketi 18 Kasım 2026'da protokol 1.2'nin commit'ine atıldı. Eşik kuralı önceden sabit
+olduğu için kilit ön kontrolden önce atılabildi. Bu etiketten sonra `configs/ana.yaml` ve `docs/protokol.md`
+değiştirilmez.
 
 ## 4. Faz 5: ana eğitim
 
-Defterde `REF = "protokol-kilidi"`, `STEPS_OVERRIDE = None`, `RUN_FINAL = False` ile "Run All". Kopma olursa yine
+Defteri yükleyip "Run All". Ön kontrol bittiyse atlanır, eğitim başlar. Kopma olursa yine
 "Run All": `last.pt` varsa tam durumla devam eder, `DONE` varsa atlar. Sonunda Drive'da
 `kosular/<run_id>/` altında `best.pt` (EMA), `val_log.jsonl`, `val13.json` ve `DONE` bulunur.
 `val13.json` dosyasını depoya `results/ana/val13.json` olarak kopyalayın.
@@ -102,7 +109,8 @@ görülmeden.** `final` komutu bu etiket olmadan çalışmaz.
 
 ## 6. Faz 6: Türkiye'de tek değerlendirme
 
-Defterde `REF = "varyant-kilidi"`, `RUN_FINAL = True` ile "Run All". 6. hücre sırayla şunları yapar (elle de
+`varyant-kilidi` etiketi push edildikten sonra defterde yine "Run All": defter etiketi görür, eğitim `DONE`
+olduğu için atlanır ve 6. hücre Türkiye değerlendirmesini yapar. 6. hücre sırayla şunları yapar (elle de
 çalıştırılabilir; çıktılar depo dışına yazılır, çünkü `final` temiz çalışma ağacı ister):
 
 ```bash
@@ -147,8 +155,8 @@ Bulgular `docs/bulgular.md`'ye işlenir.
 
 ## 8. Faz 8: Varyant
 
-Aynı defter `CONFIG = "configs/varyant.yaml"`, `NAME = "varyant"` ile: ön kontrol, eğitim, `RUN_FINAL = True`
-ile tek `final`. İki modelin farkı kare matrislerinden, eşleştirilmiş blok bootstrap ile:
+Aynı defter `CONFIG = "configs/varyant.yaml"`, `NAME = "varyant"` ile: ön kontrol, eğitim ve (`varyant-kilidi`
+olduğu için) tek `final`. İki modelin farkı kare matrislerinden, eşleştirilmiş blok bootstrap ile:
 
 ```python
 from hasar.eval.bootstrap import turkey_blocks
