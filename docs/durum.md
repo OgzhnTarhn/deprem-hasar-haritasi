@@ -38,6 +38,11 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
   hesaplıyor. Bellek yetmezse eğitim döngüsü mikro partiyi yarıya indirip gradyan biriktiriyor, etkin batch
   değişmiyor (`train.micro_batch`). ChangeMamba çekirdeği CUDA 13 için yamayla derleniyor, tekerlek Drive'da
   saklanıyor.
+- **Tek "Run All" (18 Kasım 2026, protokol 1.2):** `train.clip` YAML'da boş kalıyor; `hasar egit` eşiği aynı
+  yapılandırmanın geçmiş ön kontrolünün 9. kapısından okuyor. Bu yüzden `protokol-kilidi` ön kontrolden önce atıldı.
+  Defterde doldurulacak alan yok: aşamayı git etiketlerinden seçiyor (kilit yoksa yalnız ön kontrol; kilit varsa
+  ön kontrol + eğitim; `varyant-kilidi` varsa Türkiye `final` de). Ön kontrol kaydı
+  `kosular/onkontrol/<NAME>/preflight.json`; `scripts/defter_kontrol.py` defterin yapısını denetliyor.
 
 ## Faz 3'te kurulanlar ve ölçülenler
 
