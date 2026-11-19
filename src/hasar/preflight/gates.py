@@ -32,6 +32,7 @@ programming error (a wrong argument type, a broken import) raises. Every value s
 from __future__ import annotations
 
 import contextlib
+import gc
 import json
 import math
 import os
@@ -241,6 +242,21 @@ def gate_initial_loss(
 # --- gate 5: overfit --------------------------------------------------------
 
 
+def _slice_batch(batch: dict[str, Any], start: int, end: int) -> dict[str, Any]:
+    """Return samples ``start:end`` of a collated batch (tensors and lists are sliced, the rest kept)."""
+    return {
+        key: value[start:end] if isinstance(value, (torch.Tensor, list, tuple)) else value
+        for key, value in batch.items()
+    }
+
+
+def _free_cuda_memory() -> None:
+    """Release cached CUDA memory after an out-of-memory error."""
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 def gate_overfit(
     model: torch.nn.Module,
     batch: dict[str, torch.Tensor],
@@ -248,40 +264,74 @@ def gate_overfit(
     lr: float = 1e-3,
     ratio: float = 0.2,
     amp: bool = True,
+    micro: int | None = None,
 ) -> GateResult:
     """Check that a fixed batch is memorised: the final loss falls below ``ratio`` of the initial.
 
     With ``amp`` the gate trains in bf16 like the real training (fp32 at crop 640 ran out of memory
     on a 22 GB L4): every forward and loss runs inside ``torch.autocast`` when the model is on CUDA,
     while backward and the optimizer step stay in fp32. On CPU the autocast is a no-op.
+
+    Like the training loop, the batch is processed in chunks of at most ``micro`` samples (default:
+    the whole batch) with gradient accumulation; a CUDA out-of-memory error halves ``micro`` and
+    retries the same step or evaluation, down to one sample (ChangeMamba could not hold 8 tiles at
+    crop 640 in one pass on a 22 GB L4). The Lovász term over a chunk approximates the whole-batch
+    Lovász; the initial and final losses use the same chunks, so their ratio stays comparable.
     """
     device = next(model.parameters()).device
     use_amp = amp and device.type == "cuda"
+    batch = _on_model_device(model, batch)
+    size = int(batch["pre"].shape[0])
+    state = {"micro": int(micro or size)}
 
     def autocast() -> Any:
         if use_amp:
             return torch.autocast(device_type="cuda", dtype=torch.bfloat16)
         return contextlib.nullcontext()
 
+    def chunks(width: int) -> list[tuple[int, int]]:
+        return [(start, min(start + width, size)) for start in range(0, size, width)]
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
-    model.eval()
-    with torch.no_grad(), autocast():
-        _, initial_parts = _batch_loss(model, batch)
-    initial = initial_parts["total"]
+    def with_retry(run: Any) -> Any:
+        while True:
+            try:
+                return run(state["micro"])
+            except torch.OutOfMemoryError:
+                optimizer.zero_grad(set_to_none=True)
+                _free_cuda_memory()
+                if state["micro"] <= 1:
+                    raise
+                state["micro"] = max(1, state["micro"] // 2)
+                print(f"Bellek yetmedi (kapı 5): mikro parti {state['micro']} oldu.", flush=True)
 
-    model.train()
-    for _ in range(steps):
+    def evaluate(width: int) -> float:
+        model.eval()
+        total = 0.0
+        with torch.no_grad(), autocast():
+            for start, end in chunks(width):
+                _, parts = _batch_loss(model, _slice_batch(batch, start, end))
+                total += parts["total"] * (end - start) / size
+        return total
+
+    def train_step(width: int) -> None:
+        model.train()
         optimizer.zero_grad(set_to_none=True)
-        with autocast():
-            loss, _ = _batch_loss(model, batch)
-        loss.backward()
+        parts = chunks(width)
+        for start, end in parts:
+            with autocast():
+                loss, _ = _batch_loss(model, _slice_batch(batch, start, end))
+            if len(parts) == 1:
+                loss.backward()
+            else:
+                (loss * ((end - start) / size)).backward()
         optimizer.step()
 
-    model.eval()
-    with torch.no_grad(), autocast():
-        _, final_parts = _batch_loss(model, batch)
-    final = final_parts["total"]
+    initial = with_retry(evaluate)
+    for _ in range(steps):
+        with_retry(train_step)
+    final = with_retry(evaluate)
 
     achieved = final / initial if initial > 0 else float("inf")
     value: dict[str, Any] = {
@@ -291,6 +341,7 @@ def gate_overfit(
         "threshold": float(ratio),
         "steps": int(steps),
         "amp": bool(use_amp),
+        "micro": int(state["micro"]),
     }
     if achieved < ratio:
         return _result(5, True, value, f"Sabit parti ezberlendi: kayıp oranı {achieved:.4f} < {ratio}.")

@@ -514,3 +514,59 @@ def test_gate_overfit_accepts_amp_on_cpu(gates) -> None:
 
     assert result.gate == 5
     assert result.passed is True
+
+
+# --- gate_overfit: micro-batch and out-of-memory -----------------------------
+
+
+class _OomAbove(torch.nn.Module):
+    """Delegate to ``inner`` but raise a fake CUDA out-of-memory error above ``limit`` samples."""
+
+    def __init__(self, inner: torch.nn.Module, limit: int) -> None:
+        super().__init__()
+        self.inner = inner
+        self.limit = limit
+        self.largest = 0
+
+    def forward(self, pre: torch.Tensor, post: torch.Tensor) -> dict[str, torch.Tensor]:
+        if pre.shape[0] > self.limit:
+            raise torch.OutOfMemoryError("fake oom")
+        self.largest = max(self.largest, int(pre.shape[0]))
+        return self.inner(pre, post)
+
+
+def _no_dropout_model() -> TinyModel:
+    """Return make_model(0) with its dropout disabled, so chunking does not change the masks."""
+    model = make_model(0)
+    model.drop.p = 0.0
+    return model
+
+
+def test_gate_overfit_halves_micro_batch_on_oom(gates) -> None:
+    """An out-of-memory error halves the micro-batch; the gate still memorises the batch."""
+    model = _OomAbove(_no_dropout_model(), limit=2)
+    result = gates.gate_overfit(model, make_batch(labels="constant"), steps=150, lr=1e-2)
+    assert result.passed is True
+    assert result.value["micro"] == 2
+    assert model.largest == 2
+
+
+def test_gate_overfit_reraises_oom_at_one_sample(gates) -> None:
+    """When even one sample does not fit, the out-of-memory error propagates."""
+    model = _OomAbove(_no_dropout_model(), limit=0)
+    with pytest.raises(torch.OutOfMemoryError):
+        gates.gate_overfit(model, make_batch(labels="constant"), steps=5, lr=1e-2)
+
+
+def test_gate_overfit_reports_whole_batch_by_default(gates) -> None:
+    """Without memory pressure the micro-batch is the whole batch."""
+    result = gates.gate_overfit(make_model(0), make_batch(labels="constant"), steps=150, lr=1e-2)
+    assert result.passed is True
+    assert result.value["micro"] == 8
+
+
+def test_gate_overfit_accepts_explicit_micro(gates) -> None:
+    """An explicit micro-batch is used and reported."""
+    result = gates.gate_overfit(_no_dropout_model(), make_batch(labels="constant"), steps=150, lr=1e-2, micro=4)
+    assert result.passed is True
+    assert result.value["micro"] == 4
