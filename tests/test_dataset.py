@@ -9,15 +9,18 @@ The module under test does not exist yet: the import at the top is the expected 
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 import tifffile
 
+from hasar.config import Config
 from hasar.data.dataset import BrightDataset
 from hasar.data.io import tile_paths
-from hasar.data.normalize import IMAGENET_MEAN, IMAGENET_STD, SarStats
+from hasar.data.normalize import IMAGENET_MEAN, IMAGENET_STD, SarStats, sar_to_input
 from hasar.guard import TurkeyAccess, TurkeyLockError
 
 SIZE = 32
@@ -246,6 +249,73 @@ def test_train_augmentation_keeps_inputs_and_label_aligned(tmp_path: Path) -> No
     # The valid mask stays aligned with the optical channel 1 (1 on valid, 0 on nodata).
     expected_ch1 = np.where(valid, (1.0 - MEAN[1]) / STD[1], (0.0 - MEAN[1]) / STD[1]).astype(np.float32)
     np.testing.assert_allclose(out["pre"][1], expected_ch1, atol=1e-3)
+
+
+def test_dataset_control_and_variant_share_geometry(tmp_path: Path) -> None:
+    write_tile(tmp_path, TRAIN_NAME)
+    control = BrightDataset(tmp_path, [TRAIN_NAME], crop=16, seed=42, sar_p=0.0)
+    variant = BrightDataset(
+        tmp_path, [TRAIN_NAME], crop=16, seed=42, sar_p=1.0, sar_gamma=(0.67, 1.5), sar_gain=(0.657, 1.657)
+    )
+
+    for sample_no in range(5):
+        first, second = control[(0, sample_no)], variant[(0, sample_no)]
+        for key in ("pre", "clf", "loc", "valid"):
+            np.testing.assert_array_equal(first[key], second[key])
+        assert not np.array_equal(first["post"], second["post"])
+
+
+def test_dataset_variant_item_repeatable(tmp_path: Path) -> None:
+    write_tile(tmp_path, TRAIN_NAME)
+    ds = BrightDataset(
+        tmp_path, [TRAIN_NAME], crop=16, seed=42, sar_p=0.8, sar_gamma=(0.67, 1.5), sar_gain=(0.657, 1.657)
+    )
+
+    first = ds[(0, 3)]
+    second = ds[(0, 3)]
+
+    np.testing.assert_array_equal(first["post"], second["post"])
+
+
+def test_dataset_sar_nodata_with_nonempty_optical_stays_nodata(tmp_path: Path) -> None:
+    pre, post, _ = write_tile(tmp_path, TRAIN_NAME)
+    post[8:12, 8:12] = 0
+    assert np.all(np.any(pre[8:12, 8:12] != 0, axis=-1))
+    tifffile.imwrite(tile_paths(tmp_path, TRAIN_NAME).post, post)
+    control = BrightDataset(tmp_path, [TRAIN_NAME], crop=SIZE)
+    variant = BrightDataset(
+        tmp_path, [TRAIN_NAME], crop=SIZE, sar_p=1.0, sar_gamma=(0.67, 1.5), sar_gain=(0.657, 1.657)
+    )
+
+    original = control[(0, 3)]
+    out = variant[(0, 3)]
+    zero_input = sar_to_input(np.zeros((SIZE, SIZE), dtype=np.uint8))
+    sar_nodata = np.all(original["post"] == zero_input, axis=0)
+    optical_only = sar_nodata & original["valid"]
+
+    assert optical_only.sum() == 16
+    np.testing.assert_array_equal(out["post"][:, sar_nodata], zero_input[:, sar_nodata])
+    np.testing.assert_array_equal(out["valid"], original["valid"])
+
+
+def test_build_datasets_passes_sar_augmentation_to_train_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from hasar.train import run
+
+    cfg = Config()
+    cfg = replace(cfg, aug=replace(cfg.aug, sar_p=0.8, sar_gamma=(0.67, 1.5), sar_gain=(0.657, 1.657)))
+    split = SimpleNamespace(train=[TRAIN_NAME], val=["noto-earthquake_00000004"])
+    monkeypatch.setattr(run, "load_standard_lists", lambda: ([], [], []))
+    monkeypatch.setattr(run, "make_zero_shot_split", lambda *args: split)
+    monkeypatch.setattr(run, "check_no_leak", lambda value: None)
+
+    _, train_set, val_set = run.build_datasets(cfg, tmp_path)
+
+    assert train_set.sar_p == cfg.aug.sar_p
+    assert train_set.sar_gamma == cfg.aug.sar_gamma
+    assert train_set.sar_gain == cfg.aug.sar_gain
+    assert val_set.sar_p == 0.0
+    assert val_set.sar_gamma == (1.0, 1.0)
+    assert val_set.sar_gain == (1.0, 1.0)
 
 
 # --------------------------------------------------------------------------- key types

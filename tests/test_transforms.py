@@ -9,9 +9,78 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from hasar.data import transforms
 from hasar.data.transforms import augment, random_crop, random_flip_rot
 
 H, W = 6, 8
+
+
+def test_sar_radiometric_p0_returns_input_without_draws() -> None:
+    post = np.arange(48, dtype=np.uint8).reshape(6, 8)
+    rng = np.random.default_rng(42)
+    reference = np.random.default_rng(42)
+
+    out = transforms.sar_radiometric(post, post > 0, rng, 0.0, (1.0, 1.0), (1.0, 1.0))
+
+    assert out is post
+    np.testing.assert_array_equal(out, post)
+    assert rng.random() == reference.random()
+
+
+def test_sar_radiometric_keeps_nodata_zero_and_valid_positive() -> None:
+    post = np.random.default_rng(42).integers(0, 256, size=(16, 16), dtype=np.uint8)
+    valid = np.indices(post.shape).sum(axis=0) % 2 == 0
+    post[0, 0] = 0
+
+    out = transforms.sar_radiometric(post, valid, np.random.default_rng(42), 1.0, (0.67, 1.5), (0.657, 1.657))
+
+    assert out.dtype == np.float32
+    assert np.all(out[~valid] == 0)
+    assert out[valid].min() >= 1
+    assert out.max() <= 255
+
+
+def test_sar_radiometric_identity_ranges() -> None:
+    post = np.array([[0, 1, 100], [200, 254, 255]], dtype=np.uint8)
+    valid = np.ones(post.shape, dtype=bool)
+    rng = np.random.default_rng(42)
+    reference = np.random.default_rng(42)
+
+    out = transforms.sar_radiometric(post, valid, rng, 1.0, (1.0, 1.0), (1.0, 1.0))
+
+    np.testing.assert_allclose(out, np.clip(post, 1, 255), rtol=1e-6)
+    reference.random()
+    reference.uniform(0.0, 0.0)
+    reference.uniform(0.0, 0.0)
+    assert rng.random() == reference.random()
+
+
+def test_sar_radiometric_gain_scales_mean() -> None:
+    post = np.arange(10, 101, dtype=np.uint8).reshape(7, 13)
+
+    out = transforms.sar_radiometric(post, post > 0, np.random.default_rng(42), 1.0, (1.0, 1.0), (2.0, 2.0))
+
+    np.testing.assert_allclose(out, 2 * post, rtol=1e-6)
+    assert out.mean() == pytest.approx(2 * post.mean())
+
+
+def test_sar_radiometric_deterministic() -> None:
+    post = np.arange(256, dtype=np.uint8).reshape(16, 16)
+    rng = np.random.default_rng(42)
+    reference = np.random.default_rng(42)
+    assert reference.random() < 0.8
+    gamma = np.exp(reference.uniform(np.log(0.67), np.log(1.5)))
+    gain = np.exp(reference.uniform(np.log(0.657), np.log(1.657)))
+    expected = 255 * (post.astype(np.float32) / 255) ** gamma * gain
+    expected = np.clip(expected, 1, 255).astype(np.float32)
+    expected[post == 0] = 0
+
+    first = transforms.sar_radiometric(post, post > 0, rng, 0.8, (0.67, 1.5), (0.657, 1.657))
+    second = transforms.sar_radiometric(post, post > 0, np.random.default_rng(42), 0.8, (0.67, 1.5), (0.657, 1.657))
+
+    np.testing.assert_array_equal(first, second)
+    np.testing.assert_allclose(first, expected, rtol=1e-6)
+    assert rng.random() == reference.random()
 
 
 def base_grid() -> np.ndarray:

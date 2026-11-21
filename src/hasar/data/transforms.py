@@ -13,8 +13,31 @@ returned array is a fresh C-contiguous copy that shares no memory with its input
 from __future__ import annotations
 
 from collections.abc import Sequence
+from math import exp, log
 
 import numpy as np
+
+
+def sar_radiometric(
+    post: np.ndarray,
+    valid: np.ndarray,
+    rng: np.random.Generator,
+    p: float,
+    gamma: tuple[float, float],
+    gain: tuple[float, float],
+) -> np.ndarray:
+    """Apply log-uniform gamma and gain to SAR while preserving its nodata mask."""
+    if p == 0:
+        return post
+    if rng.random() >= p:
+        return post
+
+    g = exp(rng.uniform(log(gamma[0]), log(gamma[1])))
+    k = exp(rng.uniform(log(gain[0]), log(gain[1])))
+    x = (255 * (post.astype(np.float32) / 255) ** g * k).astype(np.float32)
+    x[valid] = np.clip(x[valid], 1, 255)
+    x[~valid] = 0
+    return x
 
 
 def _fresh(array: np.ndarray) -> np.ndarray:

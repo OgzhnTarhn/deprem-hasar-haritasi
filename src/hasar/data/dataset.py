@@ -82,6 +82,9 @@ class BrightDataset:
         seed: int = 42,
         access: TurkeyAccess | None = None,
         ignore_index: int = 255,
+        sar_p: float = 0.0,
+        sar_gamma: tuple[float, float] = (1.0, 1.0),
+        sar_gain: tuple[float, float] = (1.0, 1.0),
     ) -> None:
         if mode not in MODES:
             raise ValueError(f"bilinmeyen mod: {mode!r} (izinli: {MODES})")
@@ -104,6 +107,9 @@ class BrightDataset:
         self.seed = seed
         self.access = access
         self.ignore_index = ignore_index
+        self.sar_p = sar_p
+        self.sar_gamma = sar_gamma
+        self.sar_gain = sar_gain
 
         for name in self.names:
             if not is_turkey_tile(name):
@@ -176,6 +182,7 @@ class BrightDataset:
             rot90=self.rot90,
             extra=(valid,),
         )
+        post = transforms.sar_radiometric(post, post > 0, rng, self.sar_p, self.sar_gamma, self.sar_gain)
 
         clf, loc = self._targets(label)
         return {
