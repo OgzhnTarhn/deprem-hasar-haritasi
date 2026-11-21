@@ -1,6 +1,6 @@
 # Proje Haritası: Deprem Hasar Haritası'nın bütün resmi
 
-**Sürüm:** 1 (7 Kasım 2026, Faz 2 sonu)
+**Güncelleme:** 21 Kasım 2026; hazır DamageFormer fine-tune planı (ADR-0007).
 
 Bu belge projenin tamamını tek yerde, görsellerle anlatır: ne yapıyoruz, neden böyle yapıyoruz, her parça neye
 yarıyor, her faz ne üretiyor. Amacı, projeyi baştan sona savunabilecek kadar hâkim olman.
@@ -11,7 +11,7 @@ yarıyor, her faz ne üretiyor. Amacı, projeyi baştan sona savunabilecek kadar
 > Diyagramlar [Mermaid](https://mermaid.js.org/) ile çizildi. GitHub'da ve VS Code'da (Markdown Preview Mermaid
 > eklentisiyle) resim olarak görünür.
 >
-> **Ders ders öğrenmek için:** [dersler.md](dersler.md) (26 ders, elle çözülmüş örnekler ve sorular).
+> **Ders ders öğrenmek için:** [dersler.md](dersler.md) (fine-tune dersi, elle çözülmüş örnekler ve sorular).
 > **Derinlemesine anlatım:** [ogrenme-rehberi.md](ogrenme-rehberi.md) (1.500+ satır, her tekniğin "neden"i).
 > **Bağlayıcı kararlar:** [tasarim.md](tasarim.md), [protokol.md](protokol.md), [adr/](adr/README.md).
 > Bu belge onların haritasıdır; çelişki olursa onlar geçerlidir.
@@ -23,7 +23,7 @@ yarıyor, her faz ne üretiyor. Amacı, projeyi baştan sona savunabilecek kadar
 1. [Tek cümlede proje](#1-tek-cümlede-proje)
 2. [Problem ve veri](#2-problem-ve-veri)
 3. [Altın kural: Türkiye kilidi](#3-altın-kural-türkiye-kilidi)
-4. [Model: ChangeMamba-MMBDA](#4-model-changemamba-mmbda)
+4. [Model: hazır DamageFormer](#4-model-hazır-damageformer)
 5. [Eğitim reçetesi: her ayar neye yarıyor](#5-eğitim-reçetesi-her-ayar-neye-yarıyor)
 6. [Değerlendirme: başarıyı nasıl ölçüyoruz](#6-değerlendirme-başarıyı-nasıl-ölçüyoruz)
 7. [Kod mimarisi: hangi modül ne iş yapar](#7-kod-mimarisi-hangi-modül-ne-iş-yapar)
@@ -46,10 +46,10 @@ binanın sağlam mı, hasarlı mı, yıkık mı olduğunu piksel piksel haritala
 flowchart LR
     A["Afet öncesi OPTİK<br/>Maxar, RGB, 0,35 m"] --> M
     B["Afet sonrası SAR<br/>Capella / Umbra, 1 bant"] --> M
-    M["Model<br/>ChangeMamba-MMBDA"] --> L["Bina haritası<br/>bina / değil"]
+    M["Model<br/>DamageFormer fine-tune"] --> L["Bina haritası<br/>bina / değil"]
     M --> C["Hasar haritası<br/>arka plan · sağlam · hasarlı · yıkık"]
     C --> E["Türkiye'de tek test<br/>[ZS-EVENT mIoU]"]
-    E --> K{"41,28 ile kıyas<br/>ChangeMamba makale sonucu"}
+    E --> K{"Birincil kıyas<br/>varyant − ana"}
 ```
 
 Projenin sorusu yalnız "ne kadar iyi?" değil:
@@ -66,7 +66,7 @@ protokol, güven aralıkları, yeniden üretim, üç farklı referansla kıyas.
 | Gerçek bir sorun mu? | Depremden sonraki ilk saatlerde hangi binanın yıkıldığını bilmek arama-kurtarmanın önceliğini belirler. Bulut ve gece optik görüntüyü engeller; radar engellenmez. |
 | Neden öncesi optik + sonrası radar? | Afet öncesi arşivde optik görüntü neredeyse her yer için var. Afetten hemen sonra en hızlı ve havadan bağımsız gelen görüntü radar. Gerçekçi senaryo bu. |
 | Rakiplerden farkı ne? | Rakipler tek bir skor yayımlıyor. Biz skoru **kilitli protokolle**, **güven aralığıyla**, **sınıf ve bina düzeyinde** ve **üç referansa göre** veriyoruz (Bölüm 10). |
-| Gerçekçi hedef ne? | 41,28 civarı. Onu belirgin aşmak değil; aynı protokolde yayımlanmış sonucu dürüstçe yeniden üretmek ve neye ne kadar güvenilir olduğunu göstermek. |
+| Gerçekçi hedef ne? | SAR fikrinin etkisini kontrol koşusundan ayırmak; farkı ve belirsizliği dürüstçe raporlamak. |
 
 ---
 
@@ -183,22 +183,16 @@ Türkiye pikseli belleğe girmez.
 
 ### 3.2 Kilitlerin zaman çizelgesi
 
-Sıra atlanamaz. Her ok "öncekini bitirmeden sonrakine geçilmez" demektir.
-
 ```mermaid
 flowchart LR
-    P["Faz 4 sonu<br/>🔒 protokol-kilidi<br/>bütün hesap kuralları dondurulur"] --> A["Faz 5<br/>ana eğitim"]
-    A --> K["Faz 6.1 · KN1<br/>varyant fikri<br/>13 olaya bakarak seçilir"]
-    K --> V["Faz 6.2<br/>🔒 varyant-kilidi"]
-    V --> T["Faz 6.3<br/>Türkiye'de TEK çalıştırma"]
-    T --> N["Faz 7<br/>analizler<br/>önbellekten"]
-    N --> W["Faz 8<br/>varyant eğitimi<br/>+ Türkiye'de tek test"]
-    W --> D["Faz 9<br/>demo"]
+    K["KN1 · 21 Kasım 2026<br/>13 olay kanıtıyla A4 seçildi"] --> P["Protokol 1.3 + iki yapılandırma<br/>protokol-kilidi + varyant-kilidi"]
+    P --> A["Ana: ön kontrol → fine-tune<br/>sicaklik → tek final"]
+    A --> V["Varyant: ön kontrol → fine-tune<br/>sicaklik → tek final"]
+    V --> C["Matrislerden üç kıyas<br/>önbellekten analiz ve demo"]
 ```
 
-**Neden varyant ana modelin Türkiye sonucundan önce kilitleniyor?** Çünkü ana modelin Türkiye'deki hatalarını
-görüp ona göre bir "iyileştirme" seçersek, varyant Türkiye'ye göre ayarlanmış olur. Seçimi yalnız 13 olayın
-doğrulama sonuçları yapar.
+İki etiket kullanıcı tarafından aynı commit'e konur. Varyant ana modelin Türkiye sonucundan önce kilitlenir.
+Defter `origin/main` kullanır; dal değişiklikleri oraya alınmış olmalı. Ayrıntı: [colab.md](colab.md).
 
 ### 3.3 Öteki değişmez kurallar (CLAUDE.md)
 
@@ -206,140 +200,44 @@ doğrulama sonuçları yapar.
 |---|---|---|
 | 1 | Türkiye kilitli | Test sızıntısı |
 | 2 | Türkiye'yi görmüş ağırlık yok (`*_standard_ML_split.pth`, MaRS) | Önceden eğitilmiş ağırlık yoluyla sızıntı |
-| 3 | Yalnız iki tam eğitim | "Tutana kadar dene" (çok deneyip iyisini seçmek de sızıntıdır) |
+| 3 | İki fine-tune: kontrol ve SAR varyantı, her biri bir kez | "Tutana kadar dene" (çok deneyip iyisini seçmek de sızıntıdır) |
 | 4 | Her sayının metrik etiketi var | Farklı ölçümleri karıştırıp yanlış kıyas |
 | 5 | Sayılar `results/**/*.json`'dan gelir | Elle yazılmış, kaynağı belirsiz sayı |
 | 6 | Olumsuz sonuç da yazılır; küçük fark "eşit" | Gürültüyü başarı diye satmak |
 
 ---
 
-## 4. Model: ChangeMamba-MMBDA
+## 4. Model: hazır DamageFormer
 
-### 4.1 Mimari
+[ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md), ADR-0002'nin ana model kararının yerine geçti.
+Hazır DamageFormer zero-shot checkpoint'i Türkiye'yi görmedi; md5 denetlenir. Özel ChangeMamba çekirdeği gerekmez.
 
-```mermaid
-flowchart LR
-    O["Öncesi optik<br/>3 × H × W"] --> EO["Optik kodlayıcı<br/>VMamba (VSSM) Tiny<br/>ImageNet başlangıcı"]
-    S["Sonrası SAR<br/>3 × H × W<br/>(1 bant, 3'e kopya)"] --> ES["SAR kodlayıcı<br/>VMamba (VSSM) Tiny<br/>ayrı ağırlıklar"]
-    EO -->|"4 ölçekte özellik"| DB["BİNA çözücüsü<br/>yalnız optik"]
-    EO -->|"4 ölçekte özellik"| DH["HASAR çözücüsü<br/>her ölçekte optik + SAR<br/>birleştirilir (concat)"]
-    ES -->|"4 ölçekte özellik"| DH
-    DB --> LOC["loc · B × 2 × H × W<br/>bina / değil"]
-    DH --> CLF["clf · B × 4 × H × W<br/>arka plan · sağlam · hasarlı · yıkık"]
-```
+| Satır | Ne yapar? |
+|---|---|
+| Referans | Hazır model, eğitim yok; 37,20 `[ZS-EVENT mIoU, repro]` (`results/yeniden-uretim/damageformer_test.json`) |
+| Ana | Aynı checkpoint'ten kontrol fine-tune'u; SAR artırımı yok |
+| Varyant | Aynı checkpoint ve reçete; yalnız eğitimde SAR artırımı |
 
-| Parça | Ne işe yarar | Neden böyle |
-|---|---|---|
-| **İki ayrı kodlayıcı** | Her görüntü türünden özellik çıkarır | Optik ve radar farklı "diller" konuşur; ortak ağırlık ikisini de zayıflatabilir |
-| **VMamba (Mamba)** | Görüntüyü uzun menzilli bağlamla okur, Transformer'dan daha ucuz | Bir binanın hasarını anlamak için çevresine de bakmak gerekir |
-| **Bina çözücüsü (yalnız optik)** | "Bina nerede?" | Bina afetten önce de oradaydı; radar burada gürültü katar |
-| **Hasar çözücüsü (optik + SAR)** | "Bu bina ne durumda?" | Hasar için hem öncesi (bina şekli) hem sonrası (radar izi) gerekir |
-| **Ayrık başlıklar** | İki alt görevi ayrı öğrenir | BRIGHT'ta ayrık modeller zero-shot'ta daha iyi; kanıt kontrollü değil, olası |
-
-### 4.2 Çıktıdan haritaya
-
-```
- clf logitleri (4 kanal)  ──softmax──►  olasılıklar  ──argmax──►  her piksele bir sınıf (0–3)
-```
-
-- **Başlık sonucu (resmî yol):** `argmax(clf)`, bina maskesi yok, TTA yok. 41,28 yalnız bununla kıyaslanır.
-- **İkincil satır "bina maskeli":** `loc` "bina değil" dediği yerde sonuç arka plan, ötekilerde
-  `argmax(clf[1:]) + 1`.
-
-Bu ikisi farklı sayı verebilir; hangisinin başlık olduğu Türkiye'ye dokunmadan kilitlendi
-([ADR-0005](adr/0005-baslik-metrigi.md)).
-
-### 4.3 Neden ChangeMamba, yedek ne?
-
-```mermaid
-flowchart TD
-    S["Faz 4: ChangeMamba'nın CUDA çekirdeği<br/>Colab'da derleniyor"] --> Q{"≤ 1 saatte derlendi ve<br/>20 adım ileri-geri geçti mi?"}
-    Q -->|"evet"| CM["Ana model: ChangeMamba-MMBDA Tiny<br/>hedef: 41,28 civarı"]
-    Q -->|"hayır (otomatik)"| DF["Yedek: Swin-T DamageFormer<br/>hedef: 37,20'yi açıkça geçmek"]
-```
-
-- **Seçim nedeni:** BRIGHT makalesinde dört depremin dördünde en iyi zero-shot sonuç (Türkiye 41,28
-  `[ZS-EVENT mIoU]`). Ama asıl neden: **tek doğrudan çıpaya karşı elma-elma kıyas**. Aynı modeli aynı protokolle
-  eğitirsek sonucumuz 41,28 ile doğrudan kıyaslanabilir.
-- **Kullanılmayanlar:** DINOv3 (lisans askerî kullanımı yasaklıyor), MaRS (Türkiye 2023 sahnelerini görmüş
-  olabilir), UDA yöntemleri (beşi de Türkiye'de tabanın altında kaldı).
-- **Model sözleşmesi:** Ana model, yedek ve varyant aynı arayüzü uygular (`{"loc", "clf"}` sözlüğü döndürür);
-  YAML'da tek satırla değiştirilir (`hasar.models.base`, `hasar.models.registry`).
-
-### 4.4 Türkiye çıpaları
-
-Hepsi aynı protokolde, `[ZS-EVENT mIoU]`:
-
-```
-ChangeMamba   ██████████████████████████████████████████  41,28   ← çıpa
-ChangeOS      ███████████████████████████████████████     38,45
-SiamCRNN      ███████████████████████████████████████     38,32   ← Faz 3'te yeniden üretilecek
-UNet          ██████████████████████████████████████      37,82   ← Faz 3'te yeniden üretilecek
-DeepLabV3+    ██████████████████████████████████████      37,28
-DamageFormer  █████████████████████████████████████       37,20   ← Faz 3'te yeniden üretilecek (yedek)
-SiamAttnUNet  █████████████████████████████████████       36,09
-```
-
-Modeller arası fark 1–5 puan ve bu sayılar tek koşudan. Bu yüzden "41,28'i 0,5 geçtik" bir başarı değil, gürültü
-düzeyinde bir farktır (Bölüm 6.5).
-
----
+Model `loc` bina ve `clf` hasar çıktısı verir. Başlık metriği `argmax(clf)` ile maskesiz ve TTA'sız hesaplanır.
+Birincil kıyas varyant − ana'dır. İkincil kıyaslar iki koşunun referansa farkıdır. ChangeMamba
+41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır. Mimari geçmişi [ders kitabında](dersler.md) anlatılır.
 
 ## 5. Eğitim reçetesi: her ayar neye yarıyor
 
-Tek bir dondurulmuş yapılandırma: `configs/ana.yaml`. Yapılandırmanın sha256 özetinin ilk 12 hanesi `run_id`'nin
-parçasıdır; ayar değişirse kimlik de değişir.
+| Ayar | Değer | Amaç |
+|---|---|---|
+| Kırpma / batch / adım | 512 / 8 / 4.000 | İki koşuda aynı eğitim miktarı |
+| AdamW | lr 2e-5, weight decay 5e-3 | Hazır ağırlıkları küçük adımlarla güncellemek |
+| Zamanlama | 200 adım ısınma, kosinüs, min lr 1e-7 | Başlangıçta ani güncellemeyi azaltmak |
+| EMA / hassasiyet | 0,999 / bf16 | EMA checkpoint'ten başlar |
+| Doğrulama | Her 500 adım, yalnız 13 olay | Yalnız izleme; seçim yok |
+| Kayıt noktası | Son adımın EMA'sı | Kontrol ve varyanta eşit kural |
+| Varyant SAR | p 0,8; gama logUniform[0,67, 1,5], kazanç logUniform[0,657, 1,657] | Olaylar arası radyometrik farka dayanıklılık |
 
-### 5.1 Bir eğitim adımının yolculuğu
-
-```mermaid
-flowchart LR
-    R["Kareyi oku<br/>pre · post · label"] --> N["Nodata maskesi<br/>optik ve SAR ikisi de 0"]
-    N --> I["Nodata pikselini<br/>etikette 255 yap (yok say)"]
-    I --> A["Aynı kırpma 640<br/>+ flip + rot90<br/>pre · post · label · valid"]
-    A --> Z["Normalizasyon<br/>optik ImageNet<br/>SAR resmî biçim"]
-    Z --> F["Model ileri geçiş<br/>loc · clf"]
-    F --> L["Kayıp<br/>CE + Lovász"]
-    L --> B["Geri yayılım<br/>AdamW · bf16 · kırpma"]
-    B --> E["EMA güncelle"]
-```
-
-### 5.2 Ayarlar tablosu
-
-| Ayar | Değer | Ne işe yarar | Dayanak |
-|---|---|---|---|
-| **Kırpma / batch** | 640 / 16 | 1024'lük kareden rastgele 640'lık parça; GPU belleğine sığdırır ve çeşitlilik katar | Resmî |
-| **Süre** | 40.000 adım = 640.000 örnek | ChangeMamba resmî reçetesi 80.000 × 8 = aynı örnek sayısı | Resmî ile eşdeğer |
-| **Optimizer** | AdamW, lr 1e-4, wd 5e-3 | Ağırlıkları günceller; weight decay aşırı öğrenmeyi frenler | Resmî |
-| **Zamanlama** | 1.500 adım ısınma + kosinüs, min 1e-6 | Başta küçük adımlarla kararlı başlar, sonda yavaşça iner | Düşük risk |
-| **Kayıp** | CE_loc + CE_clf + 0,5·Lovász_loc + 0,75·Lovász_clf | CE her pikseli doğru sınıfa iter; Lovász doğrudan IoU'yu iyileştirir (az görülen sınıflara yardım) | Resmî |
-| **bf16** | Karma hassasiyet | Yaklaşık 2× hız, yarı bellek; Lovász fp32'de (sayısal kararlılık) | Düşük risk |
-| **EMA 0,999** | Ağırlıkların hareketli ortalaması | Daha pürüzsüz, genelde daha iyi genelleyen model; seçimde EMA kullanılır | Düşük risk |
-| **Gradyan kırpma** | Ön kontrolde ölçülen p90 norm | Ani büyük gradyanların eğitimi patlatmasını önler | Ölçülecek |
-| **Artırım** | Flip, rot90; renk oyunu yok | Uydu görüntüsünde yön anlamsız; fotometrik artırım SAR'ı bozabilir | Resmî |
-| **Optik normalizasyon** | ImageNet ortalama/std | Önceden eğitilmiş kodlayıcının beklediği ölçek | Resmî |
-| **SAR normalizasyonu** | 1 bant → 3 kanal kopya, ImageNet istatistiği | Resmî kodla aynı (elma-elma kıyas); eğitim kümesi z-skoru A3 olarak denenecek | [ADR-0004](adr/0004-sar-girdisi.md), onay bekliyor |
-| **Nodata** | Kayıpta yok say (255) | Bazı karelerde SAR tamamen boş; modelin boşluktan "arka plan" öğrenmesini önler | Yargı |
-| **Doğrulama** | 2.000 adımda bir, 13 olay | En iyi kayıt noktasını seçer; Türkiye eğitim kodunda hiç yok | Kural 1 |
-| **Kayıt** | 1.000 adımda Drive, 5.000 adımda HF Hub; atomik | Colab kopsa da kaldığı yerden aynen devam | Dayanıklılık |
-
-### 5.3 İki ince tuzak ve çözümleri
-
-**`max_iters` tuzağı.** BRIGHT kodunda `max_iters` **örnek** sayısı (800.000 / 16 = 50.000 adım), ChangeMamba
-kodunda **adım** sayısı. Karıştırırsan eğitim 16 kat kısa ya da uzun olur. Çözüm: örnekleyicinin uzunluğu açıkça
-`adım × batch` (`hasar.data.sampler.StepSampler`); ön kontrol kapısı 3 bunu denetler.
-
-**Kopmadan sonra "aynı" devam.** Colab oturumu 12 saatte kesilir. Devam edince model, optimizer ve EMA'nın yanında
-**veri sırası ve artırımlar** da aynı olmalı, yoksa sonuç tekrarlanamaz. Çözüm:
-
-```
-her örnek = (kare_index, örnek_no)
-artırımın rastgeleliği = default_rng([seed, örnek_no, akış])     → aynı anahtar = aynı kırpma, aynı flip
-epoch sırası          = default_rng([seed, epoch]).permutation  → baştan hesaplanabilir
-devam: StepSampler(start_step=kaldığı_adım)                     → kaldığı örnekten aynen sürer
-```
-
----
+Kaynak: `configs/ana.yaml`, `configs/varyant.yaml`, [tasarım §7](tasarim.md).
+SAR sınırları `results/arastirma/sar_olcek.json` ölçümlerinden gelir. Geometri aynı kalır;
+SAR artırımı normalizasyondan önce, yalnız eğitimde uygulanır. Nodata 0 korunur.
+Hesap örneği: [Fine-tune ve SAR dayanıklılığı](dersler.md#ders-27-fine-tune-ve-sar-dayanıklılığı).
 
 ## 6. Değerlendirme: başarıyı nasıl ölçüyoruz
 
@@ -518,16 +416,16 @@ flowchart TB
 ### 7.3 `BrightDataset` bir örnekte ne döndürür?
 
 ```python
-ds = BrightDataset(root, names, mode="train", crop=640)
+ds = BrightDataset(root, names, mode="train", crop=512)
 item = ds[(index, sample_no)]     # eğitim: (kare, örnek numarası); değerlendirme: ds[index]
 
 item = {
     "name":  "noto-earthquake_00000032",
-    "pre":   float32[3, 640, 640],   # ImageNet ile normalize optik
-    "post":  float32[3, 640, 640],   # resmî biçim SAR (train_stats modunda 1 kanal)
-    "clf":   int64[640, 640],        # 0..3, nodata = 255
-    "loc":   int64[640, 640],        # 0 arka plan, 1 bina, 255 yok say
-    "valid": bool[640, 640],         # nodata olmayan pikseller
+    "pre":   float32[3, 512, 512],   # ImageNet ile normalize optik
+    "post":  float32[3, 512, 512],   # resmî biçim SAR (train_stats modunda 1 kanal)
+    "clf":   int64[512, 512],        # 0..3, nodata = 255
+    "loc":   int64[512, 512],        # 0 arka plan, 1 bina, 255 yok say
+    "valid": bool[512, 512],         # nodata olmayan pikseller
 }
 ```
 
@@ -543,178 +441,43 @@ item = {
 
 ## 8. Ön kontrol kapıları: GPU yakmadan önceki 11 sigorta
 
-Ana eğitim pahalı (50–75 CU) ve tek seferlik. Bir hata eğitimin ortasında fark edilirse bütçe gider. Bu yüzden
-eğitimden önce ~1–1,5 saatlik bir kontrol listesi koşar; biri kırmızıysa eğitim başlamaz.
+Her fine-tune tek seferliktir. ≤ 15 CU hedefi ölçülmedi; kapı 8 ölçer. Bir kapı kırmızıysa eğitim başlamaz.
 
 | # | Kapı | Neyi yakalar |
 |---|---|---|
 | 1 | Hazır SiamCRNN / UNet / DamageFormer checkpoint'leri Türkiye'de 38,32 / 37,82 / 37,20'ye yakın | Veri veya metrik hattındaki hata |
 | 2 | Kare sayıları 2.795 / 337 / 1.114; eğitimde tek Türkiye karesi yok | Bölme hatası, sızıntı |
 | 3 | Veri yükleyici uzunluğu = adım × batch | `max_iters` tuzağı |
-| 4 | Başlangıç kaybı: hasar ≈ ln 4 = 1,386, bina ≈ ln 2 = 0,693 | Yanlış başlatma, yanlış etiket |
+| 4 | Yükleme: 74,48 `[VAL13 mIoU, repro]` değerine ±0,3 yakınlık, fp32 ve TTA yok | Yanlış checkpoint veya girdi |
 | 5 | Artırım kapalı, 8 kare 300–500 adımda ezberlenmeli | Model öğrenemiyor (bağlantı/kayıp hatası) |
 | 6 | SAR sıfırlanınca hasar çıktısı değişmeli | SAR dalı kopuk |
 | 7 | Kusursuz tahmin = 1,0; hep arka plan ≈ 0,226 | Metrik hatası |
-| 8 | 200 adımda hız, VRAM, CU projeksiyonu | Bütçe aşımı |
+| 8 | Hız, VRAM ve 15 CU eğitim bütçesi projeksiyonu | Bütçe aşımı |
 | 9 | 2× lr ile 500 adımda p90 gradyan normu | Gradyan kırpma eşiği |
 | 10 | 60. adımda süreci öldür, devam et; her şey aynı geri gelmeli | Kopma sonrası tutarsızlık |
-| 11 | ChangeMamba çekirdeği ≤ 1 saatte derleniyor mu | Yedeğe geçiş kararı |
+| 11 | DamageFormer: özel çekirdek gerekmiyor, “uygulanmaz” | Model kaydı |
 
 ---
 
 ## 9. Faz yol haritası (0–9)
 
-### 9.1 Genel görünüm
+Faz numaraları korunur. Önceki uzun ChangeMamba eğitimi ve daha sonra varyant seçimi planının yerini
+iki kilitle başlayan tek Colab akışı aldı. Ayrıntılı plan: [fazlar.md](fazlar.md).
 
-```mermaid
-gantt
-    title Deprem Hasar Haritası · 16 hafta
-    dateFormat YYYY-MM-DD
-    axisFormat %d %b
-    section Hazırlık (CPU)
-    Faz 0 Belgeler ve protokol        :done, f0, 2026-11-02, 7d
-    Faz 1 Depo iskeleti               :done, f1, 2026-11-02, 14d
-    Faz 2 Veri katmanı                :done, f2, 2026-11-09, 14d
-    section Colab (GPU)
-    Faz 3 Metrik ve yeniden üretim    :f3, 2026-11-16, 14d
-    Faz 4 Model, eğitim, ön kontrol   :f4, 2026-11-23, 14d
-    Faz 5 Ana eğitim                  :crit, f5, 2026-11-30, 14d
-    section Karar ve analiz
-    Faz 6 KN1, varyant kilidi, Türkiye :crit, f6, 2026-12-07, 14d
-    Faz 7 Analizler                    :f7, 2026-12-14, 28d
-    section Varyant ve ürün
-    Faz 8 Varyant eğitimi              :f8, 2027-01-11, 21d
-    Faz 9 Demo ve ürünleştirme         :f9, 2027-02-01, 21d
-```
+| Faz | İş | Güncel durum / sıra |
+|---|---|---|
+| 0–2 | Belgeler, iskelet, veri | Tamamlandı |
+| 3 | Metrik ve hazır checkpoint yeniden üretimi | Tamamlandı; DamageFormer referansı saklanır |
+| 4 | Eğitim motoru, ön kontrol, kilitler | Kod hazır; kullanıcı protokol 1.3 ve varyantı kilitler |
+| 5 | Ana kontrol fine-tune | Ön kontrol geçince 4.000 adım, son adım EMA |
+| 6 | Türkiye değerlendirmesi ve kıyas | Her koşuda `sicaklik` → tek `final`; KN1 eğitim öncesinde kapandı |
+| 8 | SAR varyantı fine-tune | Ana sonrası aynı “Run All”; ayrı ön kontrol, kayıt ve `final` |
+| 7 | Analizler | Sonuçlar ve önbellekler hazır olunca |
+| 9 | Demo ve ürünleştirme | Önbellekten; README sayıları dosyadan |
 
-> Tarihler haftalık plana göre yaklaşıktır; Faz 0–2 planlanandan erken (6 Kasım 2026) bitti. Kırmızı çubuklar
-> geri dönüşü olmayan adımlar: ana eğitim ve Türkiye'deki tek test.
-
-| Faz | Ad | Tür | CU | Kilit / karar | Durum |
-|---|---|---|---|---|---|
-| 0 | Belgeler ve protokol taslağı | Belge | 0 | | ✅ Bitti |
-| 1 | Depo iskeleti | Kod | 0 | | ✅ Bitti |
-| 2 | Veri katmanı | Kod + araştırma | 0 | | ✅ Bitti |
-| 3 | Metrik ve yeniden üretim | Kod + Colab | 5–8 | | ⏭ Sırada |
-| 4 | Model, eğitim motoru, ön kontrol | Kod + Colab | 10–15 | 🔒 `protokol-kilidi` | |
-| 5 | Ana eğitim | Colab | 50–75 | | |
-| 6 | Karar, varyant kilidi, Türkiye | Karar + Colab | < 5 | KN1, 🔒 `varyant-kilidi` | |
-| 7 | Analizler | Kod (CPU) | 2–5 | KN2 | |
-| 8 | Varyant eğitimi | Colab | 50–75 | KN3 | |
-| 9 | Demo ve ürünleştirme | Kod + belge | < 2 | | |
-
-### 9.2 Faz kartları
-
-Her kart aynı soruları cevaplar: **Neden var? · Ne yapılır? · Ne üretir? · Çıkış koşulu.**
-
----
-
-#### Faz 0 · Belgeler ve protokol taslağı ✅
-
-- **Neden:** Kod yazılırken sessizce karara dönüşecek belirsizlikleri (metrik nasıl hesaplanır, nodata ne olur,
-  bootstrap birimi ne) önceden yazıya geçirmek. Sonradan verilen karar Türkiye sonucundan etkilenebilir.
-- **Ne yapıldı:** 6 ADR (zero-shot bölme, ana model/yedek, dışlanan ağırlıklar, SAR girdisi, başlık metriği, modüler
-  yapı), protokol taslağı 0.1, veri-lisans tablosu, risk kaydı, SAR temelleri notu.
-- **Önemli keşifler:** Gerçek bölme 2.795 eğitim karesi (eski tahmin 2.141). Resmî kod SAR'ı ImageNet
-  istatistikleriyle normalize ediyor (tasarımdan sapma → ADR-0004). "Hep arka plan" mIoU'su sabit değil, arka plan
-  oranı / 4.
-- **Çıktı:** `docs/adr/`, `docs/protokol.md`, `docs/veri-lisans.md`, `docs/riskler.md`, `docs/sar-temelleri.md`.
-
-#### Faz 1 · Depo iskeleti ✅
-
-- **Neden:** Kuralları (Türkiye kilidi, metrik etiketi, tekrarlanabilirlik) insan dikkatine değil **koda**
-  emanet etmek.
-- **Ne yapıldı:** `uv` projesi (torch sabitlenmez, Colab'ınki kullanılır), `config` (dondurulmuş ayar + hash),
-  `results` (etiketsiz metrik yazılamaz), `guard` (Türkiye jetonu), model sözleşmesi ve kayıt defteri, CI.
-- **Çıkış:** CI yeşil; 125 kısa test.
-
-#### Faz 2 · Veri katmanı ✅
-
-- **Neden:** Modelin gördüğü her piksel buradan geçer. Veri hatası en sinsi hatadır: model yine eğitilir, yalnız
-  yanlış şeyi öğrenir.
-- **Ne yapıldı:** 8 modül (Bölüm 7.2), `hasar indir` ve `hasar veri-ozet` komutları, 4 araştırma
-  (Türkiye etiketine ve pikseline bakmadan).
-- **Çıktı:** `results/veri/bolme.json`, `results/arastirma/*.json`, protokol 0.2.
-- **Çıkış:** 288 kısa test (~4 sn); sayılar ve araştırmalar belgelere işlendi.
-
-#### Faz 3 · Metrik ve yeniden üretim ⏭ (ilk Colab, ~5–8 CU)
-
-- **Neden:** Kendi modelimizi eğitmeden önce **hattın doğru olduğunu kanıtlamak**. Başkalarının yayımladığı hazır
-  checkpoint'leri bizim veri ve metrik kodumuzdan geçirip aynı sayıları alırsak hattımız doğrudur.
-- **Ne yapılacak:**
-  - `eval/` modülü: olay düzeyi mIoU, sınıf başına IoU, bina düzeyi makro F1, blok ve eşleştirilmiş bootstrap.
-  - Zenodo 15349462'den hazır zero-shot checkpoint'ler (SiamCRNN, UNet, DamageFormer) Türkiye'de çalıştırılır
-    (kural 1'in izinli istisnası; eğitim yok). 13 olaydaki çıktıları da kaydedilir (B2 topluluk adayı için).
-  - Metrik uç durum testleri (1,0 ve 0,226).
-- **Çıkış:** 38,32 / 37,82 / 37,20 `[ZS-EVENT mIoU]` ±0,3 içinde. **Tutmazsa sonraki faza geçilmez.**
-
-```mermaid
-flowchart LR
-    Z["Zenodo hazır<br/>checkpoint'ler"] --> O["Bizim veri katmanı<br/>+ bizim metrik"]
-    O --> Q{"Yayımlanmış sayıya<br/>±0,3 içinde mi?"}
-    Q -->|"evet"| OK["Hat doğru → Faz 4"]
-    Q -->|"hayır"| BUG["Hata veride ya da metrikte<br/>bul, düzelt, tekrar"]
-```
-
-#### Faz 4 · Model, eğitim motoru, ön kontrol (~10–15 CU) 🔒
-
-- **Neden:** Tek seferlik ana eğitimin hatasız koşacağını garanti etmek.
-- **Ne yapılacak:**
-  - ChangeMamba çekirdek derleme kapısı (≤ 1 saat; geçmezse otomatik DamageFormer).
-  - 10 dakikalık ONNX denemesi (Faz 9'daki dışa aktarım yolunu belirler).
-  - Eğitim döngüsü: AdamW, ısınma + kosinüs, bf16, EMA, gradyan kırpma, atomik kayıt, tam durumla devam, JSONL log.
-  - **A3 ölçümü:** SAR z-skoru kısa provada denenir; reçeteye girip girmeyeceğine 13 olayla karar verilir.
-  - 7 hücreli ince notebook ve 11 ön kontrol kapısı.
-  - Protokolün son hâli → **`protokol-kilidi` etiketi.**
-- **Çıkış:** `preflight.json`'da bütün kapılar yeşil, CU projeksiyonu bütçede.
-
-#### Faz 5 · Ana eğitim (50–75 CU)
-
-- **Neden:** Başlık sonucunu üretecek tek model.
-- **Ne yapılacak:** ChangeMamba olduğu gibi, 40.000 adım, yeni ayın taze CU'suyla. Kopma olursa notebook "Run All"
-  ile kaldığı yerden aynen devam eder.
-- **Çıkış:** `DONE` işareti, doğrulama eğrisi, seçilen kayıt noktası (`results/ana/`). **Türkiye'ye dokunulmadı.**
-
-#### Faz 6 · Karar noktası, varyant kilidi, Türkiye (< 5 CU)
-
-Sıra kritik, adımlar atlanamaz:
-
-```mermaid
-flowchart TD
-    A["1 · KN1<br/>ana modelin 13 olaydaki sınıf sonuçları<br/>ve hata örnekleri incelenir"] --> B["Fikir havuzundan<br/>tek varyant fikri,<br/>topluluk ve analiz listesi seçilir"]
-    B --> C["2 · 🔒 varyant-kilidi<br/>tasarım + yapılandırma commit'lenir"]
-    C --> D["3 · Ana model Türkiye'de BİR KEZ çalışır<br/>olasılık haritaları önbelleğe"]
-    D --> E["results/ana/turkiye.json<br/>41,28 ile kıyas, sonuç ne olursa olsun yazılır"]
-```
-
-#### Faz 7 · Analizler (2–5 CU, CPU ağırlıklı)
-
-- **Neden:** Projenin yenilikçi kısmı; eğitim gerektirmez, Faz 6 önbelleğini okur.
-- **Ne yapılacak:** Y1 referans anlaşmazlığı, Y2 analist bütçesi, Y3 transdüktif tablo, KN1'de seçilen N
-  analizleri, SAR hata galerisi (Capella/Umbra, layover, gölge, izole binalar).
-- **KN2:** Raporlama derinliği; üçüncü tam eğitim istenir mi (yalnız kullanıcı kararı, "keşif" etiketiyle).
-- **Çıkış:** Her analizin JSON'u ve görselleri; olumsuz bulgular dahil `docs/bulgular.md`.
-
-#### Faz 8 · Varyant eğitimi (50–75 CU)
-
-- **Neden:** Kendi mimari katkımızı aynı protokolle, adil biçimde sınamak.
-- **Ne yapılacak:** Kilitli varyant aynı reçete ve aynı kapılarla bir kez eğitilir, Türkiye'de bir kez test
-  edilir. Kilitliyse ana model + varyant topluluk satırı.
-- **KN3:** README'ye ve demoya hangi bulgular girer.
-- **Çıkış:** İki model yan yana; fark "eşit" kuralına göre yazılır. **Türkiye sonucuna bakıp seçim yapılmaz.**
-
-#### Faz 9 · Demo ve ürünleştirme (< 2 CU)
-
-- **Neden:** Projeyi yabancı birinin anlayıp çalıştırabileceği hâle getirmek.
-- **Ne yapılacak:**
-  - **Gerçek 6 Şubat verisiyle demo:** BRIGHT'ın Türkiye kareleri üzerinde harita; önce/sonra görüntüler, model
-    tahmini, üç referans, analistin kontrol listesi (tahminler önbellekten).
-  - Dışa aktarım (ONNX / `torch.export` / PyTorch) ve bina başına gecikme.
-  - Model kartı, lisans ve atıf tablosu, rakip karşılaştırması; README'deki her sayı `results/`'tan üretilir.
-- **Yapılmayacak:** İstanbul hasar demosu. Deprem olmadığı için afet sonrası görüntü yok.
-- **Çıkış:** Depo tek komutla çalışıyor, demo yayında.
-
----
+`hasar kiyas` ile varyant − ana birincil; ana − referans ve varyant − referans ikincildir.
+Üçü de saklanan kare matrislerinden, eşleştirilmiş blok bootstrap ile hesaplanır. “Eşit” kuralı
+[protokol §9](protokol.md)'dadır. Türkiye sonucu yeni ayar veya model seçtirmez.
 
 ## 10. Yenilik paketi ve fikir havuzu
 
@@ -740,7 +503,7 @@ mindmap
       Türkiye'nin yalnız SAR istatistiği
       Ayrı transdüktif tablo
     Y4 Tek fikirli varyant
-      KN1'de 13 olayla seçilir
+      KN1’de A4 seçildi
       İkinci tam eğitim
 ```
 
@@ -749,63 +512,21 @@ mindmap
 | **Y1** | Aynı binalarda üç referans ne kadar anlaşıyor? | "Doğru cevap" da tartışmalı olabilir; model belki etikete göre yanlış, radara göre doğru. Çerçeve: iki optik yorum + bir radar sinyali | 0 |
 | **Y2** | Sınırlı uzman zamanında model hangi binaları göstermeli? | Gerçek kullanım senaryosu: model insanın yerine değil, yanında çalışır | 0 |
 | **Y3** | Türkiye'nin etiketsiz SAR istatistikleriyle giriş yeniden ölçeklenirse ne olur? | SAR olaydan olaya farklı gerilmiş (Faz 2 ölçümü); ayrı tabloda, başlığı etkilemez | 0 |
-| **Y4** | Tek bir fikir ChangeMamba'yı iyileştiriyor mu? | Kendi mimari katkımız, adil ve kilitli koşullarda | 1 |
+| **Y4** | SAR artırımı kontrol fine-tune’una göre ne değiştiriyor? | A4, aynı checkpoint ve reçeteyle kilitli koşullarda | 1 |
 
-### 10.2 Fikir havuzu ve varyant adayları
+### 10.2 Fikir havuzu ve karar noktaları
 
-Fikirler şimdi seçilmedi; **ana eğitimin 13 olaydaki sonucuna göre** KN1'de seçilecek
-([fikir-havuzu.md](fikir-havuzu.md)).
-
-| Kod | Fikir | Ne işe yarar | Durum |
-|---|---|---|---|
-| **A1** | Sentinel-1 koherans kanalı | Radar faz tutarlılığı yıkımda düşer; ek fiziksel kanıt (mahalle ölçeğinde) | Aday · fizibilite geçti (14/14 olay) |
-| A2 | ShakeMap sarsıntı öncülü | Sarsıntının şiddetli olduğu yerde hasar olasılığını artır | Aday |
-| A3 | SAR z-skoru | Olaydan olaya farklı SAR gerilmesini düzelt | Planlı · Faz 4'te ölçülecek |
-| B1 | Flip TTA + bina oylaması | Bedava kazanç | Planlı (ikincil satır) |
-| B2 / B3 | Topluluk (hazır checkpoint'ler / varyant) | Birden çok modelin ortalaması genelde daha sağlam | Aday |
-| C1 | Etiketsiz sınıf oranı düzeltmesi (EM) | Türkiye'de yıkık oranı eğitimden farklıysa düzelt | Aday · transdüktif |
-| C2 | Olay dengeli örnekleme | Büyük olaylar eğitimi domine etmesin | Aday (V) |
-| C3 | Sıralı kayıp (CORN) | sağlam < hasarlı < yıkık sırasını modele öğret | Aday (V) |
-| **D1** | Ayrı güçlü bina bulucu | Bina bulma hatası hasar metriğini de batırır | Aday (V) |
-| D2 | Ayak izinde havuzlayan başlık | Bina içinde tek karar | Aday (V) |
-| D4 | Modalite bırakma | SAR'ın gerçek katkısını ölç ve sağlamlaştır | Aday (V) |
-
-**Varyant (V) adayları:** A1, C2, C3, D1, D2, D4; KN1'de **tek biri** seçilir. Araştırmanın önceliği: A1, sonra D1.
-
-### 10.3 Karar noktaları
-
-```mermaid
-flowchart LR
-    KN1["KN1 · Faz 6 başı<br/>Girdi: 13 olay sonuçları<br/>Karar: varyant, topluluk, analizler<br/>→ varyant-kilidi"] --> KN2["KN2 · Faz 7 sonu<br/>Girdi: Türkiye sonucu + analizler<br/>Karar: raporlama derinliği,<br/>3. eğitim? (keşif etiketiyle)"]
-    KN2 --> KN3["KN3 · Faz 8 sonu<br/>Girdi: iki modelin sonucu<br/>Karar: README ve demoya ne girer"]
-```
-
----
+KN1 kapandı: kullanıcı A4 SAR radyometrik dayanıklılığını 21 Kasım 2026'da seçti. Kanıt yalnız 13 olayın
+SAR ölçeği ve hazır model doğrulaması. Topluluk 1.3 kapsamı dışında; diğer adaylar
+[fikir-havuzu.md](fikir-havuzu.md)'de saklanır. KN2 analizlerin derinliğini, KN3 README ve demoda raporlanacak
+bulguları ele alır. Türkiye sonucuna göre yeniden eğitim veya ayar yapılmaz.
 
 ## 11. Bütçe
 
-Hiçbir süre Colab'da henüz ölçülmedi; hepsi tahmin, Faz 3–4'te ölçülecek.
-
-| Adım | Süre | CU (A100, 5,40/saat) |
-|---|---|---|
-| Ortam, veri, hazır checkpoint'lerle yeniden üretim | 1–1,5 sa | 5–8 |
-| Çekirdek derleme kapısı | ≤ 1 sa | ≤ 5,4 |
-| Ön kontrol + 2.000 adımlık prova | 1–1,5 sa | 5–8 |
-| **Ana eğitim, 40.000 adım** | 9–14 sa | **50–75** |
-| Türkiye değerlendirmesi, TTA, belirsizlik, ONNX | 0,5–1 sa | 3–5 |
-| **Toplam (bir tam eğitim)** | 13–19 sa | ~65–100 |
-
-```
-Colab Pro:  100 CU / ay  (₺165,60)  · oturum ≤ 12 sa · tarayıcı açık kalmalı
-Colab Pro+: 600 CU / ay  (₺826,80)  · tarayıcı kapalıyken 24 sa
-
-İki tam eğitim ≈ 115–175 CU → aynı aya düşmemeli
-  Ay 1: hazırlık (Faz 3–4)        Ay 2: ana eğitim (taze 100 CU)        Ay 3+: varyant
-```
-
-High-RAM yakımı ~%39 artırır, kapalı tutulur. Bu yüzden SAR istatistiği akışlı hesaplanıyor (bellekte tek kare).
-
----
+ChangeMamba için Colab L4 kapı 8 projeksiyonu 164,6 CU > 75 CU çıktı; uzun eğitim başlamadı.
+Yeni hedef her fine-tune için yaklaşık 1–2 saat, ≤ 15 CU. **Ölçülmedi, kapı 8 ölçer.**
+Kapı 8'in eğitim projeksiyonuna ön kontrol dahil değildir. İki koşu ve ön kontrollerle toplam hedef
+Colab Pro'nun aylık 100 CU'su içinde kalmak. Süre ve maliyet gerçekleşmiş sonuç gibi yazılmaz.
 
 ## 12. Bugüne kadar ölçülenler ve açık kararlar
 
@@ -822,18 +543,12 @@ Hepsi 13 olaydan ya da Türkiye'nin yalnız dosya adı/koordinatından; Türkiye
 | Türkiye'nin dağılımı | 7 şehir, 2 km'de 64 blok | Şehre göre katmanlı blok bootstrap önerisi | `turkiye_bloklar.json` |
 | A1 fizibilitesi | 14/14 olayda Sentinel-1 çifti; ilk sonrası çekim 0–8 gün | A1 varyant adayı olarak yaşıyor | `s1_kapsam.json` |
 
-### 12.2 Senin onayını bekleyen kararlar
+### 12.2 Güncel karar ve sıradaki iş
 
-| Karar | Seçenekler ve öneri | Ne zamana kadar |
-|---|---|---|
-| **ADR-0004 · SAR girdisi** | Öneri C: ana modelde resmî biçim (elma-elma kıyas), eğitim kümesi z-skoru A3 olarak Faz 4'te denenir. Kod iki biçimi de destekliyor | Faz 4 öncesi |
-| **Protokol §7 · Bina birimi** | Öneri: CVPRW26 örnek etiketleri, 1.001 karede | Faz 4 öncesi |
-| **Protokol §6 · Oylama birimi** | Öneri: modelin kendi tahmin ettiği bina bileşenleri (Türkiye çokgenini kullanmak test etiketini sızdırır) | Faz 4 öncesi |
-| **Protokol §8 · Bootstrap birimi** | Öneri: şehre göre katmanlı 2 km blok | Faz 4 öncesi |
-| **Protokol §9 · "Eşit" kuralı** | Öneri: fark < 1,0 puan veya %95 aralık 0'ı içeriyor | Faz 4 öncesi |
-| **Colab Pro mu Pro+ mı** | Pro: ucuz, tarayıcı açık, 1–2 devam. Pro+: pahalı, tarayıcı kapalı 24 sa | Faz 5 öncesi |
-
----
+Kullanıcı 21 Kasım 2026'da kontrollü DamageFormer fine-tune'unu ve A4'ü onayladı.
+Eğitim başlamadı; yeni eğitim ve `final` için Türkiye'ye dokunulmadı. Faz 3 yeniden üretimi izinli istisnadır.
+Sırada kullanıcı tarafından protokol 1.3 ve varyant kilitlerinin konması, ardından Colab “Run All” var.
+Çalıştırma ayrıntıları [colab.md](colab.md)'de.
 
 ## 13. Sözlük
 
@@ -869,7 +584,7 @@ Hepsi 13 olaydan ya da Türkiye'nin yalnız dosya adı/koordinatından; Türkiye
 | **CU** | Colab hesaplama birimi; A100 saatte ~5,40 CU |
 | **ADR** | Mimari karar kaydı: bir kararın neden verildiği |
 | **Önceden kayıt** | Hesap kurallarını sonucu görmeden yazıp kilitlemek |
-| **KN1–KN3** | Karar noktaları (Bölüm 10.3) |
+| **KN1–KN3** | Karar noktaları (Bölüm 10.2) |
 | **Orkestra** | Kodu yazan agent takımı; Claude plan yazar ve doğrular |
 
 ---

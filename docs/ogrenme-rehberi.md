@@ -14,6 +14,10 @@ yenilikler) projeyi rakiplerinden ayıran tarafı. 14–17. bölümler yazılım
 
 ---
 
+> **21 Kasım 2026 güncellemesi:** Güncel model hazır DamageFormer kontrol fine-tune'u ve A4 SAR varyantıdır.
+> ChangeMamba mimarisi ve eski eğitim örnekleri önceki planın anlatımıdır. Güncel reçete ve seçim kuralı
+> [Fine-tune ve SAR dayanıklılığı](#7a-fine-tune-ve-sar-dayanıklılığı) bölümündedir; protokol 1.3 geçerlidir.
+
 ## İçindekiler
 
 1. [Problem: depremden sonra hangi bina yıkıldı?](#1-problem-depremden-sonra-hangi-bina-yıkıldı)
@@ -23,6 +27,7 @@ yenilikler) projeyi rakiplerinden ayıran tarafı. 14–17. bölümler yazılım
 5. [Derin öğrenmenin temelleri](#5-derin-öğrenmenin-temelleri)
 6. [Mimari: ChangeMamba-MMBDA](#6-mimari-changemamba-mmbda)
 7. [Eğitim: modeli nasıl öğreteceğiz?](#7-eğitim-modeli-nasıl-öğreteceğiz)
+   - [Fine-tune ve SAR dayanıklılığı](#7a-fine-tune-ve-sar-dayanıklılığı)
 8. [Değerlendirme: ne kadar iyi olduğunu nasıl ölçeceğiz?](#8-değerlendirme-ne-kadar-iyi-olduğunu-nasıl-ölçeceğiz)
 9. [Bilimsel dürüstlük: protokol ve kilitler](#9-bilimsel-dürüstlük-protokol-ve-kilitler)
 10. [Ön kontrol kapıları](#10-ön-kontrol-kapıları)
@@ -555,8 +560,8 @@ bu dönüşümler etiketleri bozmadan veriyi çoğaltır.
 çevirmezsek model yanlış konumları öğrenir. Bu, kolay yapılan ve fark edilmesi zor bir hatadır; bu yüzden ayrı bir
 birim testi var.
 
-**Neden renk/parlaklık (fotometrik) artırımı yok?** Resmî reçetede yok ve radarın parlaklığı fiziksel bir anlam
-taşır (çift sekme parlaklığı hasar ipucudur). Rastgele parlaklık oynamak bu bilgiyi bozabilir.
+**Neden optik fotometrik artırım yok?** Ortak reçetede kapalıdır. SAR için ise yalnız varyantın eğitiminde
+radyometrik artırım vardır; gerekçesi ve sınırları §7a’dadır.
 
 ### 7.3 Normalizasyon
 
@@ -709,17 +714,88 @@ varsayıyoruz. Bu yüzden:
 
 ### 7.13 Doğrulama ve kayıt noktası seçimi
 
-Eğitim sırasında modelin gerçekten iyileşip iyileşmediğini görmek için **doğrulama kümesi** kullanılır: Modelin
-eğitimde görmediği ama Türkiye olmayan örnekler (13 olayın doğrulama listeleri). Her 2.000 adımda EMA modeli bu
-kümede değerlendirilir ve en yüksek mIoU'yu veren kayıt noktası "en iyi" olarak saklanır.
+Eğitim sırasında doğrulama yalnız izleme içindir. Her 500 adımda EMA ağırlıkları, Türkiye dışındaki
+13 olayın doğrulamasında değerlendirilir. Sonuçlar `[VAL13 mIoU]` etiketiyle kaydedilir.
+Kayıt noktası son adımın EMA'sıdır; en yüksek doğrulama mIoU'su aranmaz.
 
-Dürüst bir uyarı: Bu seçim zayıf bir seçimdir. 2026 CVPR yarışmasında doğrulama sıralaması ile test sıralaması
-arasındaki korelasyon yalnız 0,35'ti. Yani doğrulamada en iyi olan model yeni olayda en iyi olmayabilir. Daha iyi
-bir yol (bazı olayları sırayla dışarıda bırakmak) birden çok eğitim gerektirdiği için bütçeye sığmıyor. Bu zayıflık
-raporda açıkça yazılacak.
+Doğrulama eğitim olaylarından gelir; görülmemiş olaya genellemeyi ölçmez. SAR artırımı varyantı bu doğrulamada
+cezalandırabilir. Seçimsiz kural iki koşuya eşit davranır. Ayrıntı ve kontrol koşusunun gerekçesi §7a'dadır.
 
 **Eğitim kodunda Türkiye'yi değerlendirmenin yolu yok.** Resmî ChangeMamba betiği her 500 adımda test olayını da
 yazdırıyor; bu, insanın farkında olmadan Türkiye sonucuna bakarak karar vermesine yol açar. Bizim kodda kapalı.
+
+---
+
+## 7a. Fine-tune ve SAR dayanıklılığı
+
+Fine-tune, hazır bir modelin öğrendiği ağırlıklardan başlayıp eğitimi sürdürmektir. Burada başlangıç,
+Türkiye'yi görmemiş DamageFormer zero-shot checkpoint'idir. Amaç SAR ölçeği değişince modelin daha dayanıklı
+olup olmadığını ölçmektir; yeni bir mimari kurulmaz.
+
+**Neden düşük öğrenme oranı?** Hazır model zaten hasar bulmayı biliyor. Büyük güncellemeler bu bilgiyi bozabilir.
+Önceki sıfırdan eğitim reçetesindeki `1e-4` yerine `2e-5` kullanılır: beşte biri. Düşük oran bilgiyi korumaya
+yardım eder; iyileşmeyi garanti etmez. Ortak reçete 4.000 adım, 512 kırpma ve batch 8'dir.
+Kaynak: [onaylı tasarım §6.2](superpowers/specs/2026-11-21-sar-dayaniklilik-finetune-design.md),
+`configs/ana.yaml` ve `configs/varyant.yaml`.
+
+**EMA nereden başlar?** Üstel hareketli ortalama da hazır checkpoint ağırlıklarıyla başlar; rastgele bir modelin
+ortalamasıyla başlamaz. Katsayı 0,999'dur. Son adımın EMA ağırlıkları raporlanır. Her 500 adımlık doğrulama
+yalnız izlenir; en iyi doğrulama adımı seçilmez. Doğrulama aynı eğitim olaylarından geldiği için yeni olaya
+genellemeyi ölçmez. SAR artırımı varyantı bu doğrulamada cezalandırabilir; seçimsiz kural iki koşuya eşit davranır.
+
+**Kontrol neden gerekli?** Hazır modeli yalnız SAR artırımlı fine-tune ile kıyaslamak yeterli değildir.
+Fark ek eğitimden veya proje kaybından da gelebilir. Ana koşu aynı checkpoint'i aynı reçeteyle, SAR artırımı
+olmadan fine-tune eder. Varyantın tek farkı SAR artırımıdır. Tohum, örnek sırası, kırpma ve geometrik dönüşümler
+aynı kalır. Birincil kıyas varyant − ana; iki koşunun hazır referansa farkı ikincildir.
+
+**Alan farkına karşı artırım.** SAR'ın parlaklık ve dağılım biçimi olaydan olaya değişiyor. Bu alan farkına
+(domain shift) karşı eğitim SAR'ı rastgele değiştirilir. Modelin tek bir parlaklık ölçeğine bağlanmaması amaçlanır.
+`results/arastirma/sar_olcek.json` yalnız 13 olayın ölçümlerini içerir; Türkiye bu ayarları belirlemez.
+
+Varyantta p = 0,8 ile gama `logUniform[0,67, 1,5]` ve kazanç `logUniform[0,657, 1,657]` çekilir.
+Kazanç sınırları en karanlık ve en parlak olayın medyan ortalamalarının havuz ortalamasına oranından gelir:
+41,3 / 62,9 ve 104,2 / 62,9. Log-uniform, logaritmik ölçekte eşit aralıkların eşit olasılıkla çekilmesidir.
+Artırım geometriden sonra, normalizasyondan önce uygulanır. Kontrolde ve değerlendirmede uygulanmaz.
+Optik görüntü ve etiket değişmez. Nodata maskesi önceden hesaplanır; 0 olan SAR pikseli 0 kalır.
+
+**Elle hesap: SAR pikselleri.** Bu bir öğretim örneğidir; ölçülmüş model sonucu değildir. İstenen örnek değerleri
+`v = 40, 80, 160`, `γ = 1,2`, `k = 1,5` olsun. Bunlar normalizasyondan önceki SAR değerleridir.
+
+`u = 255·(v/255)^γ·k`, ardından geçerli piksel için `v_yeni = min(255, max(1, u))`.
+
+| v | Yerine koyma | u (yaklaşık) | [1, 255]'e kırpılmış sonuç |
+|---|---|---|---|
+| 40 | 255·(40/255)^1,2·1,5 | 41,42 | 41,42 |
+| 80 | 255·(80/255)^1,2·1,5 | 95,17 | 95,17 |
+| 160 | 255·(160/255)^1,2·1,5 | 218,64 | 218,64 |
+
+Sonuçlar formülden hesaplandı ve gösterim için yuvarlandı. Bu örnekte hiçbiri sınıra taşmadığı için kırpma
+sayıları değiştirmiyor. Gama dağılımın biçimini, kazanç ölçeğini değiştiriyor. Nodata için bu formül uygulanmaz.
+
+**Projede nerede?** Ayarlar `configs/ana.yaml` ve `configs/varyant.yaml` içinde; karar
+[ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md), değerlendirme [protokol §5 ve §9](protokol.md).
+Birincil kıyas `hasar kiyas` ile saklanan kare matrislerinden hesaplanır.
+
+**Akılda kalsın:** Hazır bilgi küçük adımlarla güncellenir. Kontrol koşusu fikrin etkisini ayırır.
+SAR artırımı yalnız eğitimdedir. Son adımın EMA'sı kullanılır; Türkiye sonucu ayar seçtirmez.
+
+**Kendini sına**
+
+<details><summary>Kontrol olmadan varyant referansı geçerse SAR fikri işe yaradı diyebilir miyiz?</summary>
+
+Hayır. Fark ek eğitimden veya kayıptan gelmiş olabilir. Aynı fine-tune'un artırımsız kontrolü gerekir.
+</details>
+
+<details><summary>Varyantın doğrulaması daha düşükse en iyi doğrulama adımını seçer miyiz?</summary>
+
+Hayır. Önceden kilitli kural son adımın EMA'sıdır. Doğrulama görülmemiş olay başarısını ölçmez;
+sonuçlar olduğu gibi raporlanır.
+</details>
+
+<details><summary>Örnekte SAR değeri 80 ne olur? Nodata 0 aynı formüle girer mi?</summary>
+
+80 yaklaşık 95,17 olur; aralık içinde olduğu için kırpma değiştirmez. Nodata 0 ayrı korunur ve 0 kalır.
+</details>
 
 ---
 
@@ -891,10 +967,10 @@ karışmasıdır. Projede dikkat ettiğimiz sızıntı yolları:
 | Yol | Örnek | Önlem |
 |---|---|---|
 | Eğitim verisi | Türkiye kareleri eğitimde | Zero-shot bölme; bölme üreticisi Türkiye'yi görürse hata verir |
-| Başlangıç ağırlığı | Türkiye'yi görmüş checkpoint | Yalnız ImageNet `vssm_tiny` (kural 2) |
+| Başlangıç ağırlığı | Türkiye'yi görmüş checkpoint | Türkiye’yi görmemiş DamageFormer zero-shot checkpoint’i, md5 denetimli |
 | Ön eğitim verisi | 2023 Türkiye sahnelerini görmüş temel model | MaRS gibi modeller dışarıda |
 | Normalizasyon | Türkiye'nin istatistikleri | SAR istatistikleri yalnız eğitim kümesinden |
-| Model seçimi | Türkiye'de en iyi kayıt noktasını seçmek | Seçim yalnız 13 olayın doğrulamasıyla |
+| Model seçimi | Türkiye'de en iyi kayıt noktasını seçmek | Son adımın EMA’sı; doğrulamaya göre seçim yok |
 | Eşik ve ayar | Sıcaklık, eşik, TTA ayarını Türkiye'de seçmek | Bütün ayarlar 13 olayda |
 | İnsan kararı | Türkiye sonucunu görüp bir şeyi değiştirmek | Git kilitleri (aşağıda) |
 

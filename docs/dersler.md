@@ -1,6 +1,10 @@
 # Ders Kitabı: Deprem Hasar Haritası'nı sıfırdan öğrenmek
 
-**Sürüm:** 1 (7 Kasım 2026, Faz 2 sonu)
+**Güncelleme:** 21 Kasım 2026; fine-tune ve SAR dayanıklılığı dersi eklendi.
+
+> Güncel plan [Ders 27](#ders-27-fine-tune-ve-sar-dayanıklılığı)'dedir. Önceki derslerin ChangeMamba ve uzun eğitim
+> örnekleri eski planı anlatır. Artık hazır DamageFormer kontrol fine-tune'u ve SAR varyantı kullanılır;
+> kayıt noktası son adımın EMA'sıdır. Bağlayıcı kural protokol 1.3'tür.
 
 Bu kitap projeyi bir ders gibi anlatır. Hiçbir ön bilgi varsaymaz: radarın ne olduğundan başlar, sinir ağının
 nasıl öğrendiğine, ChangeMamba'nın içine, modeli nasıl eğiteceğimize, sonucu nasıl ölçeceğimize, kodun nasıl
@@ -41,7 +45,7 @@ flowchart TB
         D19["19 Kod mimarisi"] --> D20["20 Ayar ve sonuç şeması"] --> D21["21 Test ve kalite"] --> D22["22 Colab ortamı"] --> D23["23 Ön kontrol kapıları"]
     end
     subgraph VI["Bölüm VI · Yol haritası"]
-        D24["24 Fazlar 0–9"] --> D25["25 Yenilikler"] --> D26["26 Projeyi anlatmak"]
+        D24["24 Fazlar 0–9"] --> D25["25 Yenilikler"] --> D26["26 Projeyi anlatmak"] --> D27["27 Fine-tune ve SAR dayanıklılığı"]
     end
     I --> II --> III --> IV --> V --> VI
 ```
@@ -84,7 +88,8 @@ flowchart TB
 **Bölüm VI · Yol haritası**
 [Ders 24: Fazlar](#ders-24-fazlar-09-hikâye-olarak) ·
 [Ders 25: Yenilikler](#ders-25-yenilik-paketi-ve-fikir-havuzu) ·
-[Ders 26: Projeyi anlatmak](#ders-26-projeyi-anlatmak-ve-savunmak)
+[Ders 26: Projeyi anlatmak](#ders-26-projeyi-anlatmak-ve-savunmak) ·
+[Ders 27: Fine-tune ve SAR dayanıklılığı](#ders-27-fine-tune-ve-sar-dayanıklılığı)
 
 ---
 
@@ -1219,30 +1224,27 @@ kesintisiz eğitimden sapar ve sonuç tekrarlanamaz hâle gelirdi.
 
 ## Ders 13: Doğrulama ve kayıt noktası seçimi
 
-**Bu derste:** Eğitim sırasında "en iyi" modeli nasıl seçtiğimizi ve bu seçimin neden zayıf olduğunu dürüstçe.
+**Bu derste:** Doğrulamayı izlemeyi ve kayıt noktasını önceden sabitlemenin gerekçesini.
 
-### 13.1 Nasıl seçiyoruz?
+### 13.1 Güncel kural: seçim yok
 
-- Her **2.000** adımda **EMA** ağırlıkları doğrulama kümesinin (337 kare, 13 olay) tamamında değerlendirilir.
+- Her **500** adımda **EMA** ağırlıkları 13 olayın doğrulamasında değerlendirilir.
 - Yol başlık metriğiyle aynıdır: tam kare, `argmax(clf)`, maskesiz.
-- En yüksek doğrulama mIoU'su seçilir; eşitlikte erken adım.
-- Ham (EMA'sız) ağırlıkların sonucu da kaydedilir ama seçimde kullanılmaz.
+- Kayıt noktası **son adımın EMA'sıdır**; en yüksek doğrulama mIoU'su aranmaz.
+- Ham ağırlıkların son adım sonucu kaydedilir; kullanılmaz.
 
-Sonuç dosyalarında bu sayılar `[VAL13 mIoU]` etiketiyle tutulur; başlık sayısıyla karışmaz.
+Doğrulama sonuçları `[VAL13 mIoU]` etiketiyle tutulur; başlık sayısıyla karışmaz.
 
-### 13.2 Dürüst uyarı: bu seçim zayıf
+### 13.2 Neden doğrulamada en iyiyi seçmiyoruz?
 
-2026 CVPR çalıştayı yarışmasında doğrulama sıralaması ile test sıralaması arasındaki korelasyon yalnız **0,35**'ti.
-Yani doğrulamada en iyi olan model yeni bir olayda en iyi olmayabilir. Yarışma birincisinin "hasarlı" sınıfı yeni
-olayda 9,75 IoU'ya düştü.
-
-Daha iyi bir yol var: olayları sırayla dışarıda bırakarak çok sayıda eğitim yapmak. Ama bu birden çok tam eğitim
-ister; bütçeye ve "iki tam eğitim" kuralına sığmaz. Bu yüzden zayıflığı saklamıyor, raporda açıkça yazıyoruz.
+Doğrulama eğitim olaylarından gelir; görülmemiş olaya genellemeyi ölçmez. SAR artırımı varyantın doğrulama
+sonucunu düşürebilir. Aynı son adım kuralı kontrol ve varyanta eşit davranır. Önceki en iyi doğrulama seçimi
+protokol 1.3'te kaldırıldı. Fine-tune ve kontrol koşusu [Ders 27](#ders-27-fine-tune-ve-sar-dayanıklılığı)'dedir.
 
 **Akılda kalsın**
 
-- Seçim: 2.000 adımda bir, EMA, 13 olayın doğrulaması, başlıkla aynı yol.
-- Doğrulama-test korelasyonu düşük (0,35); bu zayıflık raporda yazılır.
+- Her 500 adımda doğrulama yalnız izlenir; Türkiye bu yolda yoktur.
+- Son adımın EMA'sı kullanılır; seçim yapılmaz.
 
 **Kendini sına**
 
@@ -2138,6 +2140,82 @@ bütçeye sığmıyor; bu zayıflığı raporda açıkça yazıyoruz.
 - Bir konuyu derinlemesine okumak için: [ogrenme-rehberi.md](ogrenme-rehberi.md).
 - Bir kuralın kesin hâli için: [protokol.md](protokol.md) ve [adr/](adr/README.md).
 - Sırada Faz 3 var: metrik kodu ve hazır checkpoint'lerle yeniden üretim (ilk Colab oturumu).
+
+---
+
+## Ders 27: Fine-tune ve SAR dayanıklılığı
+
+**Bu derste:** Hazır ağırlıkları küçük adımlarla güncellemeyi, kontrol koşusunu ve SAR alan farkına karşı
+veri artırımını. Elle piksel dönüşümü hesabını.
+
+Fine-tune, hazır bir modelin öğrendiği ağırlıklardan başlayıp eğitimi sürdürmektir. Burada başlangıç,
+Türkiye'yi görmemiş DamageFormer zero-shot checkpoint'idir. Amaç SAR ölçeği değişince modelin daha dayanıklı
+olup olmadığını ölçmektir; yeni bir mimari kurulmaz.
+
+**Neden düşük öğrenme oranı?** Hazır model zaten hasar bulmayı biliyor. Büyük güncellemeler bu bilgiyi bozabilir.
+Önceki sıfırdan eğitim reçetesindeki `1e-4` yerine `2e-5` kullanılır: beşte biri. Düşük oran bilgiyi korumaya
+yardım eder; iyileşmeyi garanti etmez. Ortak reçete 4.000 adım, 512 kırpma ve batch 8'dir.
+Kaynak: [onaylı tasarım §6.2](superpowers/specs/2026-11-21-sar-dayaniklilik-finetune-design.md),
+`configs/ana.yaml` ve `configs/varyant.yaml`.
+
+**EMA nereden başlar?** Üstel hareketli ortalama da hazır checkpoint ağırlıklarıyla başlar; rastgele bir modelin
+ortalamasıyla başlamaz. Katsayı 0,999'dur. Son adımın EMA ağırlıkları raporlanır. Her 500 adımlık doğrulama
+yalnız izlenir; en iyi doğrulama adımı seçilmez. Doğrulama aynı eğitim olaylarından geldiği için yeni olaya
+genellemeyi ölçmez. SAR artırımı varyantı bu doğrulamada cezalandırabilir; seçimsiz kural iki koşuya eşit davranır.
+
+**Kontrol neden gerekli?** Hazır modeli yalnız SAR artırımlı fine-tune ile kıyaslamak yeterli değildir.
+Fark ek eğitimden veya proje kaybından da gelebilir. Ana koşu aynı checkpoint'i aynı reçeteyle, SAR artırımı
+olmadan fine-tune eder. Varyantın tek farkı SAR artırımıdır. Tohum, örnek sırası, kırpma ve geometrik dönüşümler
+aynı kalır. Birincil kıyas varyant − ana; iki koşunun hazır referansa farkı ikincildir.
+
+**Alan farkına karşı artırım.** SAR'ın parlaklık ve dağılım biçimi olaydan olaya değişiyor. Bu alan farkına
+(domain shift) karşı eğitim SAR'ı rastgele değiştirilir. Modelin tek bir parlaklık ölçeğine bağlanmaması amaçlanır.
+`results/arastirma/sar_olcek.json` yalnız 13 olayın ölçümlerini içerir; Türkiye bu ayarları belirlemez.
+
+Varyantta p = 0,8 ile gama `logUniform[0,67, 1,5]` ve kazanç `logUniform[0,657, 1,657]` çekilir.
+Kazanç sınırları en karanlık ve en parlak olayın medyan ortalamalarının havuz ortalamasına oranından gelir:
+41,3 / 62,9 ve 104,2 / 62,9. Log-uniform, logaritmik ölçekte eşit aralıkların eşit olasılıkla çekilmesidir.
+Artırım geometriden sonra, normalizasyondan önce uygulanır. Kontrolde ve değerlendirmede uygulanmaz.
+Optik görüntü ve etiket değişmez. Nodata maskesi önceden hesaplanır; 0 olan SAR pikseli 0 kalır.
+
+**Elle hesap: SAR pikselleri.** Bu bir öğretim örneğidir; ölçülmüş model sonucu değildir. İstenen örnek değerleri
+`v = 40, 80, 160`, `γ = 1,2`, `k = 1,5` olsun. Bunlar normalizasyondan önceki SAR değerleridir.
+
+`u = 255·(v/255)^γ·k`, ardından geçerli piksel için `v_yeni = min(255, max(1, u))`.
+
+| v | Yerine koyma | u (yaklaşık) | [1, 255]'e kırpılmış sonuç |
+|---|---|---|---|
+| 40 | 255·(40/255)^1,2·1,5 | 41,42 | 41,42 |
+| 80 | 255·(80/255)^1,2·1,5 | 95,17 | 95,17 |
+| 160 | 255·(160/255)^1,2·1,5 | 218,64 | 218,64 |
+
+Sonuçlar formülden hesaplandı ve gösterim için yuvarlandı. Bu örnekte hiçbiri sınıra taşmadığı için kırpma
+sayıları değiştirmiyor. Gama dağılımın biçimini, kazanç ölçeğini değiştiriyor. Nodata için bu formül uygulanmaz.
+
+**Projede nerede?** Ayarlar `configs/ana.yaml` ve `configs/varyant.yaml` içinde; karar
+[ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md), değerlendirme [protokol §5 ve §9](protokol.md).
+Birincil kıyas `hasar kiyas` ile saklanan kare matrislerinden hesaplanır.
+
+**Akılda kalsın:** Hazır bilgi küçük adımlarla güncellenir. Kontrol koşusu fikrin etkisini ayırır.
+SAR artırımı yalnız eğitimdedir. Son adımın EMA'sı kullanılır; Türkiye sonucu ayar seçtirmez.
+
+**Kendini sına**
+
+<details><summary>Kontrol olmadan varyant referansı geçerse SAR fikri işe yaradı diyebilir miyiz?</summary>
+
+Hayır. Fark ek eğitimden veya kayıptan gelmiş olabilir. Aynı fine-tune'un artırımsız kontrolü gerekir.
+</details>
+
+<details><summary>Varyantın doğrulaması daha düşükse en iyi doğrulama adımını seçer miyiz?</summary>
+
+Hayır. Önceden kilitli kural son adımın EMA'sıdır. Doğrulama görülmemiş olay başarısını ölçmez;
+sonuçlar olduğu gibi raporlanır.
+</details>
+
+<details><summary>Örnekte SAR değeri 80 ne olur? Nodata 0 aynı formüle girer mi?</summary>
+
+80 yaklaşık 95,17 olur; aralık içinde olduğu için kırpma değiştirmez. Nodata 0 ayrı korunur ve 0 kalır.
+</details>
 
 ---
 
