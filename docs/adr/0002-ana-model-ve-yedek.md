@@ -1,3 +1,5 @@
+Yerini aldı (ana model kararı): ADR-0007
+
 # ADR-0002: Ana model ChangeMamba-MMBDA Tiny, yedek DamageFormer
 
 - **Durum:** Kabul

@@ -13,8 +13,8 @@ silinmez; gerekçesiyle "Ret" olarak kalır.
 
 Kural 1 yüzünden iki tür sonuç birbirinden ayrılır:
 
-- **13 olayın doğrulama sonuçları** (ana eğitimden hemen sonra): Varyant, topluluk ve protokol eklentileri **yalnız
-  bunlara bakılarak** seçilir. Seçim, Türkiye'ye dokunulmadan `varyant-kilidi` etiketiyle kilitlenir.
+- **13 olayın doğrulama sonuçları** (ana eğitimden hemen sonra): Kararlar **yalnız
+  13 olayın kanıtıyla** alınır. A4, ana fine-tune öncesinde KN1’de seçildi. Seçim, Türkiye'ye dokunulmadan `varyant-kilidi` etiketiyle kilitlenir.
 - **Türkiye sonucu** (kilitten sonra): Yalnız raporlamayı ve analizlerin derinliğini etkiler. Türkiye sonucu
   görüldükten sonra yeni bir tam eğitim istenirse (kural 3, kullanıcı kararı), onun Türkiye sonucu temiz zero-shot
   sayılmaz; ayrı "keşif" tablosunda raporlanır.
@@ -23,7 +23,7 @@ Kural 1 yüzünden iki tür sonuç birbirinden ayrılır:
 
 | Kod | Ne zaman | Girdiler | Kararlar | Kilit |
 |---|---|---|---|---|
-| **KN1** | Faz 6 başı: ana eğitim bitti, Türkiye görülmedi | 13 olayın sınıf bazlı doğrulama sonuçları, hata örnekleri, A1 fizibilite sonucu, A3 ölçümü | Varyant fikri (V adayları), topluluk satırları, analiz listesi, transdüktif işler | `varyant-kilidi` |
+| **KN1** | 21 Kasım 2026, fine-tune öncesi | 13 olayın SAR ölçeği ve hazır model doğrulaması | A4 seçildi; topluluk 1.3 kapsamı dışında | `varyant-kilidi`, ana modelin Türkiye sonucundan önce |
 | **KN2** | Faz 7 sonu: ana modelin Türkiye sonucu ve analizler hazır | Türkiye sonucu, Faz 7 bulguları | Raporlama derinliği; üçüncü tam eğitim isteniyor mu (keşif etiketiyle) | – |
 | **KN3** | Faz 8 sonu: varyant değerlendirildi | İki modelin sonuçları | Hangi bulgular README'ye ve demoya girer | – |
 
@@ -39,6 +39,7 @@ Ret önerisi (araştırma zayıf buldu; karar noktasında kesinleşir).
 | A1 | Sentinel-1 koherans kanalı (ek girdi) | 1 (varyant olarak) | Ayrı satır: "ek girdi" | Aday · fizibilite geçti (14/14 olay, Faz 2) | KN1 |
 | A2 | ShakeMap sarsıntı öncülüyle Bayesçi son işlem | 0 | Ayrı satır | Aday | KN1 |
 | A3 | SAR z-skoru ön işleme (değerler zaten log/dB benzeri; olay başına germe farklı) | 0 (küçük deneme) | Reçetenin parçası | Planlı · ölçüm Faz 4'te, karar 13 olaya göre ve `protokol-kilidi`'nden önce | Faz 4 |
+| A4 | SAR radyometrik dayanıklılık artırımı | 1 (varyant) | Varyant | Seçildi (KN1, 21 Kasım 2026) | KN1 |
 | B1 | Flip TTA + bina düzeyi oylama | 0 | İkincil satır | Planlı | – |
 | B2 | Heterojen topluluk: ana model + Zenodo'daki hazır zero-shot checkpoint'ler (DeepLabV3+ hariç: Faz 3'te Türkiye'yi görmüş çıktı) | 0 | Ayrı satır: "topluluk" | Aday | KN1 |
 | B3 | Ana model + varyant topluluğu | 0 | Ayrı satır: "topluluk" | Aday | KN1 |
@@ -54,8 +55,11 @@ Ret önerisi (araştırma zayıf buldu; karar noktasında kesinleşir).
 | D7 | Görüntü-dil modelleri | – | – | Ret önerisi · hasar seviyesinde zayıf | – |
 | D8 | Sentetik hasar üretimi | – | – | Park · 16 haftaya sığmaz | – |
 
-**Varyant (V) adayları:** A1, C2, C3, D1, D2, D4. KN1'de tek bir fikir seçilir (kural 3: tek fikirli varyant).
-Araştırmanın önceliği: A1 (fizibilite geçerse), sonra D1.
+**Önceki varyant (V) adayları:** A1, C2, C3, D1, D2, D4. KN1’de tek fikir olarak A4 seçildi.
+**KN1 sonucu (21 Kasım 2026):** Kullanıcı A4’ü seçti. Kanıt yalnız 13 olayın
+`results/arastirma/sar_olcek.json` ölçümleri ve DamageFormer doğrulamasıdır. Türkiye sonucu tasarımda kullanılmadı.
+Ana = kontrol fine-tune’u, varyant = SAR artırımlı fine-tune. Diğer varyant adayları ve topluluk 1.3 kapsamı dışında.
+Karar: [ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md).
 
 ### Faz 2 bulguları (13 olay ve yalnız meta veri)
 

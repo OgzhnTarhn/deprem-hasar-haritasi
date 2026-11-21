@@ -1,8 +1,8 @@
 # Deprem Hasar Haritası
 
 Afet öncesi optik ve afet sonrası SAR uydu görüntülerinden bina hasarı haritalayan model. BRIGHT veri setiyle
-eğitilir; 6 Şubat 2023 Türkiye depreminde, eğitimde hiç görülmeden **bir kez** test edilir. Çıpa: ChangeMamba
-41,28 `[ZS-EVENT mIoU]`.
+fine-tune edilir; 6 Şubat 2023 Türkiye depreminde, eğitimde hiç görülmeden **bir kez** test edilir. Referans:
+hazır DamageFormer zero-shot 37,20 `[ZS-EVENT mIoU, repro]`. ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır.
 
 - Bağlayıcı tasarım: [docs/tasarim.md](docs/tasarim.md). Değişen karar orada ve ADR'de güncellenir.
 - Faz planı ve yenilik paketi: [docs/fazlar.md](docs/fazlar.md). Güncel durum: [docs/durum.md](docs/durum.md); her faz sonunda güncellenir.
@@ -38,7 +38,8 @@ eğitilir; 6 Şubat 2023 Türkiye depreminde, eğitimde hiç görülmeden **bir 
    Fikir havuzundaki seçimler 13 olayın sonucuyla yapılır, Türkiye sonucuyla yapılmaz.
 2. **Türkiye'yi görmüş ağırlık yok.** `*_standard_ML_split.pth` checkpoint'leri ve 2023 Türkiye sahnelerini
    ön eğitimde görmüş olabilecek modeller (ör. MaRS) başlangıç ağırlığı olamaz.
-3. **İki tam eğitim, fazlası yok.** Ana model (ChangeMamba olduğu gibi) ve tek fikirli bir varyant, her biri bir kez.
+3. **İki eğitim:** ana = kontrol fine-tune'u, varyant = SAR dayanıklılığı fine-tune'u, ikisi de hazır DamageFormer
+   zero-shot checkpoint'inden; her biri bir kez.
    GPU saati harcamadan önce ön kontrol kapılarının hepsi geçmeli. Yeni bir tam eğitim eklemek kullanıcının kararıdır.
 4. **Metrik etiketleri karışmaz.** Her sayının yanında türü yazılır: `[ZS-EVENT mIoU]`, `[STD-EVENT mIoU]`,
    `[STD-SET mIoU]`, `[DFC-TEST mIoU]`, `[CVPR-TEST segm_AP]`. Yalnız `[ZS-EVENT mIoU]` 41,28 ile kıyaslanır.

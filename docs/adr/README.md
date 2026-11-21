@@ -11,8 +11,9 @@ Her ADR tek bir kararı, bağlamını, değerlendirilen seçenekleri ve sonuçla
 | No | Başlık | Durum |
 |---|---|---|
 | [0001](0001-zero-shot-bolme.md) | Zero-shot bölme: Türkiye tamamen test | Kabul |
-| [0002](0002-ana-model-ve-yedek.md) | Ana model ChangeMamba-MMBDA Tiny, yedek DamageFormer | Kabul |
+| [0002](0002-ana-model-ve-yedek.md) | Ana model ChangeMamba-MMBDA Tiny, yedek DamageFormer | Ana model kararı: yerini aldı, ADR-0007 |
 | [0003](0003-baslangic-agirligi-ve-dislananlar.md) | Başlangıç ağırlığı ImageNet; Türkiye'yi görmüş olabilecek modeller dışarıda | Kabul |
 | [0004](0004-sar-girdisi.md) | SAR girdisi: resmî biçim (3 kanal, ImageNet normalizasyonu) | Önerildi |
 | [0005](0005-baslik-metrigi.md) | Başlık metriği: resmî kod yolu | Kabul |
 | [0006](0006-moduler-kod-yapisi.md) | Modüler kod yapısı | Kabul |
+| [0007](0007-ana-model-hazir-damageformer-fine-tune.md) | Ana model: hazır DamageFormer ile kontrollü fine-tune | Kabul |
