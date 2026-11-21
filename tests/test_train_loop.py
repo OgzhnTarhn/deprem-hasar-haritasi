@@ -22,6 +22,7 @@ torch = pytest.importorskip("torch")
 from hasar.config import Config, config_hash  # noqa: E402
 from hasar.guard import TurkeyLockError  # noqa: E402
 from hasar.results import read_result  # noqa: E402
+from hasar.train import loop  # noqa: E402
 from hasar.train.loop import TrainState, train  # noqa: E402
 
 CROP = 16
@@ -127,6 +128,87 @@ def read_jsonl(path: Path) -> list[dict[str, object]]:
 
 
 # --- tests ------------------------------------------------------------------
+
+
+@pytest.fixture
+def declining_validation_miou(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Report higher mIoU at intermediate evaluations than at the final step."""
+    original_summary = loop.summary
+    scores = iter([0.9, 0.8, 0.2, 0.1])
+
+    def decreasing_summary(total):
+        return {**original_summary(total), "miou": next(scores)}
+
+    monkeypatch.setattr(loop, "summary", decreasing_summary)
+
+
+def test_last_ema_selection_writes_best_at_final_step(tmp_path: Path, declining_validation_miou: None) -> None:
+    cfg = make_cfg()
+    cfg = dataclasses.replace(cfg, eval=dataclasses.replace(cfg.eval, every=2, select="last_ema"))
+
+    state = train(cfg, make_model(0), FakeTrainSet(), FakeValSet(), tmp_path, device="cpu", commit="test")
+
+    best = torch.load(tmp_path / "best.pt", map_location="cpu", weights_only=False)
+    assert best["step"] == 6
+    assert best["miou"] == pytest.approx(0.2)
+    assert state.best_step == 6
+    assert state.best_miou == pytest.approx(0.2)
+    last = torch.load(tmp_path / "last.pt", map_location="cpu", weights_only=False)
+    for name, weight in best["model"].items():
+        assert torch.equal(weight, last["ema"][name]), name
+    done = json.loads((tmp_path / "DONE").read_text(encoding="utf-8"))
+    assert done["best_step"] == 6
+    assert done["best_miou"] == pytest.approx(0.2)
+    entries = read_jsonl(tmp_path / "val_log.jsonl")
+    assert [entry["step"] for entry in entries] == [2, 4, 6]
+    assert [entry["miou"] for entry in entries] == pytest.approx([0.9, 0.8, 0.2])
+    record = read_result(tmp_path / "val13.json")
+    assert record.values["best_miou_pct"] == pytest.approx(20.0)
+
+
+def test_last_ema_selection_survives_resume(tmp_path: Path, declining_validation_miou: None) -> None:
+    cfg = make_cfg()
+    cfg = dataclasses.replace(cfg, eval=dataclasses.replace(cfg.eval, every=2, select="last_ema"))
+
+    interrupted = train(
+        cfg, make_model(0), FakeTrainSet(), FakeValSet(), tmp_path, device="cpu", commit="test", stop_at=4
+    )
+    assert interrupted.step == 4
+    assert interrupted.done is False
+    assert not (tmp_path / "best.pt").exists()
+    assert not (tmp_path / "DONE").exists()
+    assert [entry["step"] for entry in read_jsonl(tmp_path / "val_log.jsonl")] == [2, 4]
+
+    state = train(cfg, make_model(999), FakeTrainSet(), FakeValSet(), tmp_path, device="cpu", commit="test")
+
+    best = torch.load(tmp_path / "best.pt", map_location="cpu", weights_only=False)
+    assert best["step"] == 6
+    assert best["miou"] == pytest.approx(0.2)
+    assert state.done is True
+    assert state.best_step == 6
+    assert state.best_miou == pytest.approx(0.2)
+    last = torch.load(tmp_path / "last.pt", map_location="cpu", weights_only=False)
+    for name, weight in best["model"].items():
+        assert torch.equal(weight, last["ema"][name]), name
+    done = json.loads((tmp_path / "DONE").read_text(encoding="utf-8"))
+    assert done["best_step"] == 6
+    assert [entry["step"] for entry in read_jsonl(tmp_path / "val_log.jsonl")] == [2, 4, 6]
+
+
+def test_ema_val_miou_selection_picks_highest_miou_step(tmp_path: Path, declining_validation_miou: None) -> None:
+    cfg = make_cfg()
+    cfg = dataclasses.replace(cfg, eval=dataclasses.replace(cfg.eval, every=2, select="ema_val_miou"))
+
+    state = train(cfg, make_model(0), FakeTrainSet(), FakeValSet(), tmp_path, device="cpu", commit="test")
+
+    best = torch.load(tmp_path / "best.pt", map_location="cpu", weights_only=False)
+    assert best["step"] == 2
+    assert best["miou"] == pytest.approx(0.9)
+    assert state.best_step == 2
+    assert state.best_miou == pytest.approx(0.9)
+    done = json.loads((tmp_path / "DONE").read_text(encoding="utf-8"))
+    assert done["best_step"] == 2
+    assert done["best_miou"] == pytest.approx(0.9)
 
 
 def test_full_run_writes_expected_artifacts(tmp_path: Path) -> None:

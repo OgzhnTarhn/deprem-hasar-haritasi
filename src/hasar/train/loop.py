@@ -15,7 +15,9 @@ Selection by EMA val mIoU (weak selection, reported)
 The EMA weights, not the live ones, are evaluated and the best checkpoint is the one with the
 highest validation mIoU. That is a *weak* selection: the validation events are the same 13 events
 the model is trained on, so the number is optimistic and is reported as ``[VAL13 mIoU, ema]``, never
-as the headline ``[ZS-EVENT mIoU]``.
+as the headline ``[ZS-EVENT mIoU]``. With ``eval.select: last_ema`` (the fine-tune recipe) there is no
+selection at all: ``best.pt`` holds the EMA weights of the final step and the intermediate
+evaluations are only logged.
 
 Gradient accumulation and the adaptive micro-batch
 --------------------------------------------------
@@ -259,7 +261,7 @@ def train(
         last_miou = float(metrics["miou"])
         last_eval_step = at_step
         _append_jsonl(val_log, {"step": at_step, **metrics})
-        if last_miou > best_miou:
+        if (at_step == total_steps) if cfg.eval.select == "last_ema" else (last_miou > best_miou):
             best_step = at_step
             best_miou = last_miou
             save_checkpoint(
