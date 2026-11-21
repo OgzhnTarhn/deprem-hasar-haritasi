@@ -10,13 +10,28 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 | 2. Veri katmanı | Bitti (6 Kasım 2026) | `src/hasar/data/` (8 modül), `hasar` komutu, `results/veri/bolme.json`, `results/arastirma/` (5 araştırma); 288 kısa test (~3,5 sn) |
 | 3. Metrik ve yeniden üretim | Bitti (7 Kasım 2026) | `src/hasar/eval/` (metrik, bootstrap, bina F1, çıkarım, yeniden üretim), `hasar yeniden-uret`; 3 checkpoint ±0,3 içinde (yerel RTX 4060), DeepLabV3+ olumsuz bulgu |
 | 4. Model, eğitim motoru, ön kontrol | Kod bitti (7 Kasım 2026); Colab adımları kullanıcıda | `models/changemamba.py`, `train/` (kayıp, zamanlayıcı, EMA, kayıt, döngü), `preflight/gates.py` (11 kapı), `hasar agirlik/egit/on-kontrol`, protokol 1.0; kapılar 1–4, 6, 7, 10, 11 yerel GPU'da geçti |
-| 5. Ana eğitim | Kullanıcıda (Colab A100) | Kod hazır: `hasar egit`, `notebooks/ana_egitim.ipynb` |
+| 5. Ana eğitim | Başlamadı; Colab kullanıcıda | Hazır DamageFormer kontrol fine-tune’u, `configs/ana.yaml` |
 | 6. Türkiye final | Kod bitti (7 Kasım 2026); çalıştırma kullanıcıda | `eval/rows.py`, `eval/calibration.py`, `eval/final.py`, `eval/final_run.py`, `hasar sicaklik/final`; protokol 1.1. `sicaklik` yolu yerel GPU'da gerçek doğrulama kareleriyle denendi; `final` Türkiye'de **çalıştırılmadı** |
 | 7. Analizler | Kod bitti (8 Kasım 2026); ölçüm `final` sonrası | `analysis/` (uncertainty Y2, agreement Y1, transductive Y3, gallery, runner); `docs/bulgular.md`. Y1 dış katmanları ve Y3 yeniden çıkarımı kullanıcıda |
-| 8. Varyant | Kod bitti (8 Kasım 2026); eğitim kullanıcıda | `guard.require_final_access` (iki kilit), `eval/compare.py` (eşleştirilmiş kıyas, topluluk); varyant fikri KN1'de seçilecek |
+| 8. Varyant | Kod bitti (8 Kasım 2026); eğitim kullanıcıda | `guard.require_final_access` (iki kilit), `eval/compare.py` (eşleştirilmiş kıyas, topluluk); A4 seçildi (KN1, 21 Kasım 2026); aynı defterde ana sonrası çalışır |
 | 9. Demo ve ürünleştirme | Kod bitti (8 Kasım 2026); demo `final` sonrası | `hasar readme` (README tablosu üretildi), `hasar demo` (Leaflet, önbellekten), `hasar ornekler`, `export.py` + `scripts/disa_aktar.py` (yedek model torch-export ve ONNX'e aktarılıyor, `results/arastirma/disa_aktarim_*.json`) |
 
-## Faz 4'te kurulanlar ve ölçülenler
+## Güncel plan: kontrollü fine-tune (21 Kasım 2026)
+
+Kullanıcı [ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md) kararını onayladı.
+Colab L4 kapı 8'de ChangeMamba projeksiyonu 164,6 CU > 75 CU çıktı. Ana artık hazır DamageFormer
+zero-shot kontrol fine-tune'u; varyant A4 SAR radyometrik artırımı. KN1 bu seçimle kapandı.
+Hazır referans 37,20 `[ZS-EVENT mIoU, repro]`; ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır.
+
+Kod ve defter iki koşuyu destekliyor. Eğitim başlamadı; yeni eğitim ve `final` için Türkiye'ye dokunulmadı.
+Faz 3'teki izinli yeniden üretim ayrı kayıttır. Fine-tune başına ≤ 15 CU hedefi ölçülmedi; kapı 8 ölçer.
+Sıradaki iş: kullanıcı protokol 1.3'ü içeren commit'e `protokol-kilidi`ni taşır ve aynı commit'e
+`varyant-kilidi` koyar. Defter `origin/main` kullandığından değişiklikler oraya alınmış olmalı.
+Tek “Run All” önce ana, sonra varyant için ön kontrol → fine-tune → `sicaklik` → `final` çalıştırır.
+Kayıt noktası son adımın EMA'sı; birincil kıyas `hasar kiyas` ile varyant − ana.
+Ayrıntı: [colab.md](colab.md), [protokol.md](protokol.md).
+
+## Faz 4'te kurulanlar ve ölçülenler (önceki akışın kaydı)
 
 - **Model:** `ChangeMambaWrapper` resmî 0229flex yapılandırmasıyla; tek bantlı SAR'ı kendisi 3 kanala kopyalar.
   ImageNet VMamba-Tiny ağırlığı 222 tensörün 200'ünü yükler. Yedek: torchvision ImageNet Swin-T ile DamageFormer.
@@ -115,16 +130,13 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
   kayık olabilir (`docs/sar-temelleri.md` §3).
 - Eğitimde yalnız üç deprem var (Haiti, Fas, Noto); öteki olaylar patlama, yanardağ, yangın, kasırga, sel, savaş.
 
-## Açık kararlar
+## Kilitler ve sıradaki işler
 
-- **ADR-0004 (SAR girdisi):** Önerilen seçenek C, kullanıcı onayı gelene kadar varsayılan olarak uygulanır; kod
-  iki biçimi de yapılandırmayla destekler.
-- **Protokol §9 "eşit" kuralı:** Öneri bekliyor (Faz 4 öncesi).
-- **Protokol §6–8 (Faz 2 önerileri):** bina düzeyi metrik için CVPRW26 örnek etiketleri (1.001 kare), oylama birimi
-  olarak tahmin edilen bina bileşenleri, şehre göre katmanlı 2 km blok bootstrap. Onay Faz 4 öncesi.
-- Ana eğitimin yapılacağı ay için Colab Pro mu Pro+ mı (Faz 5'ten önce).
-- Fikir havuzundaki adaylar (KN1, Faz 6). N1 için kural 1 istisnasının genişletilmesi (KN1).
+- SAR `official` biçimde kalır; protokolün “eşit”, bina ve blok bootstrap kuralları sürer.
+- KN1 varyant kararı kapandı: A4 seçildi, topluluk 1.3 kapsamı dışında. Diğer fikirler ayrı karar ister.
+- Kullanıcı protokol 1.3 ve varyant kilitlerini günceller; ardından Colab'da iki fine-tune'u çalıştırır.
+- Fine-tune başına ≤ 15 CU hedefi ve aylık 100 CU toplam hedefi ölçüm bekliyor.
 
 ## Ölçülmemiş tahminler
 
-- A100 adım hızı, tepe VRAM, CU yakımı, Hugging Face indirme süresi: Faz 3–4'te ölçülecek.
+- Yeni fine-tune reçetesinin Colab hızı, tepe VRAM ve CU projeksiyonu: her koşunun 8. kapısında ölçülecek.

@@ -2,7 +2,8 @@
 
 Afet öncesi optik ve afet sonrası SAR uydu görüntülerinden bina hasarını piksel düzeyinde haritalayan model.
 [BRIGHT](https://github.com/ChenHongruixuan/BRIGHT) veri setinin 13 olayıyla eğitilir; 6 Şubat 2023 Türkiye
-depreminde, eğitimde hiç görülmeden, **bir kez** test edilir. Kıyas çıpası: ChangeMamba 41,28 `[ZS-EVENT mIoU]`.
+depreminde, eğitimde hiç görülmeden, **bir kez** test edilir. Referans: hazır DamageFormer 37,20 `[ZS-EVENT mIoU, repro]`;
+ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır.
 
 - Tasarım: [docs/tasarim.md](docs/tasarim.md) · Protokol (önceden kayıt): [docs/protokol.md](docs/protokol.md)
 - Görsel genel bakış: [docs/proje-haritasi.md](docs/proje-haritasi.md) · Ders kitabı: [docs/dersler.md](docs/dersler.md)
@@ -10,8 +11,8 @@ depreminde, eğitimde hiç görülmeden, **bir kez** test edilir. Kıyas çıpas
 
 ## Sonuçlar
 
-Her sayı `results/**/*.json` dosyasından üretilir ve yanında metrik türünü taşır. Yalnız `[ZS-EVENT mIoU]`
-41,28 ile kıyaslanır; fark protokol §9'daki "eşit" kuralına göre yazılır.
+Her sayı `results/**/*.json` dosyasından üretilir ve yanında metrik türünü taşır. `[ZS-EVENT mIoU]`
+için birincil kıyas varyant − ana, ikincil kıyaslar referansa karşıdır; fark protokol §9'daki "eşit" kuralıyla yazılır.
 
 Şimdilik tabloda yalnız Faz 3'ün yeniden üretim satırları (`repro`) var: hazır BRIGHT checkpoint'lerinin yayımlanan
 değerleri tutturup tutturmadığını gösterir, bu projenin modeli değildir. DeepLabV3+ satırı **olumsuz bulgudur**:
@@ -42,14 +43,17 @@ uv run hasar indir --root data/bright --cache data/cache   # BRIGHT'ı Hugging F
 uv run hasar veri-ozet --root data/bright                  # bölme özeti -> results/veri/bolme.json
 ```
 
-Eğitim Colab'da, ince defterle yapılır: [notebooks/ana_egitim.ipynb](notebooks/ana_egitim.ipynb). Adımlar
+Kontrol ve SAR varyantı hazır DamageFormer zero-shot checkpoint’inden fine-tune edilir.
+Tek “Run All” önce ana, sonra varyant için ön kontrol → fine-tune → `sicaklik` → `final` çalıştırır
+(etiketlere göre). Eğitim Colab’da, ince defterle yapılır: [notebooks/ana_egitim.ipynb](notebooks/ana_egitim.ipynb). Adımlar
 [docs/colab.md](docs/colab.md)'de.
 
 - **GPU:** A100 hedeflenir; Colab L4 verirse defter onu da kabul eder ve kapı 8 maliyeti çalışan karta göre hesaplar.
 - **Bellek:** bir adım belleğe sığmazsa eğitim döngüsü mikro partiyi yarıya indirip gradyan biriktirir; etkin batch
   değişmez (`train.micro_batch`).
-- **ChangeMamba çekirdeği:** Colab'ın CUDA 13'ünde yamayla derlenir; defter yamayı kendisi uygular ve derlenen
-  tekerleği Drive'da saklar, sonraki oturumlar derlemeden kurar.
+- **Kilitler:** protokol 1.3'ü içeren commit'te `protokol-kilidi` ve `varyant-kilidi` gerekir; kullanıcı yönetir.
+  Defter `origin/main` kullanır; dal değişiklikleri oraya alınmış olmalı.
+- **Bütçe:** fine-tune başına ≤ 15 CU hedefi; ölçülmedi, kapı 8 ölçer. Özel ChangeMamba çekirdeği artık gerekmiyor.
 
 Sonuç tablosu `uv run hasar readme` ile yenilenir (`--check` güncel olup olmadığını denetler).
 
@@ -58,7 +62,7 @@ Sonuç tablosu `uv run hasar readme` ile yenilenir (`--check` güncel olup olmad
 1. Türkiye'nin ne görüntüsü ne etiketi eğitimde, doğrulamada, seçimde veya ayarda kullanılır; Türkiye'ye tek yol
    `protokol-kilidi` etiketli, temiz bir commit'teki `final` adımıdır.
 2. Türkiye'yi görmüş ağırlık (`*_standard_ML_split.pth`, MaRS) başlangıç olamaz.
-3. İki tam eğitim: ana model (ChangeMamba olduğu gibi) ve tek fikirli bir varyant.
+3. İki eğitim: aynı hazır DamageFormer zero-shot checkpoint’inden kontrol ve SAR varyantı; her biri bir kez.
 4. Her sayının yanında metrik türü yazılır; sayılar dosyadan gelir; olumsuz sonuç da yazılır.
 
 ## Lisans ve atıf

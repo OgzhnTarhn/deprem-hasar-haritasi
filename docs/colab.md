@@ -1,145 +1,139 @@
 # Colab'da çalıştırma rehberi
 
-Bu belge, kodu yazılmış ama GPU gerektirdiği için çalıştırılmamış adımları sırayla anlatır. Bütün mantık
-`src/hasar` paketinde; defter yalnız komutları çağırır. Her adım yapılmış işi atlar: kopma olursa aynı defter
-"Run All" ile kaldığı yerden devam eder.
+Ana model artık hazır DamageFormer zero-shot checkpoint'inin kontrol fine-tune'u. Varyant aynı checkpoint'ten
+SAR radyometrik artırımıyla başlar. Karar: [ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md),
+[protokol 1.3](protokol.md). ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır.
 
-**Defterde doldurulacak alan yok.** `notebooks/ana_egitim.ipynb` Colab'a yüklenip "Run All" denir. Defter git
-etiketlerine bakıp aşamasını kendisi seçer:
+**Doldurulacak alan yok.** [Defter](../notebooks/ana_egitim.ipynb) tek “Run All” ile önce ana, sonra varyant için
+**ön kontrol → fine-tune → `sicaklik` → `final`** sırasını çalıştırır. Aşamayı git etiketleri belirler.
 
-| Etiketler | Defterin yaptığı |
+| Etiketler | Her iki koşuda defterin yaptığı |
 |---|---|
-| `protokol-kilidi` yok | Yalnız ön kontrol (eğitim başlamaz) |
-| `protokol-kilidi` | Ön kontrol (geçtiyse atlanır) → ana eğitim (`last.pt`'den devam, `DONE` ise atlanır) |
-| `protokol-kilidi` + `varyant-kilidi` | Yukarıdakiler + Türkiye'de tek `sicaklik` ve `final` |
+| `protokol-kilidi` yok | Yalnız ön kontrol; eğitim başlamaz |
+| Yalnız `protokol-kilidi` | Ön kontrol → fine-tune; Türkiye değerlendirmesi yok |
+| `protokol-kilidi` + `varyant-kilidi` | Ön kontrol → fine-tune → `ornekler` → `sicaklik` → tek `final` |
 
-Defter her zaman güncel `main`'i çeker; kilitli dosyalar (`configs/ana.yaml`, `docs/protokol.md`; varyant
-kilidinden sonra `configs/`) etiketten beri değiştiyse durur. Yalnız varyant (Faz 8) için `CONFIG` ve `NAME`
-değiştirilir.
+Defter `origin/main` kullanır. Bu dalın değişiklikleri orada bulunmadan yeni akış çalışmaz. Mevcut
+`protokol-kilidi` 1.2'yi gösteriyor; kullanıcı, 1.3'ü içeren commit'e taşımalı ve aynı commit'e
+`varyant-kilidi` koymalı. Bu belgeleri hazırlama adımı etiket taşımaz veya push yapmaz.
+Varyant ana modelin Türkiye sonucundan önce kilitlenir.
 
-| Adım | Faz | Nerede | Süre / CU (tahmin) | Geri alınabilir mi |
-|---|---|---|---|---|
-| 1. Yeniden üretim | 3 | **Yapıldı** (yerel RTX 4060, 7 Kasım 2026) | ~16 dk / 0 CU | Evet |
-| 2. `protokol-kilidi` etiketi | 4 | **Atıldı** (18 Kasım 2026) | – | Etiket silinebilir ama `final` sonrası anlamı kalmaz |
-| 3. Ön kontrol kapıları | 4 | Colab A100 (defter, eğitimle aynı "Run All") | 1–1,5 saat / ~10 CU | Evet |
-| 4. Ana eğitim | 5 | Colab A100 | 40.000 adım / 50–75 CU | Evet (devam eder) |
-| 5. KN1 ve `varyant-kilidi` | 6 | Yerel (karar) | – | Evet |
-| 6. Sıcaklık ve Türkiye `final` | 6 | Colab A100 | < 1 saat / < 5 CU | **Hayır: Türkiye bir kez değerlendirilir** |
-| 7. Analizler | 7 | Yerel CPU | – | Evet |
-| 8. Varyant eğitimi ve `final` | 8 | Colab A100 | 50–75 CU | `final` yine bir kez |
-| 9. Demo, README | 9 | Yerel | – | Evet |
+`protokol-kilidi` denetimi `configs/ana.yaml`, `configs/varyant.yaml`, `docs/protokol.md` dosyalarını;
+`varyant-kilidi` denetimi `configs/` altını kapsar. Kilitli dosya değişmişse veya etiket HEAD'in atası değilse durur.
 
-## 0. Hazırlık (bir kez)
+| Adım | Yer | Süre / CU | Durum |
+|---|---|---|---|
+| Hazır modelleri yeniden üretme | Yerel; Faz 3 tamamlandı | Eğitim yok | Referans kayıtları depoda |
+| Protokol 1.3 ve varyant kilitleri | Kullanıcı | GPU gerekmez | Eğitimden ve ana `final`den önce |
+| Ana ön kontrol | Colab A100 veya L4 | Ölçülmedi, kapı 8 ölçer (eğitim projeksiyonu) | Ayrı ön kontrol kaydı |
+| Ana fine-tune | Colab | Yaklaşık 1–2 saat; ≤ 15 CU hedefi; ölçülmedi, kapı 8 ölçer | 4.000 adım |
+| Ana `sicaklik` → `final` | Colab | Ölçülmedi; kapı 8 eğitim projeksiyonunu ölçer, değerlendirme süresini ölçmez | Türkiye'de bir kez |
+| Varyant ön kontrol → fine-tune | Aynı “Run All” | Yaklaşık 1–2 saat fine-tune; ≤ 15 CU hedefi; ölçülmedi, kapı 8 ölçer | 4.000 adım; ayrı kayıt |
+| Varyant `sicaklik` → `final` | Aynı “Run All” | Ölçülmedi; kapı 8 yalnız eğitim projeksiyonunu ölçer | Türkiye'de bir kez |
+| Kıyas, analizler, demo | Yerel | GPU eğitimi yok | Saklanan matris ve önbellekler |
 
-- Colab'da **A100** seçin, High-RAM kapalı kalsın. Colab'ın kurulu `torch` ve `timm` sürümleri kullanılır.
-  Colab A100 seçili görünse de bazen **L4** (22 GB) veriyor (`!nvidia-smi` gerçek kartı gösterir). Defter L4'ü de
-  kabul eder: kapı 8 CU'yu karta göre (A100 ~13, L4 ~5 CU/saat) hesaplar. Bellek yetmezse eğitim döngüsü mikro
-  partiyi kendisi yarıya indirir ve gradyanları biriktirir; etkin batch 16 kalır (`train.micro_batch`).
-- ChangeMamba çekirdeği Colab'ın CUDA 13'ünde ancak yamayla derlenir (`cub::LaneId`, `cub::CTA_SYNC` kaldırıldı,
-  sm_70 desteklenmiyor; torch 2.14 başlıkları C++20 istediği için `-std=c++17` → `-std=c++20`). Defterin 2. hücresi yamayı kendisi uygular ve derlenen tekerleği
-  `MyDrive/deprem-hasar/wheels/` altına kaydeder; sonraki oturumlar derlemeden kurar.
-- Colab "Secrets" bölümüne `HF_TOKEN` ekleyin (Hugging Face indirme hızı için; zorunlu değil).
-- Drive'da `MyDrive/deprem-hasar/` klasörü defter tarafından açılır; kayıt noktaları oraya yazılır.
+Fine-tune süreleri [tasarımın](superpowers/specs/2026-11-21-sar-dayaniklilik-finetune-design.md) tahminidir.
+Kapı 8'in ≤ 15 CU denetimine ön kontrol maliyeti dahil değildir. İki koşu ve ön kontrollerin toplam hedefi aylık
+100 CU içinde kalmaktır; ölçülmüş toplam gibi yazılmaz.
 
-## 1. Faz 3: hazır modellerin yeniden üretimi
+## 0. Hazırlık
 
-> **Durum:** yerelde yapıldı ve commit'lendi (`results/yeniden-uretim/`): SiamCRNN, UNet, DamageFormer ±0,3 içinde;
-> DeepLabV3+ checkpoint'i tutmadı (Türkiye'yi görmüş görünüyor, `docs/durum.md` Faz 3). Defterin 4. hücresi bu
-> dosyaları bulduğu için adımı atlar. Aşağıdaki komutlar yalnız yeniden çalıştırmak gerekirse.
+- A100 seçin; Colab L4 verirse defter onu da kabul eder. High-RAM kapalı kalsın.
+- Kurulu `torch` ve `timm` kullanılır; torch yeniden kurulmaz.
+- Veri VM diskine indirilir. Drive'da `MyDrive/deprem-hasar/` altında kayıtlar ve sonuçlar tutulur.
+- `HF_TOKEN` Colab Secrets'e eklenebilir; zorunlu değildir.
+- Etkin batch 8'dir. Bellek yetmezse mikro parti otomatik küçülür, gradyan biriktirilir; etkin batch değişmez.
 
-Zenodo 15349462'deki Türkiye zero-shot checkpoint'leri, eğitim yapılmadan Türkiye'de çalıştırılır (kural 1'in
-birinci istisnası). Çıkış ölçütü: SiamCRNN 38,32, UNet 37,82, DamageFormer 37,20 `[ZS-EVENT mIoU]` değerlerine
-±0,3 içinde yakınlık. Tutmazsa hata veri ya da metrik hattındadır ve sonraki faza geçilmez.
+### ChangeMamba çekirdeği: artık gerekmiyor
+
+DamageFormer özel `selective_scan` çekirdeği istemez. Derleme, yama ve Drive tekerleği kurulumu bu akışta yoktur.
+Kapı 11 model kaydını “uygulanmaz” notuyla geçirir.
+
+## 1. Veri ve başlangıç ağırlığı
+
+Defter `hasar indir` ile veriyi alır; `.done` varsa atlar. İki yapılandırma için aşağıdaki komut çağrılır:
 
 ```bash
-# Çalışma ağacı temiz olmalı (commit'lenmemiş değişiklik varsa guard reddeder).
-uv run hasar yeniden-uret --model siamcrnn     --data data/bright --out results/yeniden-uretim --device cuda
-uv run hasar yeniden-uret --model unet         --data data/bright --out results/yeniden-uretim --device cuda
-uv run hasar yeniden-uret --model damageformer --data data/bright --out results/yeniden-uretim --device cuda
-# B2 topluluk adayı için aynı checkpoint'lerin 13 olay doğrulaması (Türkiye'ye dokunmaz):
-uv run hasar yeniden-uret --model damageformer --split val --data data/bright --out results/yeniden-uretim --device cuda
+hasar agirlik --config configs/ana.yaml --out /content/data/checkpoints
+hasar agirlik --config configs/varyant.yaml --out /content/data/checkpoints
 ```
 
-Sonuçlar `results/yeniden-uretim/<model>_test.json` dosyalarına `[ZS-EVENT mIoU, repro]` etiketiyle yazılır;
-`extra.within_tolerance` alanı çıkış ölçütünü gösterir. Defterin 4. hücresi bu adımı da kendisi çalıştırır.
+Komut md5 denetimli DamageFormer zero-shot checkpoint'inin yolunu son satıra yazar. Ön kontrol ve eğitim
+bu yolu `--pretrained` ile alır. `standard_ML` veya ImageNet ağırlığı bu fine-tune'un başlangıcı değildir.
+Faz 3'ün SiamCRNN, UNet ve DamageFormer yeniden üretim kayıtları varsa ortak yeniden üretim adımı atlanır.
+Referans DamageFormer 37,20 `[ZS-EVENT mIoU, repro]`; kaynak `results/yeniden-uretim/damageformer_test.json`.
 
-## 2. Faz 4: ön kontrol kapıları
+## 2. Ön kontrol
 
-Defterin 4. hücresi 11 kapıyı çalıştırır ve `MyDrive/deprem-hasar/kosular/onkontrol/<NAME>/preflight.json`
-dosyasını yazar; kapıları tek tek yazdırır. Kapılardan biri kalırsa defter durur: o dosyayı Claude'a gönderin.
-(`STEPS_OVERRIDE = 2000` ile kısa eğitim provası yapılabilir; asıl eğitimde `None`.)
+Her koşunun kaydı `kosular/onkontrol/<ad>/preflight.json` dosyasındadır. Yapılandırma hash'i tutan,
+tamamlanmış ve geçmiş kayıt yeniden kullanılabilir. Bir kapı kalırsa eğitim başlamaz.
 
-| # | Kapı | Geçme koşulu |
-|---|---|---|
-| 1 | Yeniden üretim | En az 3 `repro` sonucu ±0,3 içinde |
-| 2 | Bölme sayıları | 2.795 / 337 / 1.114; eğitim ve doğrulamada Türkiye yok |
-| 3 | Örnekleyici uzunluğu | adım × batch |
-| 4 | Başlangıç kaybı | hasar ≈ ln 4, bina ≈ ln 2 (±0,25) |
-| 5 | Ezberleme | 8 kare, artırımsız; kayıp başlangıcın %20'sinin altına |
-| 6 | SAR dalı bağlı | SAR sıfırlanınca hasar çıktısı değişir |
-| 7 | Metrik uç durumları | kusursuz = 1,0; hep arka plan = arka plan oranı / 4 (≈ 0,226) |
-| 8 | Hız ve CU | projeksiyon ≤ 75 CU |
-| 9 | Gradyan kırpma | 2× lr'de p90 gradyan normu → `train.clip` |
-| 10 | Devam testi | 60. adımda kesilip devam eden koşu, kesintisiz koşuyla aynı ağırlıklar (GPU'da `atol` 1e-3, kayıplar %1 içinde) |
-| 11 | Çekirdek | 20 adım ileri-geri sonlu; ChangeMamba CUDA çekirdeğiyle çalışıyorsa torch yoluyla fark < 1e-2. Kayıtta model ve tarama yolu yazar |
+| Kapı | Fine-tune akışındaki kural |
+|---|---|
+| 1–3 | Yeniden üretim, Türkiye'siz bölme ve örnekleyici denetimleri korunur |
+| 4 | Yüklenen model, 13 olay doğrulamasında 74,48 `[VAL13 mIoU, repro]` değerine ±0,3 yakın olmalı; fp32, TTA yok |
+| 5–7 | Ezberleme, SAR dalı ve metrik uç durumları korunur |
+| 8 | Çalışan kartta hız ve CU projeksiyonu; yapılandırmadaki 15 CU sınırını aşarsa durur |
+| 9 | Ortak reçetenin 2× lr provasında p90 gradyan normu; eğitim bunu kırpma eşiği olarak okur |
+| 10 | Tam durumla kopma ve devam denetimi korunur |
+| 11 | DamageFormer için özel çekirdek gerekmez; “uygulanmaz” |
 
-Çekirdek derlenmemişse model kurulurken otomatik olarak Swin-T DamageFormer yedeğine geçilir (tasarım §5) ve kapılar
-yedekle koşar; `preflight.json`'daki kapı 11 kaydında `model: BrightBaseline` görünür. Ana eğitimin ChangeMamba ile
-yapılacağından emin olmak için bu alana bakın.
-Kapı 9'un verdiği eşik elle yazılmaz (protokol 1.2): `train.clip: null` iken `hasar egit --preflight <dosya>`
-eşiği, aynı yapılandırmanın tamamlanmış ve bütün kapıları geçmiş kaydının 9. kapısından okur. Kayıt yoksa,
-başka bir yapılandırmaya aitse ya da bir kapı kaldıysa eğitim başlamaz.
+Kapı 4'ün kaynağı `results/yeniden-uretim/damageformer_val.json`; yoksa kapı geçmez.
+`train.clip: null` kalır. Eğitim, `--preflight` kaydındaki 9. kapıyı okur; eksik veya farklı yapılandırmaya
+ait kaydı reddeder. Eşik elle yazılmaz.
 
-## 3. Protokol kilidi
+## 3. İki fine-tune ve kopmadan devam
 
-`protokol-kilidi` etiketi 18 Kasım 2026'da protokol 1.2'nin commit'ine atıldı. Eşik kuralı önceden sabit
-olduğu için kilit ön kontrolden önce atılabildi. Bu etiketten sonra `configs/ana.yaml` ve `docs/protokol.md`
-değiştirilmez.
+Defter `RUNS` listesiyle önce `configs/ana.yaml`, sonra `configs/varyant.yaml` çalıştırır. `CONFIG` veya `NAME`
+değiştirmek gerekmez. İkisi de aynı checkpoint, tohum, kırpma ve örnek sırasını kullanır. Varyantın tek eğitim
+farkı SAR artırımıdır; değerlendirmede uygulanmaz.
 
-## 4. Faz 5: ana eğitim
+Kopmada yeniden “Run All” yeterlidir. `last.pt` tam durumla devam eder; `DONE` varsa eğitim atlanır.
+`kosular/<run_id>/best.pt` adı korunur ama içerik **son adımın EMA ağırlıklarıdır**; en yüksek doğrulama sonucu
+aranmaz. EMA başlangıç checkpoint'inden başlar. `val_log.jsonl`, `val13.json` ve `DONE` ayrı koşu altında tutulur.
 
-Defteri yükleyip "Run All". Ön kontrol bittiyse atlanır, eğitim başlar. Kopma olursa yine
-"Run All": `last.pt` varsa tam durumla devam eder, `DONE` varsa atlar. Sonunda Drive'da
-`kosular/<run_id>/` altında `best.pt` (EMA), `val_log.jsonl`, `val13.json` ve `DONE` bulunur.
-`val13.json` dosyasını depoya `results/ana/val13.json` olarak kopyalayın.
+## 4. Sıcaklık ve Türkiye'de tek değerlendirme
 
-## 5. Faz 6: KN1 ve varyant kilidi (karar)
-
-Ana modelin 13 olaydaki sonuçlarına bakarak `docs/fikir-havuzu.md`'deki adaylardan varyant fikri seçilir; tasarımı
-ve yapılandırması (`configs/varyant.yaml`) commit'lenip `varyant-kilidi` etiketi atılır. **Türkiye sonucu
-görülmeden.** `final` komutu bu etiket olmadan çalışmaz.
-
-## 6. Faz 6: Türkiye'de tek değerlendirme
-
-`varyant-kilidi` etiketi push edildikten sonra defterde yine "Run All": defter etiketi görür, eğitim `DONE`
-olduğu için atlanır ve 6. hücre Türkiye değerlendirmesini yapar. 6. hücre sırayla şunları yapar (elle de
-çalıştırılabilir; çıktılar depo dışına yazılır, çünkü `final` temiz çalışma ağacı ister):
+İki kilit varsa her koşu kendi eğitiminden sonra `ornekler`, `sicaklik`, `final` sırasını izler.
+`sicaklik` yalnız 13 olayın doğrulamasında ayarlanır; `sicaklik.json` varsa atlanır. `final` temiz çalışma ağacı
+ve iki etiketin HEAD'in atası olmasını ister. Çıktılar depo dışına yazılır.
 
 ```bash
 R=/content/drive/MyDrive/deprem-hasar
-hasar ornekler --dest /content/data/ornekler --cache /content/data/cache        # yalnız sabit 1.001 kare
+hasar ornekler --dest /content/data/ornekler --cache /content/data/cache
 hasar sicaklik --config configs/ana.yaml --data /content/data/bright --runs $R/kosular --device cuda --out $R/sonuclar/ana
-hasar final    --config configs/ana.yaml --data /content/data/bright --runs $R/kosular --device cuda --out $R/sonuclar/ana                --cache /content/data/final_cache --instances /content/data/ornekler
+hasar final --config configs/ana.yaml --data /content/data/bright --runs $R/kosular --device cuda --out $R/sonuclar/ana --cache /content/data/final_cache --instances /content/data/ornekler
 ```
 
-Sonra yerelde `MyDrive/deprem-hasar/sonuclar/ana/` içeriği `results/ana/` altına kopyalanıp commit'lenir;
-önbellek `MyDrive/deprem-hasar/final_cache/<run_id>/` altında kalır (analizler ve demo onu okur).
+Varyant için defter aynı komutları `configs/varyant.yaml` ve `sonuclar/varyant` ile çağırır.
+`ornekler` sabit bina karesi listesiyle uyumlu klasörü hazırlar. Model başına ayrı önbellek kullanılır.
+Yarım `final`, aynı VM ve önbellek korunmuşsa oradan devam eder. VM yenilenirse yarım önbellek kaybolabilir;
+defter Drive kopyasını `final` tamamlandıktan sonra alır. Başlık dosyası `turkiye.json` en son yazılır. Dosya varsa defter ikinci
+`final`i atlar. `final` komutu da tamamlanmış değerlendirmeyi yeniden çalıştırmayı reddeder.
 
-- `final` yalnız `protokol-kilidi` ve `varyant-kilidi` etiketleri HEAD'in atasıysa ve ağaç temizse çalışır.
-- `sicaklik` yalnız 13 olayın doğrulamasını okur (337 kare; yerel denemede kare başına ~6 sn, A100'de daha kısa;
-  NLL ızgarası CPU'da). Sonucu `--out` klasöründeki `sicaklik.json`; `final` aynı klasörden okur, yoksa uyarıp
-  T=1 ile devam eder. Önce `sicaklik`.
-- `--instances` klasörü `results/arastirma/turkiye_bina_kareleri.json` listesindeki 1.001 kareyle birebir
-  tutmalı; tutmazsa `final` Türkiye'ye dokunmadan durur. `hasar ornekler` tam bu klasörü üretir.
-- Bootstrap blokları varsayılan olarak `results/arastirma/turkiye_bloklar.json`'dan okunur (protokol §8).
-- Önbellek model başına ayrıdır (`<cache>/<run_id>/`): varyantın `final`'i ana modelin olasılıklarını okuyamaz.
-- Yarıda kalırsa aynı komutu yeniden çalıştırın: biten kareler önbellekten okunur. Başlık dosyası
-  (`turkiye.json`) en son yazılır; o yazıldıktan sonra komut reddedilir.
-- Sonuç kayıtlarındaki `model` alanı gerçekten çalışan modeli yazar (çekirdek yoksa `damageformer_swin_t`).
-  Ana eğitim ChangeMamba ile yapıldıysa `final` da çekirdeği derlenmiş bir oturumda çalışmalıdır; aksi hâlde
-  ağırlıklar yedek modele yüklenemez ve komut hata verir.
+Drive'daki `sonuclar/ana/` ve `sonuclar/varyant/` içerikleri yerelde `results/ana/` ve `results/varyant/`
+altına alınır. Her koşunun `val13.json` kaydı da ilgili sonuç klasörüne kopyalanır.
+Önbellekler `MyDrive/deprem-hasar/final_cache/<run_id>/` altında saklanır; analizler ve demo bunları okur.
 
-## 7. Faz 7: Analizler (yerel CPU)
+## 5. Üç kıyas
+
+`hasar kiyas` yalnız kare matrislerini okur; modeli veya Türkiye görüntülerini yeniden çalıştırmaz.
+Farkın yönü **b − a**. `--blocks results/arastirma/turkiye_bloklar.json` açıkça verilmelidir; verilmezse her kare ayrı blok sayılır.
+
+```bash
+# Birincil: varyant − ana
+uv run hasar kiyas --a results/ana/turkiye_kare_matrisleri_headline.npz --b results/varyant/turkiye_kare_matrisleri_headline.npz --name-a ana --name-b varyant --out results/kiyas/varyant_vs_ana.json --blocks results/arastirma/turkiye_bloklar.json
+# İkincil: ana − referans
+uv run hasar kiyas --a results/yeniden-uretim/damageformer_test_matrices.npz --b results/ana/turkiye_kare_matrisleri_headline.npz --name-a referans --name-b ana --out results/kiyas/ana_vs_referans.json --blocks results/arastirma/turkiye_bloklar.json
+# İkincil: varyant − referans
+uv run hasar kiyas --a results/yeniden-uretim/damageformer_test_matrices.npz --b results/varyant/turkiye_kare_matrisleri_headline.npz --name-a referans --name-b varyant --out results/kiyas/varyant_vs_referans.json --blocks results/arastirma/turkiye_bloklar.json
+```
+
+Kare kümeleri eşleşmelidir; eşleşmezse komut hata verir. Eşleştirilmiş blok bootstrap ve “eşit” kuralı
+[protokol §8–9](protokol.md) ile sabittir. Referans eşleştirilemiyorsa yalnız aralıkla kıyas raporlanır.
+Sonuca göre model veya ayar seçilmez.
+
+## 6. Faz 7: Analizler (yerel CPU)
 
 Model yeniden çalışmaz; `results/ana/turkiye.json` yoksa reddeder. Önbellek ve örnek etiketleri yerele indirilir:
 
@@ -155,23 +149,7 @@ katmanları ayrıca indirilir ve karenin koordinat sistemine çevrilir (`docs/ve
 `hasar.analysis.agreement`). Y3 (transdüktif) Türkiye'de yeniden çıkarım ister; ayrı tabloda raporlanır.
 Bulgular `docs/bulgular.md`'ye işlenir.
 
-## 8. Faz 8: Varyant
-
-Aynı defter `CONFIG = "configs/varyant.yaml"`, `NAME = "varyant"` ile: ön kontrol, eğitim ve (`varyant-kilidi`
-olduğu için) tek `final`. İki modelin farkı kare matrislerinden, eşleştirilmiş blok bootstrap ile:
-
-```python
-from hasar.eval.bootstrap import turkey_blocks
-from hasar.eval.compare import compare_models, compare_record
-from hasar.eval.metrics import ConfusionAccumulator
-a = ConfusionAccumulator.load_npz("results/ana/turkiye_kare_matrisleri_headline.npz").per_tile
-b = ConfusionAccumulator.load_npz("results/varyant/turkiye_kare_matrisleri_headline.npz").per_tile
-result = compare_models(a, b, blocks=turkey_blocks("results/arastirma/turkiye_bloklar.json"))
-```
-
-Sonuç "eşit" kuralına göre yazılır (protokol §9); seçim Türkiye sonucuna göre yapılmaz.
-
-## 9. Faz 9: Demo, README, dışa aktarım
+## 7. Faz 9: Demo, README, dışa aktarım
 
 - README tablosu: `uv run hasar readme` (denetim: `--check`). Elle sayı yazılmaz.
 - Demo: `uv run hasar demo --cache data/final_cache/<run_id> --data data/bright --out demo/`. `demo/` git dışında

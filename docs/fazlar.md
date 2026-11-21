@@ -1,6 +1,6 @@
 # Faz Planı
 
-**Sürüm:** 2 (6 Kasım 2026; araştırma bulgularıyla yeniden düzenlendi, belge fazı eklendi, fazlar bir kaydı)
+**Güncelleme:** 21 Kasım 2026; ADR-0007 ve protokol 1.3. Faz numaraları korunur; iki fine-tune aynı Colab akışındadır.
 
 Her faz ayrı bir Claude Code oturumunda yapılır. Kendi çıkış koşulu sağlanmadan sonraki faza geçilmez. Kod işleri
 orkestra ile, belge işleri doğrudan yapılır. Her fazın başında oturuma şu verilir:
@@ -20,13 +20,14 @@ Faz bitince: çıkış koşulları doğrulanır, değişiklikler atomik commit'l
 | 2 | Veri katmanı | 2–3 | 0 | Kod + araştırma | |
 | 3 | Metrik ve yeniden üretim | 3–4 | 5–8 | Kod + Colab | |
 | 4 | Model, eğitim motoru, ön kontrol | 4–5 | 10–15 | Kod + Colab | `protokol-kilidi` |
-| 5 | Ana eğitim | 5–6 | 50–75 | Colab | |
-| 6 | Karar noktası, varyant kilidi, Türkiye değerlendirmesi | 6–7 | < 5 | Karar + Colab | KN1, `varyant-kilidi` |
+| 5 | Kontrol fine-tune | 5–6 | ≤ 15 hedef; ölçülmedi | Colab | İki kilitten sonra |
+| 6 | Türkiye değerlendirmesi ve kıyas | 6–7 | Ölçülmedi | Colab + yerel | KN1 eğitim öncesinde kapandı |
 | 7 | Analizler | 7–10 | 2–5 | Kod (CPU ağırlıklı) | KN2 |
-| 8 | Varyant eğitimi | 11–13 | 50–75 | Colab | KN3 |
+| 8 | SAR varyantı fine-tune | Ana sonrası aynı akış | ≤ 15 hedef; ölçülmedi | Colab | KN3 |
 | 9 | Demo ve ürünleştirme | 14–16 | < 2 | Kod + belge | |
 
-Toplam tahmin: iki tam eğitimle 115–175 CU. İki tam eğitim aynı aya düşmez.
+İki fine-tune ve ön kontroller için aylık 100 CU içinde kalma hedefi var. Koşu başına ≤ 15 CU
+ölçülmedi; kapı 8 eğitim projeksiyonunu ölçer. Ön kontrol bu projeksiyonun dışındadır.
 
 ## Yenilik paketi ve fikir havuzu
 
@@ -38,12 +39,11 @@ değerlendirme işleri. Planlı olanlar:
 | Y1 | **Referans anlaşmazlığı haritası** | Aynı binalarda BRIGHT optik yorum etiketi, HOT/OSM yıkık bina katmanı ve öğrenmesiz radar haritası (ARIA DPM) ne kadar anlaşıyor; model kime göre "yanlış"? HOT/OSM de optik yoruma dayandığı için çerçeve "iki optik yorum + bir radar sinyali". | 0 | 7 |
 | Y2 | **Analist bütçeli önceliklendirme** | Uzman binaların yalnız %5, %10 veya %20'sini kontrol edebiliyorsa model hangilerini göstermeli? Taban: rastgele sıra ve DPM sırası. | 0 | 7 |
 | Y3 | **Etiketsiz SAR uyarlaması** | Türkiye'nin yalnız SAR istatistikleriyle giriş yeniden standartlaştırılırsa ne değişir? Ayrı transdüktif tablo; yenilik iddiası taşımaz. | 0 | 7 |
-| Y4 | **Tek fikirli varyant** | Fikir KN1'de, yalnız 13 olayın doğrulamasıyla seçilir. Adaylar ve öteki bütün fikirler: [fikir-havuzu.md](fikir-havuzu.md). | 1 | 6, 8 |
+| Y4 | **Tek fikirli varyant** | A4 SAR radyometrik dayanıklılığı KN1’de, 21 Kasım 2026’da seçildi. Diğer fikirler: [fikir-havuzu.md](fikir-havuzu.md). | 1 | 6, 8 |
 
-Araştırmada çıkan iyileştirme fikirleri (koherans kanalı, topluluk, öncül düzeltmesi, sıralı kayıp, güçlü bina
-bulucu, modalite bırakma, sıralama güven aralıkları, ...) şimdi karara bağlanmadı; **ana eğitimin sonucuna göre**
-KN1'de seçilir. Kuralı: 13 olayın sonucu seçimi belirler, Türkiye sonucu belirlemez
-([fikir-havuzu.md](fikir-havuzu.md)).
+KN1 sonucu (21 Kasım 2026): A4 seçildi; dayanak yalnız 13 olayın SAR ölçeği ve hazır DamageFormer
+doğrulaması. Topluluk 1.3 kapsamı dışında. Varyantın ana modelin Türkiye sonucundan önce kilitlenmesi sürer.
+Karar: [ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md). Diğer adaylar fikir havuzunda saklanır.
 
 ---
 
@@ -112,37 +112,36 @@ Tutmazsa sonraki faza geçilmez.
 
 ## Faz 4: Model, eğitim motoru ve ön kontrol (Hafta 4–5, ~10–15 CU)
 
-- ChangeMamba çekirdek derleme kapısı (en çok 1 saat); geçmezse otomatik olarak Swin-T DamageFormer.
+- Güncel model hazır DamageFormer zero-shot; md5 yükleme denetimi var, özel çekirdek gerekmiyor.
 - **ONNX denemesi** (10 dakika): ChangeMamba dışa aktarılabiliyor mu? Sonuç risk kaydına ve Faz 9 planına.
 - Eğitim döngüsü: AdamW, warmup ve kosinüs, bf16, EMA, gradyan kırpma, atomik kayıt, tam durumla devam, JSONL log.
 - Doğrulama yalnız 13 olayda; eğitim kodunda Türkiye'yi değerlendirmenin yolu yok.
-- **A3 ölçümü:** SAR ön işleme (mevcut ve dB/z-skoru) kısa provada, 13 olayın doğrulamasıyla. Reçeteye girip
-  girmeyeceği kilitten önce kararlaştırılır.
+- SAR `official` biçimde kalır. A4 yalnız varyantın eğitiminde uygulanır; değerlendirmede yoktur.
 - 7 hücreli ince notebook (`tasarim.md` Bölüm 8) ve 11 ön kontrol kapısı.
 - `docs/protokol.md` son hâli.
 
-**Çıkış:** `preflight.json`'daki bütün kapılar geçer; CU projeksiyonu bütçede; `protokol-kilidi` etiketi atılır.
+**Çıkış:** İki yapılandırma ve protokol 1.3 kullanıcı tarafından aynı commit’te iki etiketle kilitlenir.
+Defterde her koşunun bütün ön kontrol kapıları geçmeden o koşunun eğitimi başlamaz.
 
-## Faz 5: Ana eğitim (Hafta 5–6, 50–75 CU)
+## Faz 5: Kontrol fine-tune
 
-- ChangeMamba olduğu gibi, 40.000 adım, yeni ayın CU'su ile.
-- Kopma olursa aynı notebook "Run All" ile devam eder.
+- `configs/ana.yaml`: hazır DamageFormer zero-shot başlangıcı, 4.000 adım; SAR artırımı yok.
+- Kullanıcı protokol 1.3'ü içeren commit'e `protokol-kilidi`ni taşır; aynı commit'e `varyant-kilidi` koyar.
+- Tek “Run All” önce ana için ön kontrol → fine-tune → `sicaklik` → `final`, sonra varyant için aynı sırayı izler.
+  Defter `origin/main` kullanır; dal değişiklikleri oraya alınmış olmalı.
+- Kopmada `last.pt` ile devam eder; `DONE` varsa eğitim atlanır. `best.pt` son adımın EMA'sıdır.
 
-**Çıkış:** `DONE` işareti, doğrulama eğrisi ve seçilen kayıt noktası `results/ana/` altında. Türkiye'ye dokunulmadı.
+**Çıkış:** Ana `DONE`, doğrulama kaydı ve kilitliyse tek `final`. ≤ 15 CU hedefi ölçülmedi; kapı 8 ölçer.
 
-## Faz 6: Karar noktası, varyant kilidi ve Türkiye değerlendirmesi (Hafta 6–7, < 5 CU)
+## Faz 6: Türkiye değerlendirmesi ve kıyas
 
-Sıra önemlidir; adımlar atlanamaz.
+KN1 eğitimden önce kapandı: A4 seçildi (21 Kasım 2026). İki tasarım da ana modelin Türkiye sonucundan önce kilitli.
+Her koşu `sicaklik` için yalnız 13 olayın doğrulamasını kullanır; ardından Türkiye'de bir kez `final` çalışır.
+`turkiye.json` varsa tekrar çalışmaz; yarım iş önbellekten devam eder.
 
-1. **KN1:** Ana modelin 13 olaydaki sınıf bazlı sonuçları ve hata örnekleri incelenir. `fikir-havuzu.md`'deki
-   adaylar ele alınır: varyant fikri, topluluk satırları (B2, B3), analiz listesi (N1–N3), transdüktif işler (C1,
-   D6). Kararlar kullanıcıya maliyetli seçenekler olarak getirilir.
-2. Seçilen varyantın tasarımı ve yapılandırması, topluluk ve ikincil satırların tanımı `varyant-kilidi` etiketiyle
-   commit'lenir.
-3. Ancak bundan sonra ana model Türkiye'de **bir kez** çalışır. Olasılık haritaları önbelleğe yazılır (tek
-   çıkarım); başlık satırı ve kilitli ikincil satırlar bu önbellekten hesaplanır.
-
-**Çıkış:** `results/ana/turkiye.json`; başlık sonucu 41,28 ile kıyaslanmış ve sonuç ne olursa olsun yazılmış.
+**Çıkış:** `results/ana/turkiye.json`, varyant sonrası `results/varyant/turkiye.json`.
+Birincil kıyas `hasar kiyas` ile varyant − ana; ikincil kıyaslar hazır DamageFormer referansına karşı.
+Eşleştirilmiş blok bootstrap ve protokol §9 “eşit” kuralı kullanılır. ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır.
 
 ## Faz 7: Analizler (Hafta 7–10, 2–5 CU)
 
@@ -157,13 +156,15 @@ Bütün analizler Faz 6'nın tahmin önbelleğini okur; model yeniden çalışt�
 
 **Çıkış:** Her analizin JSON'u ve görselleri; olumsuz bulgular dahil `docs/bulgular.md`.
 
-## Faz 8: Varyant eğitimi (Hafta 11–13, 50–75 CU)
+## Faz 8: SAR varyantı fine-tune
 
-- Kilitli varyant, aynı reçete ve aynı ön kontrollerle bir kez eğitilir ve Türkiye'de bir kez değerlendirilir.
-- Kilitliyse ana model + varyant topluluk satırı.
-- **KN3:** README'ye ve demoya hangi bulguların gireceği.
+- Aynı defter ana sonrası `configs/varyant.yaml` için ön kontrol → fine-tune → `sicaklik` → `final` çalıştırır.
+- Ortak başlangıç ve reçete korunur; tek fark eğitimde SAR radyometrik artırımıdır (A4).
+- 4.000 adım; kayıt noktası son adımın EMA'sı. ≤ 15 CU hedefi ölçülmedi; kapı 8 ölçer.
+- Topluluk 1.3 kapsamı dışında. **KN3:** README ve demoya girecek bulgular.
 
-**Çıkış:** İki model yan yana; fark protokoldeki "eşit" kuralına göre yazılır. Seçim Türkiye sonucuna göre yapılmaz.
+**Çıkış:** İki fine-tune ve referans birlikte raporlanır. Fark protokolün “eşit” kuralına göre yazılır;
+Türkiye sonucuna göre model veya ayar seçilmez.
 
 ## Faz 9: Demo ve ürünleştirme (Hafta 14–16, < 2 CU)
 
