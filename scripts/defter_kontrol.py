@@ -5,7 +5,9 @@ Usage: ``python scripts/defter_kontrol.py <ipynb>``
 The notebook must be nbformat 4, every code cell must be stripped (no outputs, no execution
 count), every code cell must parse as Python after dropping Colab magics (``!``/``%`` lines),
 and the code must not keep manual knobs (``REF = "protokol-kilidi"``, ``RUN_FINAL = False``)
-while it must pass ``--preflight`` to the training command. Exits 1 with a message on failure.
+or the obsolete ``selective_scan`` kernel code. It must include ``configs/varyant.yaml`` and
+``hasar agirlik --config`` for both fine-tunes and pass ``--preflight`` to the training command.
+Exits 1 with a message on failure.
 """
 
 from __future__ import annotations
@@ -15,11 +17,11 @@ import json
 import sys
 from pathlib import Path
 
-#: Strings that must not appear in the notebook code (manual knobs the user had to fill in).
-FORBIDDEN = ('REF = "protokol-kilidi"', "RUN_FINAL = False")
+#: Defter kodunda bulunmaması gereken elle doldurulan ayarlar ve eski çekirdek.
+FORBIDDEN = ('REF = "protokol-kilidi"', "RUN_FINAL = False", "selective_scan")
 
 #: Strings that must appear in the notebook code.
-REQUIRED = ("--preflight",)
+REQUIRED = ("--preflight", "configs/varyant.yaml", "hasar agirlik --config")
 
 
 def _code_text(cell: dict) -> str:
