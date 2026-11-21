@@ -7,8 +7,10 @@ are the ``standard_ML`` lists that live in git, used to pin the default ``veri-o
 
 from __future__ import annotations
 
+import io
 import json
 from pathlib import Path
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
@@ -271,3 +273,184 @@ def test_unknown_subcommand_exits_nonzero() -> None:
         main(["bilinmeyen-komut"])
 
     assert excinfo.value.code != 0
+
+
+def test_cli_agirlik_with_config_downloads_damageformer(tmp_path, monkeypatch, capsys) -> None:
+    from hasar.models import bright_baselines, weights
+
+    config = tmp_path / "bright.yaml"
+    config.write_text("model:\n  init: bright_zero_shot\n", encoding="utf-8")
+    out = tmp_path / "checkpoints"
+    checkpoint = "ckpt_DamageFormer_cross_event_zeroshot_turkey-earthquake.pth"
+    path = out / checkpoint
+
+    def download(name, dest):
+        print("İndirme tamamlandı.")
+        assert name == checkpoint
+        assert dest == out
+        return path
+
+    legacy = Mock()
+    monkeypatch.setattr(bright_baselines, "download_checkpoint", download)
+    monkeypatch.setattr(weights, "download_pretrained", legacy)
+
+    assert main(["agirlik", "--config", str(config), "--out", str(out)]) == 0
+    assert capsys.readouterr().out.splitlines()[-1] == str(path)
+    legacy.assert_not_called()
+
+
+def test_cli_agirlik_with_config_downloads_vssm(tmp_path, monkeypatch, capsys) -> None:
+    from hasar.models import bright_baselines, weights
+
+    config = tmp_path / "vssm.yaml"
+    config.write_text("model:\n  name: changemamba_mmbda_tiny\n  init: vssm_tiny_imagenet\n", encoding="utf-8")
+    out = tmp_path / "checkpoints"
+    path = out / "vssm_tiny.pth"
+    download = Mock(return_value=path)
+    bright = Mock()
+    monkeypatch.setattr(weights, "download_pretrained", download)
+    monkeypatch.setattr(bright_baselines, "download_checkpoint", bright)
+
+    assert main(["agirlik", "--config", str(config), "--out", str(out)]) == 0
+    assert capsys.readouterr().out.splitlines()[-1] == str(path)
+    download.assert_called_once_with(out)
+    bright.assert_not_called()
+
+
+def test_cli_kiyas_writes_comparison(tmp_path, monkeypatch, capsys) -> None:
+    from hasar.eval.metrics import ConfusionAccumulator
+
+    monkeypatch.setattr("hasar.train.run._git_commit", lambda: "test-commit")
+    a = ConfusionAccumulator()
+    b = ConfusionAccumulator()
+    label = np.array([[0, 1], [2, 3]], dtype=np.uint8)
+    for index in range(4):
+        name = f"synthetic_{index}"
+        a.add(label, np.zeros_like(label), name)
+        b.add(label, label, name)
+    path_a = tmp_path / "a.npz"
+    path_b = tmp_path / "b.npz"
+    a.save_npz(path_a)
+    b.save_npz(path_b)
+    out = tmp_path / "kiyas" / "varyant_vs_ana.json"
+
+    code = main(
+        ["kiyas", "--a", str(path_a), "--b", str(path_b), "--name-a", "ana", "--name-b", "varyant", "--out", str(out)]
+    )
+
+    assert code == 0
+    record = json.loads(out.read_text(encoding="utf-8"))
+    assert record["extra"]["verdict"]
+    assert record["values"]["diff_pct"] > 0
+    assert record["extra"]["model_a"] == "ana"
+    assert record["extra"]["model_b"] == "varyant"
+    assert record["commit"] == "test-commit"
+    assert record["config_hash"] == "none"
+    summary = capsys.readouterr()
+    assert not summary.err
+    assert f"{record['values']['diff_pct']:.2f}" in summary.out
+    assert f"{record['values']['low_pct']:.2f}" in summary.out
+    assert f"{record['values']['high_pct']:.2f}" in summary.out
+    assert "%95" in summary.out
+    assert record["extra"]["verdict"] in summary.out
+
+
+def test_cli_kiyas_reports_unmatched_tile_counts(tmp_path, monkeypatch, capsys) -> None:
+    from hasar.eval.metrics import ConfusionAccumulator
+
+    commit = Mock()
+    monkeypatch.setattr("hasar.train.run._git_commit", commit)
+    label = np.array([[0, 1], [2, 3]], dtype=np.uint8)
+    path_a = tmp_path / "a.npz"
+    path_b = tmp_path / "b.npz"
+    for path, names in ((path_a, ("shared", "only_a")), (path_b, ("shared", "only_b1", "only_b2"))):
+        accumulator = ConfusionAccumulator()
+        for name in names:
+            accumulator.add(label, label, name)
+        accumulator.save_npz(path)
+    out = tmp_path / "kiyas" / "comparison.json"
+
+    code = main(
+        ["kiyas", "--a", str(path_a), "--b", str(path_b), "--name-a", "ana", "--name-b", "varyant", "--out", str(out)]
+    )
+
+    assert code == 1
+    assert not out.parent.exists()
+    captured = capsys.readouterr()
+    assert not captured.out
+    assert "yalnız A'da 1" in captured.err
+    assert "yalnız B'de 2" in captured.err
+    commit.assert_not_called()
+
+
+def test_cli_kiyas_writes_paired_comparison(tmp_path, monkeypatch, capsys) -> None:
+    from hasar.eval.metrics import ConfusionAccumulator
+
+    monkeypatch.setattr("hasar.train.run._git_commit", lambda: "deadbeef")
+    a, b = ConfusionAccumulator(), ConfusionAccumulator()
+    label = np.array([[0, 1, 2, 3]], dtype=np.uint8)
+    for index in range(4):
+        a.add(label, np.array([[1, 2, 3, 0]], dtype=np.uint8), f"synthetic_{index}")
+    for index in reversed(range(4)):
+        b.add(label, label, f"synthetic_{index}")
+    path_a, path_b = tmp_path / "a.npz", tmp_path / "b.npz"
+    a.save_npz(path_a)
+    b.save_npz(path_b)
+    out = tmp_path / "kiyas" / "varyant_vs_ana.json"
+
+    code = main(
+        ["kiyas", "--a", str(path_a), "--b", str(path_b), "--name-a", "ana", "--name-b", "varyant", "--out", str(out)]
+    )
+
+    assert code == 0
+    record = json.loads(out.read_text(encoding="utf-8"))
+    assert record["extra"]["verdict"] == "farklı"
+    assert record["values"]["diff_pct"] == pytest.approx(100.0)
+    assert record["values"]["low_pct"] == pytest.approx(100.0)
+    assert record["values"]["high_pct"] == pytest.approx(100.0)
+    assert record["extra"]["model_a"] == "ana"
+    assert record["extra"]["model_b"] == "varyant"
+    assert record["commit"] == "deadbeef"
+    assert record["config_hash"] == "none"
+    captured = capsys.readouterr()
+    assert "100.00" in captured.out
+    assert "95" in captured.out
+    assert "farklı" in captured.out
+    assert captured.err == ""
+
+
+def test_cli_kiyas_summary_supports_windows_encoding(tmp_path, monkeypatch) -> None:
+    from hasar.eval.metrics import ConfusionAccumulator
+
+    monkeypatch.setattr("hasar.train.run._git_commit", lambda: "deadbeef")
+    accumulator = ConfusionAccumulator()
+    label = np.array([[0, 1, 2, 3]], dtype=np.uint8)
+    for index in range(4):
+        accumulator.add(label, label, f"synthetic_{index}")
+    matrices = tmp_path / "matrices.npz"
+    accumulator.save_npz(matrices)
+    out = tmp_path / "comparison.json"
+    buffer = io.BytesIO()
+    stream = io.TextIOWrapper(buffer, encoding="cp1254")
+    monkeypatch.setattr("sys.stdout", stream)
+
+    code = main(
+        [
+            "kiyas",
+            "--a",
+            str(matrices),
+            "--b",
+            str(matrices),
+            "--name-a",
+            "ana",
+            "--name-b",
+            "varyant",
+            "--out",
+            str(out),
+        ]
+    )
+
+    stream.flush()
+    assert code == 0
+    assert "varyant - ana" in buffer.getvalue().decode("cp1254")
+    assert out.is_file()

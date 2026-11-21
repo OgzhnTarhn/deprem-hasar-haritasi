@@ -1,6 +1,6 @@
 """Command line interface of the ``hasar`` package.
 
-Eleven subcommands are wired here:
+Twelve subcommands are wired here:
 
 ``indir``
     Download and extract the BRIGHT archives into a data root (resumable).
@@ -13,8 +13,8 @@ Eleven subcommands are wired here:
 ``yeniden-uret``
     Re-run a published BRIGHT zero-shot baseline through :mod:`hasar.eval.reproduce`.
 ``agirlik``
-    Download the allowed ImageNet VMamba-Tiny initial weight through
-    :mod:`hasar.models.weights`.
+    Download the allowed ImageNet VMamba-Tiny initial weight, or the DamageFormer zero-shot
+    checkpoint selected by ``--config``.
 ``egit``
     Run the single full training through :mod:`hasar.train.run`.
 ``on-kontrol``
@@ -24,6 +24,8 @@ Eleven subcommands are wired here:
     :mod:`hasar.eval.final_run`.
 ``final``
     Run the single Turkey evaluation through :mod:`hasar.eval.final_run`.
+``kiyas``
+    Compare saved per-tile confusion matrices through :mod:`hasar.eval.compare`.
 ``readme``
     Regenerate the README result table from the JSON files under ``results/`` through
     :mod:`hasar.report`, or check with ``--check`` that it is current.
@@ -136,6 +138,7 @@ def _build_parser() -> argparse.ArgumentParser:
     reproduce.add_argument("--tta", action="store_true", help="Test zamanı artırımı uygula.")
 
     weights = subparsers.add_parser("agirlik", help="İzin verilen başlangıç ağırlığını indir.")
+    weights.add_argument("--config", type=Path, default=None, help="Yapılandırma YAML dosyası.")
     weights.add_argument(
         "--out",
         type=Path,
@@ -192,6 +195,16 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("results") / "arastirma" / "turkiye_bloklar.json",
         help="Bootstrap blok haritası JSON dosyası.",
+    )
+
+    compare = subparsers.add_parser("kiyas", help="Kayıtlı kare matrislerinden iki modeli kıyasla.")
+    compare.add_argument("--a", type=Path, required=True, help="A modelinin matris NPZ dosyası.")
+    compare.add_argument("--b", type=Path, required=True, help="B modelinin matris NPZ dosyası.")
+    compare.add_argument("--name-a", required=True, help="A modelinin adı.")
+    compare.add_argument("--name-b", required=True, help="B modelinin adı.")
+    compare.add_argument("--out", type=Path, required=True, help="Yazılacak kıyas JSON dosyası.")
+    compare.add_argument(
+        "--blocks", type=Path, default=None, help="Bootstrap blok haritası JSON dosyası (isteğe bağlı)."
     )
 
     readme = subparsers.add_parser("readme", help="README sonuç tablosunu results/ dosyalarından üret.")
@@ -267,7 +280,17 @@ def _run_agirlik(args: argparse.Namespace) -> int:
     """Download the allowed pretrained weight and print its path."""
     from hasar.models import weights
 
-    path = weights.download_pretrained(args.out)
+    cfg = None
+    if args.config is not None:
+        from hasar.config import load_config
+
+        cfg = load_config(args.config)
+    if cfg is not None and cfg.model.init == "bright_zero_shot":
+        from hasar.models import bright_baselines
+
+        path = bright_baselines.download_checkpoint(bright_baselines.BASELINES["damageformer"].checkpoint, args.out)
+    else:
+        path = weights.download_pretrained(args.out)
     print(path)
     return 0
 
@@ -329,6 +352,37 @@ def _run_final(args: argparse.Namespace) -> int:
     )
 
 
+def _run_kiyas(args: argparse.Namespace) -> int:
+    """Compare saved matrices and print the paired difference, interval and verdict."""
+    from hasar.eval.bootstrap import turkey_blocks
+    from hasar.eval.compare import compare_models, compare_record
+    from hasar.eval.metrics import ConfusionAccumulator
+    from hasar.results import write_result
+
+    per_tile_a = ConfusionAccumulator.load_npz(args.a).per_tile
+    per_tile_b = ConfusionAccumulator.load_npz(args.b).per_tile
+    names_a, names_b = set(per_tile_a), set(per_tile_b)
+    if names_a != names_b:
+        print(
+            f"Kare kümeleri farklı: yalnız A'da {len(names_a - names_b)} kare, "
+            f"yalnız B'de {len(names_b - names_a)} kare.",
+            file=sys.stderr,
+        )
+        return 1
+
+    from hasar.train.run import _git_commit
+
+    blocks = turkey_blocks(args.blocks) if args.blocks is not None else None
+    result = compare_models(per_tile_a, per_tile_b, blocks)
+    record = compare_record(result, args.name_a, args.name_b, _git_commit(), "none")
+    write_result(args.out, record)
+    print(
+        f"{args.name_b} - {args.name_a}: {result['diff_pct']:.2f} puan {record.metric_tag}; "
+        f"%95 aralık [{result['low_pct']:.2f}, {result['high_pct']:.2f}]; {result['verdict']}"
+    )
+    return 0
+
+
 def _run_readme(args: argparse.Namespace) -> int:
     """Regenerate the README result table, or check it with ``--check`` (exit 1 when stale)."""
     if args.check:
@@ -382,6 +436,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_sicaklik(args)
     if args.command == "final":
         return _run_final(args)
+    if args.command == "kiyas":
+        return _run_kiyas(args)
     if args.command == "readme":
         return _run_readme(args)
     if args.command == "demo":
