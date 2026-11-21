@@ -46,7 +46,8 @@ import torch
 from hasar.config import Config
 from hasar.data.events import TEST_EVENT, Split, SplitLeakError, check_no_leak
 from hasar.data.sampler import StepSampler
-from hasar.eval.metrics import always_background_miou, confusion_matrix, miou
+from hasar.eval.metrics import always_background_miou, confusion_matrix, miou, summary
+from hasar.eval.predict import evaluate
 from hasar.train.loop import train
 from hasar.train.losses import damage_loss
 
@@ -198,6 +199,30 @@ def gate_sampler_length(n_items: int, batch: int, steps: int, seed: int = 0) -> 
 
 
 # --- gate 4: initial loss ---------------------------------------------------
+
+
+def gate_loaded_checkpoint(
+    model: torch.nn.Module,
+    val_set,
+    expected_miou_pct: float,
+    device: str,
+    tolerance: float = 0.3,
+) -> GateResult:
+    """Check loaded weights against the Phase 3 validation mIoU in fp32 without TTA."""
+    accumulator = evaluate(model, val_set, device=device, tta=False)
+    miou_pct = summary(accumulator.total)["miou"] * 100
+    value = {
+        "miou_pct": miou_pct,
+        "expected_miou_pct": expected_miou_pct,
+        "tolerance": tolerance,
+    }
+    passed = abs(miou_pct - expected_miou_pct) <= tolerance
+    verdict = "tolerans içinde" if passed else "tolerans dışında"
+    detail = (
+        f"Yüklenen checkpoint [VAL13 mIoU] {miou_pct:.2f}, beklenen {expected_miou_pct:.2f} "
+        f"± {tolerance:.2f}: {verdict}."
+    )
+    return _result(4, passed, value, detail)
 
 
 def _on_model_device(model: torch.nn.Module, batch: dict[str, Any]) -> dict[str, Any]:

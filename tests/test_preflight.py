@@ -13,6 +13,8 @@ from __future__ import annotations
 import dataclasses
 import json
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
@@ -293,6 +295,36 @@ def test_gate_initial_loss_fails_for_huge_biases(gates) -> None:
     assert result.passed is False
 
 
+def _check_loaded_checkpoint(gates, monkeypatch, measured: float, passed: bool) -> None:
+    """Check the loading gate's evaluation path and percentage tolerance."""
+    model, val_set, total = TinyModel(), object(), object()
+    evaluate = Mock(return_value=SimpleNamespace(total=total))
+    summary = Mock(return_value={"miou": measured / 100})
+    monkeypatch.setattr(gates, "evaluate", evaluate, raising=False)
+    monkeypatch.setattr(gates, "summary", summary, raising=False)
+
+    result = gates.gate_loaded_checkpoint(model, val_set, 74.48, "cpu")
+
+    assert result.gate == 4
+    assert result.name == gates.GATE_NAMES[3]
+    assert result.passed is passed
+    assert result.value == {
+        "miou_pct": pytest.approx(measured),
+        "expected_miou_pct": 74.48,
+        "tolerance": 0.3,
+    }
+    evaluate.assert_called_once_with(model, val_set, device="cpu", tta=False)
+    summary.assert_called_once_with(total)
+
+
+def test_gate_loaded_checkpoint_passes_within_tolerance(gates, monkeypatch) -> None:
+    _check_loaded_checkpoint(gates, monkeypatch, 74.60, True)
+
+
+def test_gate_loaded_checkpoint_fails_outside_tolerance(gates, monkeypatch) -> None:
+    _check_loaded_checkpoint(gates, monkeypatch, 75.00, False)
+
+
 # --- gate 5: overfit --------------------------------------------------------
 
 
@@ -461,6 +493,18 @@ def test_gate_resume_with_tolerance_reports_atol(gates, tmp_path: Path) -> None:
 
 def test_gate_kernel_on_cpu_model_reports_no_scan_backend(gates) -> None:
     assert gates._scan_backend_of(TinyModel()) == "none"
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA kullanılamıyor.")
+def test_gate_kernel_passes_for_bright_baseline(gates) -> None:
+    from hasar.models.bright_baselines import BrightBaseline
+
+    result = gates.gate_kernel(lambda: BrightBaseline(torch.nn.Conv2d(6, 4, 1), two_stream=False), "cuda", steps=2)
+
+    assert result.gate == 11
+    assert result.passed is True
+    assert result.value["model"] == "BrightBaseline"
+    assert result.value["scan_backend"] == "none"
 
 
 # --- failed_gate ------------------------------------------------------------

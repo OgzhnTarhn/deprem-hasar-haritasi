@@ -38,11 +38,13 @@ from hasar.data.sampler import StepSampler
 from hasar.data.summary import label_histogram
 from hasar.models import registry
 from hasar.preflight.gates import (
+    _result,
     clip_from_preflight,
     failed_gate,
     gate_grad_clip,
     gate_initial_loss,
     gate_kernel,
+    gate_loaded_checkpoint,
     gate_metric_edges,
     gate_overfit,
     gate_reproduction,
@@ -69,10 +71,6 @@ def cu_per_hour(device_name: str) -> float:
         if key in device_name:
             return price
     return CU_PER_HOUR["A100"]
-
-
-#: CU budget of the single full training (gate 8).
-CU_BUDGET = 75.0
 
 
 def _git_commit() -> str:
@@ -106,6 +104,17 @@ def build_model(cfg: Config, pretrained: Path | str | None, device: str) -> torc
         model = registry.build(name, pretrained=str(pretrained) if pretrained is not None else None)
     elif name == "damageformer_swin_t":
         model = registry.build(name, pretrained=True)
+    elif name == "bright_damageformer":
+        from hasar.models import bright_baselines
+
+        model = registry.build(name)
+        if pretrained is not None:
+            baseline = bright_baselines.BASELINES["damageformer"]
+            if bright_baselines.file_md5(pretrained) != baseline.md5:
+                raise ValueError(
+                    f"Checkpoint md5 uyuşmazlığı: {Path(pretrained).name}; beklenen checkpoint: {baseline.checkpoint}"
+                )
+            bright_baselines.load_checkpoint(model, pretrained)
     else:
         model = registry.build(name)
     return model.to(device)
@@ -136,6 +145,9 @@ def build_datasets(cfg: Config, data_root: Path | str) -> tuple[Any, BrightDatas
         sar_mode=cfg.norm.sar,
         sar_stats=stats,
         seed=cfg.train.seed,
+        sar_p=cfg.aug.sar_p,
+        sar_gamma=cfg.aug.sar_gamma,
+        sar_gain=cfg.aug.sar_gain,
     )
     val_set = BrightDataset(
         data_root,
@@ -166,6 +178,10 @@ def run_training(
     folder as the full one.
     """
     cfg = load_config(config)
+    if cfg.model.init == "bright_zero_shot" and pretrained is None:
+        raise ValueError(
+            "DamageFormer zero-shot checkpoint'ini `hasar agirlik --config ...` ile indirip --pretrained ile verin."
+        )
     if cfg.train.clip is None:
         preflight_path = Path(preflight) if preflight is not None else Path(out) / "preflight.json"
         clip = clip_from_preflight(preflight_path, config_hash(cfg))
@@ -253,6 +269,10 @@ def run_preflight(
     log) and the run continues with the next gate.
     """
     cfg = load_config(config)
+    if cfg.model.init == "bright_zero_shot" and pretrained is None:
+        raise ValueError(
+            "DamageFormer zero-shot checkpoint'ini `hasar agirlik --config ...` ile indirip --pretrained ile verin."
+        )
     out_dir = Path(out)
     preflight_path = out_dir / "preflight.json"
     cfg_hash = config_hash(cfg)
@@ -278,8 +298,23 @@ def run_preflight(
             elif gate == 3:
                 result = gate_sampler_length(len(train_set), cfg.train.batch, cfg.train.steps, seed=cfg.train.seed)
             elif gate == 4:
-                batch = _train_batch(train_set, cfg)
-                result = gate_initial_loss(build_model(cfg, pretrained, device), batch)
+                if cfg.model.init == "bright_zero_shot":
+                    record_path = repro / "damageformer_val.json"
+                    try:
+                        record = json.loads(record_path.read_text(encoding="utf-8"))
+                        expected = record["values"]["miou_pct"]
+                    except (OSError, json.JSONDecodeError, KeyError, TypeError):
+                        result = _result(
+                            4,
+                            False,
+                            {"path": str(record_path)},
+                            f"Yeniden üretim kaydı eksik veya values.miou_pct okunamadı: {record_path}",
+                        )
+                    else:
+                        result = gate_loaded_checkpoint(build_model(cfg, pretrained, device), val_set, expected, device)
+                else:
+                    batch = _train_batch(train_set, cfg)
+                    result = gate_initial_loss(build_model(cfg, pretrained, device), batch)
             elif gate == 5:
                 batch = _fixed_batch(train_set, cfg)
                 result = gate_overfit(build_model(cfg, pretrained, device), batch)
@@ -296,7 +331,7 @@ def run_preflight(
                 # autotuning, worker start) and would inflate the projection.
                 seconds = [float(entry.get("wall", entry["seconds"])) for entry in log][10:]
                 gpu = torch.cuda.get_device_name(0) if str(device).startswith("cuda") else ""
-                result = gate_speed(seconds, cfg.train.steps, cu_per_hour(gpu), CU_BUDGET)
+                result = gate_speed(seconds, cfg.train.steps, cu_per_hour(gpu), cfg.train.budget_cu)
             elif gate == 9:
                 doubled = dataclasses.replace(cfg, optim=dataclasses.replace(cfg.optim, lr=cfg.optim.lr * 2.0))
                 log = _short_train(doubled, build_model(cfg, pretrained, device), train_set, val_set, device, 500)
