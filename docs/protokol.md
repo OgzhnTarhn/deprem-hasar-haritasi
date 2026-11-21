@@ -1,13 +1,13 @@
 # Değerlendirme Protokolü (önceden kayıt)
 
-- **Durum:** Son metin, sürüm 1.2 (18 Kasım 2026). `protokol-kilidi` etiketi bu sürümün commit'ine atılır.
+- **Durum:** Son metin, sürüm 1.3 (21 Kasım 2026). `protokol-kilidi` etiketi bu sürümü içeren commit'e taşınır; aynı commit'e `varyant-kilidi` atılır.
   `train.clip` yapılandırmada boş kalır; eğitim eşiği aynı yapılandırmanın geçmiş ön kontrolünün 9. kapısından
   kendisi okur (tasarım §7–8). Bu yüzden kilit, ön kontrolden önce atılabilir. Kilitten sonra bu dosya değiştirilmez; değişiklik gerekirse yeni sürüm, gerekçesi ve
   tarihiyle §14'e yazılır ve başlık sonucunu etkileyen her değişiklik raporda belirtilir.
 - **Kapsam:** Türkiye'deki tek değerlendirmenin bütün hesap kuralları: bölme, başlık metriği, girdi işleme, kayıt
   noktası seçimi, ikincil satırlar, bina düzeyi metrikler, güven aralıkları, "eşit" kuralı, kalibrasyon.
 - **Dayanaklar:** [ADR-0001](adr/0001-zero-shot-bolme.md), [ADR-0004](adr/0004-sar-girdisi.md),
-  [ADR-0005](adr/0005-baslik-metrigi.md); BRIGHT ve ChangeMamba kodunun Faz 0 okuması.
+  [ADR-0005](adr/0005-baslik-metrigi.md), [ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md); BRIGHT ve ChangeMamba kodunun Faz 0 okuması.
 
 **İşaretler:** ✅ kararlaştırıldı · 🟨 öneri, kullanıcı onayı bekliyor · ⬜ açık, belirtilen fazda ölçülüp
 kararlaştırılacak.
@@ -51,7 +51,8 @@ Etiket: `[ZS-EVENT mIoU]`. Resmî kod yolu (ADR-0005):
    pikseller matrise girmez. Nodata pikselleri ayrıca dışlanmaz (resmî kodla aynı).
 4. **IoU:** her sınıf k için `IoU_k = C[k,k] / (Σ_j C[k,j] + Σ_i C[i,k] − C[k,k] + 1e-7)`.
 5. **mIoU:** dört sınıfın (arka plan, sağlam, hasarlı, yıkık) ortalaması.
-6. **Kıyas:** Yalnız bu sayı 41,28 ile kıyaslanır; fark §9'daki kurala göre yazılır.
+6. **Kıyas:** Birincil fark varyant − ana, ikincil farklar referansa karşıdır (§9).
+   ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır.
 
 Her karenin 4×4 matrisi ayrıca saklanır (`results/<model>/turkiye_kare_matrisleri_<satır>.npz`; başlık için `_headline`). Bootstrap (§8) ve bütün
 alt kırılımlar bu matrislerden hesaplanır; model yeniden çalıştırılmaz.
@@ -62,18 +63,24 @@ alt kırılımlar bu matrislerden hesaplanır; model yeniden çalıştırılmaz.
 |---|---|---|
 | Optik | İlk 3 bant; ImageNet ortalama/standart sapması (0–255 ölçeği: 123,675 / 116,28 / 103,53; 58,395 / 57,12 / 57,375) | ✅ |
 | SAR | Resmî biçim: tek bant 3 kanala kopyalanır, ImageNet istatistikleriyle normalize edilir (ADR-0004, seçenek C) | ✅ |
-| SAR ölçeği | Ölçüldü (13 olay): değerler doğrusal genlik değil, log/dB benzeri ve kırpılmış; olay ortalamaları 41–104 (`results/arastirma/sar_olcek.json`). Ana model için ek dönüşüm yok; A3 bu ölçeğin üstünde z-skoru dener | ✅ |
+| SAR ölçeği | Ölçüldü (13 olay): değerler doğrusal genlik değil, log/dB benzeri ve kırpılmış; olay ortalamaları 41–104 (`results/arastirma/sar_olcek.json`). Kontrolde ek dönüşüm yok; varyantta yalnız eğitimde aşağıdaki artırım var | ✅ |
+| Varyant SAR artırımı | Yalnız eğitimde p = 0,8; γ ~ logUniform[0,67, 1,5], kazanç ~ logUniform[0,657, 1,657]. Kazanç sınırları `results/arastirma/sar_olcek.json` içindeki 41,3 / 62,9 ve 104,2 / 62,9 oranlarından gelir. Kontrolde ve değerlendirmede uygulanmaz | ✅ |
 | Eğitimde nodata | Optik ve SAR'ın ikisi de 0 olan pikseller kayıpta `ignore_index = 255` ile yok sayılır | ✅ (reçete; değerlendirmeyi etkilemez) |
 | Değerlendirmede nodata | Resmî kodla aynı; ayrıca dışlanmaz. Yok sayılmış hâl ikincil satır | ✅ |
 
-## 5. Kayıt noktası seçimi ✅
+SAR artırımı geometriden sonra, normalizasyondan önce uygulanır: `255·(v/255)^γ·k`.
+Geçerli pikseller [1, 255]'e kırpılır; nodata 0 kalır. Nodata maskesi artırımdan önce hesaplanır.
+Ortak tohum ve örnek sırası korunur; SAR çekilişleri geometrik çekilişlerden sonra yapılır.
 
-- Her 2.000 adımda **EMA** ağırlıkları doğrulama kümesinin (337 kare) tamamında §3'teki yoldan değerlendirilir
-  (tam kare, `argmax(clf)`, maskesiz).
-- En yüksek doğrulama mIoU'su seçilir; eşitlikte erken adım.
-- Ham (EMA'sız) ağırlıkların doğrulama sonucu son adımda bir kez kaydedilir (`val13.json`, `last_raw_miou_pct`);
-  seçimde kullanılmaz.
-- Bu seçimin zayıf olduğu (doğrulama-test sıralama korelasyonu 0,35, CVPRW26) raporda yazılır.
+## 5. Kayıt noktası ✅
+
+- Kayıt noktası **son adımın EMA ağırlıklarıdır** (`last_ema`); doğrulamaya göre seçim yoktur.
+  EMA hazır checkpoint ağırlıklarıyla başlar. İki koşu aynı kurala tabidir.
+- Her 500 adımda EMA, yalnız 13 olayın doğrulamasında §3'teki yoldan değerlendirilir; sonuç yalnız kaydedilir.
+- Gerekçe: doğrulama eğitim olaylarından gelir; görülmemiş olaya genellemeyi ölçmez. SAR artırımı varyantı
+  bu doğrulamada haksız biçimde cezalandırabilir. Seçimsiz kural kontrol ve varyanta eşit davranır
+  ([onaylı tasarım §6.2](superpowers/specs/2026-11-21-sar-dayaniklilik-finetune-design.md)).
+- Ham ağırlıkların son adım doğrulaması `val13.json` içinde `last_raw_miou_pct` olarak kaydedilir; kullanılmaz.
 
 ## 6. İkincil satırlar (önceden ilan)
 
@@ -85,7 +92,7 @@ Bütün ikincil satırlar Faz 6'daki tek çıkarımın önbelleğinden hesaplan�
 | Bina maskeli harita | `loc` argmax'ı 0 olan piksellerde tahmin arka plan; ötekilerde `argmax(clf[1:]) + 1` | Ayar yok | ✅ |
 | Bina düzeyi oylama | Tahmin edilen bina maskesinin (`loc` argmax) 8-komşuluklu bağlı bileşenlerinde `argmax(clf[1:]) + 1` çoğunluğu; birim tahminden gelir, Türkiye etiketi kullanılmaz | Ayar yok | ✅ |
 | Nodata yok sayılmış | §3'te nodata pikselleri matrise alınmaz | Ayar yok | ✅ |
-| Topluluk satırları | B2/B3 (fikir havuzu); DeepLabV3+ zero-shot checkpoint'i hariç (Faz 3'te Türkiye'yi görmüş çıktı, `results/yeniden-uretim/deeplabv3plus_test.json`) | KN1'de kabul edilirse ağırlıklar 13 olayda | ⬜ KN1 |
+| Topluluk satırları | kapsam dışı (1.3) | Uygulanmaz | ✅ |
 
 Her satırın etiketi `[ZS-EVENT mIoU]` ile birlikte satır adını taşır: `flip-tta`, `bina-maskeli`, `bina-oylama`,
 `nodata-yok` (ör. `[ZS-EVENT mIoU, flip-tta]`, dosya `turkiye_flip-tta.json`); başlık kıyası yalnız §3 ile yapılır.
@@ -118,13 +125,23 @@ Her satırın etiketi `[ZS-EVENT mIoU]` ile birlikte satır adını taşır: `fl
 
 ## 9. "Eşit" kuralı ✅
 
-İki sayı arasındaki fark **1,0 puanın altındaysa veya** eşleştirilmiş bootstrap farkının %95 aralığı 0'ı
-içeriyorsa sonuç "eşit" yazılır. Aksi hâlde fark ve aralığı yazılır ("ana model 41,28'in X puan üstünde, %95 aralık
-[a, b]").
+Birincil kıyas **varyant − ana (kontrol)**. İkincil kıyaslar **ana − referans** ve **varyant − referans**.
+Referans hazır Zenodo DamageFormer'dır: 37,20 `[ZS-EVENT mIoU, repro]`;
+kare matrisleri `results/yeniden-uretim/damageformer_test_matrices.npz` dosyasındadır.
 
-- 41,28 ile kıyasta eşleştirilmiş bootstrap yapılamaz (yayımlanmış modelin kare çıktıları yok). Bu kıyasta yalnız
-  bizim sayımızın aralığı verilir; 41,28 aralığın içindeyse "eşit".
-- `CLAUDE.md` kural 6'daki "1–2 puan" ifadesi bu kurala bağlandı.
+`hasar kiyas` farkı **b − a** olarak hesaplar. Örnek birincil kıyas:
+
+```bash
+uv run hasar kiyas --a results/ana/turkiye_kare_matrisleri_headline.npz --b results/varyant/turkiye_kare_matrisleri_headline.npz --name-a ana --name-b varyant --out results/kiyas/varyant_vs_ana.json --blocks results/arastirma/turkiye_bloklar.json
+```
+
+Üç kıyasta da `--blocks results/arastirma/turkiye_bloklar.json` açıkça verilir.
+Aynı kareler ve şehir katmanlı bloklarla eşleştirilmiş bootstrap kullanılır (§8).
+Kare kümeleri farklıysa komut reddeder; referans eşleştirmesi sağlanamazsa yalnız aralıkla kıyas yazılır.
+
+Farkın mutlak büyüklüğü **1,0 puanın altındaysa veya** eşleştirilmiş bootstrap farkının %95 aralığı 0'ı
+içeriyorsa sonuç “eşit” yazılır. Aksi hâlde fark ve aralığı raporlanır. Bu kural üç kıyasa da uygulanır.
+ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır; hedef veya birincil kıyas değildir.
 
 ## 10. Kalibrasyon ve belirsizlik
 
@@ -146,16 +163,16 @@ içeriyorsa sonuç "eşit" yazılır. Aksi hâlde fark ve aralığı yazılır (
 
 Her sonuç `results/**/*.json`'a `metric_tag`, commit SHA, config hash ve tohumla yazılır. Başlık tablosu:
 4 sınıfın IoU'ları, mIoU ve %95 aralığı, üç bina sınıfının IoU ortalaması, bina düzeyi makro F1, ikincil satırlar,
-41,28 ile kıyas ve §9'a göre yorum.
+varyant − ana ve referansa karşı ikincil farklar, §9'a göre yorum. ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır.
+
+Referansın Faz 3 kaydı sınıf IoU'larını içerir; bina düzeyi F1 içermez. Kare piksel matrislerinden
+bina F1 türetilemez. Bu alan referans satırında “mevcut değil” yazılır; yeni Türkiye çıkarımı yapılmaz.
+Ana ve varyantın bina F1 kayıtları kendi kilitli `final` adımlarından gelir.
 
 ## 13. Açık maddeler
 
 Kapı 7'nin beklenen değeri Faz 3'te kapandı (arka plan oranı / 4, ≈ 0,226; kapı kodu doğrulama etiketlerinden
-hesaplar). Kalan tek açık madde KN1'e bağlı:
-
-| Madde | Bölüm | Ne zaman | Girdi |
-|---|---|---|---|
-| Topluluk satırları | §6 | KN1 | Fikir havuzu B2/B3 |
+hesaplar). KN1 kapandı: A4 seçildi; topluluk 1.3 kapsamı dışında. Bu başlıkta açık karar kalmadı.
 
 ## 14. Değişiklik günlüğü
 
@@ -167,3 +184,4 @@ hesaplar). Kalan tek açık madde KN1'e bağlı:
 | 1.0 | 7 Kasım 2026 | Faz 3–4 sonrası son metin. Faz 3: SiamCRNN, UNet, DamageFormer ±0,3 içinde (`results/yeniden-uretim/`), hat resmî değerlendiriciyle birebir; DeepLabV3+ zero-shot checkpoint'i yayımlanan değerin çok üstünde çıktı, Türkiye'yi görmüş sayılıp topluluk adaylarından çıkarıldı (§6). Kapı 1 yalnız bu üç modeli şart koşar. §5: ham ağırlıkların doğrulaması son adımda bir kez. §6 flip TTA kodda dört görünüm. Kapı 10'un GPU ölçütü (tasarım §7): parametreler `atol` 1e-3, kayıplar %1; BatchNorm istatistikleri yalnız raporlanır. Kapı 7 kapandı. §7 bina karesi listesi dosyaya sabitlendi |
 | 1.1 | 7 Kasım 2026 | Faz 6 kodu: adlar koddakiyle hizalandı (§3 kare matrisi dosyası satır başına, §6 satır etiketleri, §7 `[ZS-EVENT bina-makro-F1]`). `final` başlık dosyasını (`turkiye.json`) bütün öteki kayıtlardan sonra yazar; yarıda kalan koşu önbellekten devam eder, başlık yazıldıktan sonra ikinci koşu reddedilir. Hesap kuralı değişmedi |
 | 1.2 | 18 Kasım 2026 | Gradyan kırpma eşiği elle yazılmıyor: `train.clip: null` iken `hasar egit` eşiği, yapılandırma hash'i tutan, tamamlanmış ve bütün kapıları geçmiş `preflight.json`'ın 9. kapısından (2× lr'de 500 adım, p90 gradyan normu) okur; kayıt yoksa ya da tutmazsa eğitim başlamaz. Kural önceden sabit olduğu için kilit ön kontrolden önce atılır ve Colab defteri tek "Run All" ile ön kontrol + eğitim yapar. Eşik Türkiye'ye dokunmadan seçilir; hesap kuralı değişmedi |
+| 1.3 | 21 Kasım 2026 | Ana model hazır DamageFormer kontrol fine-tune'u; varyant SAR radyometrik artırımı (§4); son adımın EMA'sı, seçim yok (§5); topluluk kapsam dışı (§6); birincil varyant − ana, ikincil referans kıyasları (§9). Neden: Colab L4 kapı 8 ölçümünde ChangeMamba projeksiyonu 164,6 CU > 75 CU. Eğitim başlamadı; yeni eğitim ve `final` için Türkiye'ye dokunulmadı (Faz 3 yeniden üretimi istisnası saklı). Kullanıcı 21 Kasım 2026'da onayladı. Başlık sonucunu etkiler: **evet, model değişiyor** (ADR-0007). |
