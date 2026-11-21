@@ -23,6 +23,17 @@ run = pytest.importorskip("hasar.train.run")
 CONFIG = "configs/ana.yaml"
 
 
+@pytest.fixture
+def legacy_config(tmp_path: Path) -> Path:
+    """Write the original initialization explicitly for gradient-clip tests."""
+    config = tmp_path / "legacy.yaml"
+    config.write_text(
+        "model:\n  name: changemamba_mmbda_tiny\n  init: vssm_tiny_imagenet\ntrain:\n  clip: null\n",
+        encoding="utf-8",
+    )
+    return config
+
+
 def _clip_from_preflight(path: Path, cfg_hash: str) -> float:
     """Call the gate-9 clip reader (imported lazily so a missing feature fails one test, not collection)."""
     from hasar.preflight.gates import clip_from_preflight
@@ -133,13 +144,13 @@ def _fake_run(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     return SimpleNamespace(calls=calls, built=built)
 
 
-def test_run_training_takes_clip_from_out_preflight(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_training_takes_clip_from_out_preflight(monkeypatch, tmp_path, legacy_config) -> None:
     """A valid preflight.json in the output folder supplies the clip; the run folder keeps the YAML hash."""
     fake = _fake_run(monkeypatch)
-    cfg = load_config(CONFIG)
+    cfg = load_config(legacy_config)
     _write(tmp_path / "preflight.json", _clip_gates(2.5), config_hash(cfg))
 
-    code = run.run_training(config=CONFIG, data="x", out=tmp_path, device="cpu", commit="abc")
+    code = run.run_training(config=legacy_config, data="x", out=tmp_path, device="cpu", commit="abc")
 
     assert code == 0
     assert len(fake.calls) == 1
@@ -148,14 +159,14 @@ def test_run_training_takes_clip_from_out_preflight(monkeypatch: pytest.MonkeyPa
     assert out_dir == Path(tmp_path) / run_id(cfg)
 
 
-def test_run_training_takes_clip_from_given_preflight(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_training_takes_clip_from_given_preflight(monkeypatch, tmp_path, legacy_config) -> None:
     """An explicit preflight path is used when the output folder holds no preflight.json."""
     fake = _fake_run(monkeypatch)
-    cfg = load_config(CONFIG)
+    cfg = load_config(legacy_config)
     other = tmp_path / "baska" / "preflight.json"
     _write(other, _clip_gates(2.5), config_hash(cfg))
 
-    code = run.run_training(config=CONFIG, data="x", out=tmp_path, device="cpu", commit="abc", preflight=other)
+    code = run.run_training(config=legacy_config, data="x", out=tmp_path, device="cpu", commit="abc", preflight=other)
 
     assert code == 0
     assert len(fake.calls) == 1
@@ -164,36 +175,36 @@ def test_run_training_takes_clip_from_given_preflight(monkeypatch: pytest.Monkey
     assert out_dir == Path(tmp_path) / run_id(cfg)
 
 
-def test_run_training_without_preflight_raises(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_training_without_preflight_raises(monkeypatch, tmp_path, legacy_config) -> None:
     """A null clip with no preflight.json raises before any dataset or training work."""
     fake = _fake_run(monkeypatch)
 
     with pytest.raises(RuntimeError):
-        run.run_training(config=CONFIG, data="x", out=tmp_path, device="cpu", commit="abc")
+        run.run_training(config=legacy_config, data="x", out=tmp_path, device="cpu", commit="abc")
 
     assert fake.built["datasets"] == 0
     assert fake.calls == []
 
 
-def test_run_training_with_stale_preflight_raises(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_training_with_stale_preflight_raises(monkeypatch, tmp_path, legacy_config) -> None:
     """A preflight.json written for another config hash raises RuntimeError."""
     fake = _fake_run(monkeypatch)
     _write(tmp_path / "preflight.json", _clip_gates(2.5), "deadbeef0000")
 
     with pytest.raises(RuntimeError):
-        run.run_training(config=CONFIG, data="x", out=tmp_path, device="cpu", commit="abc")
+        run.run_training(config=legacy_config, data="x", out=tmp_path, device="cpu", commit="abc")
 
     assert fake.built["datasets"] == 0
     assert fake.calls == []
 
 
-def test_run_training_steps_override_keeps_yaml_hash(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_training_steps_override_keeps_yaml_hash(monkeypatch, tmp_path, legacy_config) -> None:
     """A short run with steps=7 uses the YAML-hash preflight and names its folder after the steps config."""
     fake = _fake_run(monkeypatch)
-    cfg = load_config(CONFIG)
+    cfg = load_config(legacy_config)
     _write(tmp_path / "preflight.json", _clip_gates(2.5), config_hash(cfg))
 
-    code = run.run_training(config=CONFIG, data="x", out=tmp_path, device="cpu", commit="abc", steps=7)
+    code = run.run_training(config=legacy_config, data="x", out=tmp_path, device="cpu", commit="abc", steps=7)
 
     assert code == 0
     assert len(fake.calls) == 1
@@ -204,10 +215,10 @@ def test_run_training_steps_override_keeps_yaml_hash(monkeypatch: pytest.MonkeyP
     assert out_dir.name == run_id(expected)
 
 
-def test_run_training_explicit_clip_needs_no_preflight(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_training_explicit_clip_needs_no_preflight(monkeypatch, tmp_path, legacy_config) -> None:
     """A YAML with an explicit clip trains without any preflight.json."""
     fake = _fake_run(monkeypatch)
-    text = Path(CONFIG).read_text(encoding="utf-8")
+    text = legacy_config.read_text(encoding="utf-8")
     assert "clip: null" in text
     config = tmp_path / "ana.yaml"
     config.write_text(text.replace("clip: null", "clip: 1.5"), encoding="utf-8")

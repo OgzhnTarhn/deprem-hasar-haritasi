@@ -33,36 +33,40 @@ def test_defaults() -> None:
 
     assert cfg.data.protocol == "zero_shot"
     assert cfg.data.test_event == "turkey-earthquake"
-    assert cfg.data.crop == 640
+    assert cfg.data.crop == 512
     assert cfg.data.workers == 8
     assert cfg.data.nodata_ignore is True
 
     assert cfg.aug.flips is True
     assert cfg.aug.rot90 is True
     assert cfg.aug.photometric is False
+    assert cfg.aug.sar_p == 0.0
+    assert cfg.aug.sar_gamma == (1.0, 1.0)
+    assert cfg.aug.sar_gain == (1.0, 1.0)
 
     assert cfg.norm.optical == "imagenet"
     assert cfg.norm.sar == "official"
 
-    assert cfg.model.name == "changemamba_mmbda_tiny"
-    assert cfg.model.init == "vssm_tiny_imagenet"
+    assert cfg.model.name == "bright_damageformer"
+    assert cfg.model.init == "bright_zero_shot"
     assert cfg.model.fallback == "damageformer_swin_t"
 
     assert cfg.optim.name == "adamw"
-    assert cfg.optim.lr == 1e-4
+    assert cfg.optim.lr == 2e-5
     assert cfg.optim.weight_decay == 5e-3
 
     assert cfg.sched.type == "cosine"
-    assert cfg.sched.warmup_steps == 1500
-    assert cfg.sched.min_lr == 1e-6
+    assert cfg.sched.warmup_steps == 200
+    assert cfg.sched.min_lr == 1e-7
 
-    assert cfg.train.batch == 16
+    assert cfg.train.batch == 8
     assert cfg.train.micro_batch is None
-    assert cfg.train.steps == 40000
+    assert cfg.train.steps == 4000
     assert cfg.train.amp == "bf16"
     assert cfg.train.ema == 0.999
     assert cfg.train.clip is None
     assert cfg.train.seed == 42
+    assert cfg.train.budget_cu == 15.0
 
     assert cfg.loss.ce_loc == 1.0
     assert cfg.loss.ce_clf == 1.0
@@ -72,8 +76,8 @@ def test_defaults() -> None:
     assert cfg.loss.ignore_index == 255
     assert cfg.loss.lovasz_fp32 is True
 
-    assert cfg.eval.every == 2000
-    assert cfg.eval.select == "ema_val_miou"
+    assert cfg.eval.every == 500
+    assert cfg.eval.select == "last_ema"
 
     assert cfg.ckpt.every == 1000
     assert cfg.ckpt.keep_last == 2
@@ -103,9 +107,9 @@ def test_empty_yaml_gives_defaults(tmp_path: Path) -> None:
 def test_missing_keys_take_defaults(tmp_path: Path) -> None:
     cfg = load_payload(tmp_path, {"train": {"batch": 8}})
     assert cfg.train.batch == 8
-    assert cfg.train.steps == 40000
-    assert cfg.optim.lr == 1e-4
-    assert cfg.data.crop == 640
+    assert cfg.train.steps == 4000
+    assert cfg.optim.lr == 2e-5
+    assert cfg.data.crop == 512
 
 
 def test_partial_sections_merge_with_defaults(tmp_path: Path) -> None:
@@ -266,22 +270,31 @@ def test_config_hash_matches_explicit_defaults(tmp_path: Path) -> None:
         "data": {
             "protocol": "zero_shot",
             "test_event": "turkey-earthquake",
-            "crop": 640,
+            "crop": 512,
             "workers": 8,
             "nodata_ignore": True,
         },
-        "aug": {"flips": True, "rot90": True, "photometric": False},
+        "aug": {
+            "flips": True,
+            "rot90": True,
+            "photometric": False,
+            "sar_p": 0.0,
+            "sar_gamma": [1.0, 1.0],
+            "sar_gain": [1.0, 1.0],
+        },
         "norm": {"optical": "imagenet", "sar": "official"},
         "model": {
-            "name": "changemamba_mmbda_tiny",
-            "init": "vssm_tiny_imagenet",
+            "name": "bright_damageformer",
+            "init": "bright_zero_shot",
             "fallback": "damageformer_swin_t",
         },
-        "optim": {"name": "adamw", "lr": 1e-4, "weight_decay": 5e-3},
-        "sched": {"type": "cosine", "warmup_steps": 1500, "min_lr": 1e-6},
+        "optim": {"name": "adamw", "lr": 2e-5, "weight_decay": 5e-3},
+        "sched": {"type": "cosine", "warmup_steps": 200, "min_lr": 1e-7},
         "train": {
-            "batch": 16,
-            "steps": 40000,
+            "batch": 8,
+            "micro_batch": None,
+            "budget_cu": 15.0,
+            "steps": 4000,
             "amp": "bf16",
             "ema": 0.999,
             "clip": None,
@@ -296,7 +309,7 @@ def test_config_hash_matches_explicit_defaults(tmp_path: Path) -> None:
             "ignore_index": 255,
             "lovasz_fp32": True,
         },
-        "eval": {"every": 2000, "select": "ema_val_miou"},
+        "eval": {"every": 500, "select": "last_ema"},
         "ckpt": {"every": 1000, "keep_last": 2, "keep_best": 1, "hub_every": 5000},
     }
     cfg = load_payload(tmp_path, explicit)
@@ -314,8 +327,9 @@ def test_config_hash_changes_for_each_section(tmp_path: Path) -> None:
     base = config_hash(Config())
     overrides = [
         {"experiment": "varyant"},
-        {"data": {"crop": 512}},
+        {"data": {"crop": 640}},
         {"aug": {"photometric": True}},
+        {"aug": {"sar_p": 0.5}},
         {"norm": {"sar": "train_stats"}},
         {"model": {"name": "damageformer_swin_t"}},
         {"optim": {"weight_decay": 1e-2}},
@@ -359,7 +373,7 @@ def test_to_dict_is_plain_nested() -> None:
     assert isinstance(payload, dict)
     assert payload["experiment"] == "ana"
     assert isinstance(payload["train"], dict)
-    assert payload["train"]["batch"] == 16
+    assert payload["train"]["batch"] == 8
     assert payload["train"]["clip"] is None
     assert isinstance(payload["loss"]["class_weights"], list)
     assert payload["loss"]["class_weights"] == [1.0, 1.0, 1.0, 1.0]
@@ -381,3 +395,65 @@ def test_repo_ana_yaml_matches_defaults() -> None:
     cfg = load_config(path)
     assert cfg == Config()
     assert config_hash(cfg) == config_hash(Config())
+
+
+def test_ana_yaml_equals_defaults() -> None:
+    assert load_config(REPO_ROOT / "configs" / "ana.yaml") == Config()
+
+
+def test_varyant_differs_only_in_sar_aug_and_name() -> None:
+    a = load_config(REPO_ROOT / "configs" / "ana.yaml")
+    v = load_config(REPO_ROOT / "configs" / "varyant.yaml")
+    assert v.experiment == "varyant"
+    assert dataclasses.replace(v, experiment="ana", aug=a.aug) == a
+    assert v.aug.sar_p == 0.8
+    assert v.aug.sar_gamma == (0.67, 1.5)
+
+
+def test_sar_gain_bounds_match_sar_olcek() -> None:
+    stats = json.loads((REPO_ROOT / "results" / "arastirma" / "sar_olcek.json").read_text(encoding="utf-8"))
+    means = [event["median_mean"] for event in stats["events"].values()]
+    lo = min(means) / stats["pooled"]["mean"]
+    hi = max(means) / stats["pooled"]["mean"]
+    v = load_config(REPO_ROOT / "configs" / "varyant.yaml")
+    assert v.aug.sar_gain == (round(lo, 3), round(hi, 3)) == (0.657, 1.657)
+
+
+def test_finetune_recipe_values() -> None:
+    cfg = load_config(REPO_ROOT / "configs" / "ana.yaml")
+    assert cfg.model.name == "bright_damageformer"
+    assert cfg.model.init == "bright_zero_shot"
+    assert cfg.data.crop == 512
+    assert cfg.train.batch == 8
+    assert cfg.train.steps == 4000
+    assert cfg.optim.lr == 2e-5
+    assert cfg.optim.weight_decay == 5e-3
+    assert cfg.sched.type == "cosine"
+    assert cfg.sched.warmup_steps == 200
+    assert cfg.sched.min_lr == 1e-7
+    assert cfg.train.amp == "bf16"
+    assert cfg.train.ema == 0.999
+    assert cfg.train.clip is None
+    assert cfg.train.seed == 42
+    assert cfg.train.budget_cu == 15.0
+    assert cfg.eval.every == 500
+    assert cfg.eval.select == "last_ema"
+
+
+@pytest.mark.parametrize(
+    ("section", "field", "value"),
+    [
+        ("aug", "sar_p", 1.2),
+        ("aug", "sar_p", -0.1),
+        ("aug", "sar_gamma", [0.67, 1.0, 1.5]),
+        ("aug", "sar_gain", [1.657, 0.657]),
+        ("aug", "sar_gain", [0.0, 1.657]),
+        ("aug", "sar_gain", [-0.1, 1.657]),
+        ("eval", "select", "best"),
+        ("model", "init", "x"),
+        ("train", "budget_cu", 0),
+    ],
+)
+def test_invalid_finetune_values_raise_config_error(tmp_path: Path, section: str, field: str, value) -> None:
+    with pytest.raises(ConfigError, match=rf"{section}\.{field}:"):
+        load_payload(tmp_path, {section: {field: value}})

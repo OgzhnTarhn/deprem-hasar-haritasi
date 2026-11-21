@@ -41,7 +41,7 @@ class Data:
 
     protocol: str = PROTOCOL
     test_event: str = TEST_EVENT
-    crop: int = 640
+    crop: int = 512
     workers: int = 8
     nodata_ignore: bool = True
 
@@ -63,6 +63,19 @@ class Aug:
     flips: bool = True
     rot90: bool = True
     photometric: bool = False
+    sar_p: float = 0.0
+    sar_gamma: tuple[float, ...] = (1.0, 1.0)
+    sar_gain: tuple[float, ...] = (1.0, 1.0)
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.sar_p <= 1.0:
+            raise ConfigError(f"aug.sar_p: [0, 1] aralığında olmalı, {self.sar_p} verildi.")
+        for name in ("sar_gamma", "sar_gain"):
+            bounds = getattr(self, name)
+            if len(bounds) != 2:
+                raise ConfigError(f"aug.{name}: tam 2 sınır bekleniyor, {len(bounds)} verildi.")
+            if not (0 < bounds[0] <= bounds[1] and bounds[1] > 0):
+                raise ConfigError(f"aug.{name}: sınırlar pozitif ve alt sınır üst sınırdan küçük veya eşit olmalı.")
 
 
 @dataclass(frozen=True)
@@ -81,9 +94,15 @@ class Norm:
 class Model:
     """Model selection and initial weights."""
 
-    name: str = "changemamba_mmbda_tiny"
-    init: str = "vssm_tiny_imagenet"
+    name: str = "bright_damageformer"
+    init: str = "bright_zero_shot"
     fallback: str = "damageformer_swin_t"
+
+    def __post_init__(self) -> None:
+        if self.init not in ("vssm_tiny_imagenet", "bright_zero_shot"):
+            raise ConfigError(
+                f"model.init: 'vssm_tiny_imagenet' veya 'bright_zero_shot' olmalı, '{self.init}' verildi."
+            )
 
 
 @dataclass(frozen=True)
@@ -91,7 +110,7 @@ class Optim:
     """Optimizer settings."""
 
     name: str = "adamw"
-    lr: float = 1e-4
+    lr: float = 2e-5
     weight_decay: float = 5e-3
 
     def __post_init__(self) -> None:
@@ -106,8 +125,8 @@ class Sched:
     """Learning-rate schedule."""
 
     type: str = "cosine"
-    warmup_steps: int = 1500
-    min_lr: float = 1e-6
+    warmup_steps: int = 200
+    min_lr: float = 1e-7
 
     def __post_init__(self) -> None:
         if self.warmup_steps < 0:
@@ -125,15 +144,18 @@ class Train:
     batch; on CUDA out-of-memory the loop halves it automatically.
     """
 
-    batch: int = 16
+    batch: int = 8
     micro_batch: int | None = None
-    steps: int = 40000
+    steps: int = 4000
     amp: str = "bf16"
     ema: float = 0.999
     clip: float | None = None
     seed: int = 42
+    budget_cu: float = 15.0
 
     def __post_init__(self) -> None:
+        if not self.budget_cu > 0:
+            raise ConfigError(f"train.budget_cu: pozitif olmalı, {self.budget_cu} verildi.")
         if self.batch <= 0:
             raise ConfigError(f"train.batch: pozitif olmalı, {self.batch} verildi.")
         if self.micro_batch is not None and not 1 <= self.micro_batch <= self.batch:
@@ -169,10 +191,12 @@ class Loss:
 class Eval:
     """Validation cadence and checkpoint selection."""
 
-    every: int = 2000
-    select: str = "ema_val_miou"
+    every: int = 500
+    select: str = "last_ema"
 
     def __post_init__(self) -> None:
+        if self.select not in ("ema_val_miou", "last_ema"):
+            raise ConfigError(f"eval.select: 'ema_val_miou' veya 'last_ema' olmalı, '{self.select}' verildi.")
         if self.every <= 0:
             raise ConfigError(f"eval.every: pozitif olmalı, {self.every} verildi.")
 
