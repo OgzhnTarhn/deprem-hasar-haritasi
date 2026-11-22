@@ -10,13 +10,45 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 | 2. Veri katmanı | Bitti (6 Kasım 2026) | `src/hasar/data/` (8 modül), `hasar` komutu, `results/veri/bolme.json`, `results/arastirma/` (5 araştırma); 288 kısa test (~3,5 sn) |
 | 3. Metrik ve yeniden üretim | Bitti (7 Kasım 2026) | `src/hasar/eval/` (metrik, bootstrap, bina F1, çıkarım, yeniden üretim), `hasar yeniden-uret`; 3 checkpoint ±0,3 içinde (yerel RTX 4060), DeepLabV3+ olumsuz bulgu |
 | 4. Model, eğitim motoru, ön kontrol | Kod bitti (7 Kasım 2026); Colab adımları kullanıcıda | `models/changemamba.py`, `train/` (kayıp, zamanlayıcı, EMA, kayıt, döngü), `preflight/gates.py` (11 kapı), `hasar agirlik/egit/on-kontrol`, protokol 1.0; kapılar 1–4, 6, 7, 10, 11 yerel GPU'da geçti |
-| 5. Ana eğitim | Başlamadı; Colab kullanıcıda | Hazır DamageFormer kontrol fine-tune’u, `configs/ana.yaml` |
-| 6. Türkiye final | Kod bitti (7 Kasım 2026); çalıştırma kullanıcıda | `eval/rows.py`, `eval/calibration.py`, `eval/final.py`, `eval/final_run.py`, `hasar sicaklik/final`; protokol 1.1. `sicaklik` yolu yerel GPU'da gerçek doğrulama kareleriyle denendi; `final` Türkiye'de **çalıştırılmadı** |
+| 5. Ana eğitim | Bitti (22 Kasım 2026) | Hazır DamageFormer kontrol fine-tune'u, `configs/ana.yaml`; 4000 adım, kapı 8 projeksiyonu 3,69 CU |
+| 6. Türkiye final | Bitti (22 Kasım 2026); ana ve varyant birer kez | Sonuçlar `results/ana/`, `results/varyant/`, `results/kiyas/`. Kod: `eval/rows.py`, `eval/calibration.py`, `eval/final.py`, `eval/final_run.py`, `hasar sicaklik/final` |
 | 7. Analizler | Kod bitti (8 Kasım 2026); ölçüm `final` sonrası | `analysis/` (uncertainty Y2, agreement Y1, transductive Y3, gallery, runner); `docs/bulgular.md`. Y1 dış katmanları ve Y3 yeniden çıkarımı kullanıcıda |
-| 8. Varyant | Kod bitti (8 Kasım 2026); eğitim kullanıcıda | `guard.require_final_access` (iki kilit), `eval/compare.py` (eşleştirilmiş kıyas, topluluk); A4 seçildi (KN1, 21 Kasım 2026); aynı defterde ana sonrası çalışır |
+| 8. Varyant | Bitti (22 Kasım 2026) | `guard.require_final_access` (iki kilit), `eval/compare.py` (eşleştirilmiş kıyas, topluluk); A4 seçildi (KN1, 21 Kasım 2026); aynı defterde ana sonrası çalışır |
 | 9. Demo ve ürünleştirme | Kod bitti (8 Kasım 2026); demo `final` sonrası | `hasar readme` (README tablosu üretildi), `hasar demo` (Leaflet, önbellekten), `hasar ornekler`, `export.py` + `scripts/disa_aktar.py` (yedek model torch-export ve ONNX'e aktarılıyor, `results/arastirma/disa_aktarim_*.json`) |
 
-## Güncel plan: kontrollü fine-tune (21 Kasım 2026)
+## Sonuçlar (22 Kasım 2026)
+
+İki fine-tune da Colab'da 4000 adım bitti ve Türkiye'de birer kez değerlendirildi (`protokol-kilidi`, `varyant-kilidi`).
+Sayılar şu dosyalardan: `results/{ana,varyant}/turkiye.json`, `turkiye_bina_f1.json`, `val13.json`,
+`results/kiyas/*.json`, `results/yeniden-uretim/damageformer_test.json`. Aralıklar %95, eşleştirilmiş blok bootstrap.
+
+| Model | Türkiye | Sağlam IoU | Hasarlı IoU | Yıkık IoU | 13 olay doğrulama |
+|---|---|---|---|---|---|
+| Referans: hazır DamageFormer | 37,20 `[ZS-EVENT mIoU, repro]` | 54,58 | 3,31 | 0,37 | 74,48 `[VAL13 mIoU, repro]` |
+| Ana: kontrol fine-tune'u | 40,44 [39,54; 41,41] `[ZS-EVENT mIoU]` | 67,85 | 2,97 | 0,29 | 74,55 `[VAL13 mIoU, ema]` |
+| Varyant: + SAR artırımı | 40,35 [39,43; 41,35] `[ZS-EVENT mIoU]` | 67,14 | 3,15 | 0,51 | 74,45 `[VAL13 mIoU, ema]` |
+
+| Kıyas `[ZS-EVENT mIoU, eslestirilmis-fark]` | Fark | %95 aralık | Karar |
+|---|---|---|---|
+| ana − referans | +3,24 | [2,27; 4,20] | farklı |
+| varyant − referans | +3,15 | [2,15; 4,17] | farklı |
+| varyant − ana (birincil) | −0,09 | [−0,19; 0,04] | eşit |
+
+Yorum:
+
+- **Fine-tune işe yaradı.** Kısa kontrol fine-tune'u Türkiye'yi görmeden hazır modeli +3,24 puan geçti; aralık 0'ı içermiyor.
+- **Kazancın hepsi sağlam sınıfından.** Sağlam IoU 54,58 → 67,85. Hasarlı ve yıkık IoU %3'ün altında kaldı;
+  model Türkiye'de hasarı hâlâ neredeyse hiç ayıramıyor. Asıl açık problem bu.
+- **SAR artırımı başlık metriğini değiştirmedi (olumsuz sonuç).** Varyant − ana "eşit". Varyantta hasarlı ve
+  yıkık sınıflarda küçük artış var (IoU 2,97 → 3,15 ve 0,29 → 0,51; bina F1 `[ZS-EVENT bina-makro-F1]`
+  hasarlı 3,81 → 4,42, yıkık 0,61 → 1,04), ama bu farklar için anlamlılık testi yapılmadı; bulgu değil, gözlem.
+- **Bağlam:** ChangeMamba'nın yayımlanmış 41,28 `[ZS-EVENT mIoU]` değeri ananın %95 aralığının içinde.
+  Eşleştirilmiş kıyas yapılamadığı için yalnız bağlamdır.
+- 13 olay doğrulaması üç modelde de ~74,5; dağılım içi ölçüm farkı göstermiyor, Türkiye'deki farkı öngörmedi.
+
+Sıradaki: isteğe bağlı Faz 7 analizleri (önbellek Drive'da `final_cache/`), demo (iki model + metrik paneli).
+
+## Önceki plan: kontrollü fine-tune (21 Kasım 2026)
 
 Kullanıcı [ADR-0007](adr/0007-ana-model-hazir-damageformer-fine-tune.md) kararını onayladı.
 Colab L4 kapı 8'de ChangeMamba projeksiyonu 164,6 CU > 75 CU çıktı. Ana artık hazır DamageFormer
