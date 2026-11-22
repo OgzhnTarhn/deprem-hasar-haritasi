@@ -16,7 +16,8 @@ hazır DamageFormer zero-shot 37,20 `[ZS-EVENT mIoU, repro]`. ChangeMamba 41,28 
 ## Çalışma biçimi
 
 - Kullanıcıya Türkçe yaz. Kod ve kod içi adlar İngilizce, açıklamalar Türkçe olabilir.
-- Kod ve test işleri orkestra ile yapılır (genel kural). Belge ve ayar işleri doğrudan yapılır.
+- Kod ve test işlerini **Codex** yazar (`codex exec` ya da `codex-bridge:codex-implementer`); Claude planlar ve
+  denetler. Bu projede orkestra kullanılmaz (genel kuralın yerine geçer). Belge ve ayar işleri doğrudan yapılır.
 - Ürün kararları kullanıcıya maliyeti yazılı seçeneklerle getirilir, açık uçlu soru olarak değil.
 
 ## Git
