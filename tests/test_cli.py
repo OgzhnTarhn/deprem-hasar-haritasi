@@ -454,3 +454,157 @@ def test_cli_kiyas_summary_supports_windows_encoding(tmp_path, monkeypatch) -> N
     assert code == 0
     assert "varyant - ana" in buffer.getvalue().decode("cp1254")
     assert out.is_file()
+
+
+@pytest.fixture
+def downloaded_results(tmp_path, monkeypatch):
+    """Build four synthetic tiles per model and a minimal README, without real data."""
+    from hasar.eval.metrics import ConfusionAccumulator
+    from hasar.results import ResultRecord, write_result
+
+    monkeypatch.setattr("hasar.train.run._git_commit", lambda: "test-commit")
+    monkeypatch.chdir(tmp_path)
+    source = tmp_path / "sonuclar"
+    results = tmp_path / "results"
+    readme = tmp_path / "README.md"
+    readme.write_text("Başlık\n<!-- sonuclar:basla -->\neski\n<!-- sonuclar:bitir -->\n", encoding="utf-8")
+    label = np.array([[0, 1, 2, 3]], dtype=np.uint8)
+    predictions = {
+        "ana": np.zeros_like(label),
+        "varyant": label,
+        "referans": np.array([[1, 2, 3, 0]], dtype=np.uint8),
+    }
+    for name, prediction in predictions.items():
+        accumulator = ConfusionAccumulator()
+        for index in range(4):
+            accumulator.add(label, prediction, f"synthetic_{index}")
+        if name == "referans":
+            directory = results / "yeniden-uretim"
+            directory.mkdir(parents=True)
+            accumulator.save_npz(directory / "damageformer_test_matrices.npz")
+            continue
+        directory = source / name
+        directory.mkdir(parents=True)
+        accumulator.save_npz(directory / "turkiye_kare_matrisleri_headline.npz")
+        accumulator.save_npz(directory / "turkiye_kare_matrisleri_tta.npz")
+        record = ResultRecord(
+            metric_tag="[ZS-EVENT mIoU]",
+            values={"miou_pct": 6.25 if name == "ana" else 100.0},
+            model=name,
+            split="zero_shot/test",
+            commit="synthetic",
+            config_hash="none",
+        )
+        write_result(directory / "turkiye.json", record)
+        for filename in ("turkiye_headline.json", "turkiye_bina_f1.json", "turkiye_kalibrasyon.json", "sicaklik.json"):
+            (directory / filename).write_text("{}\n", encoding="utf-8")
+        (directory / "ignore.txt").write_text("Kopyalanmasın", encoding="utf-8")
+    return source, results, readme
+
+
+def sonuc_al_args(downloaded_results):
+    source, results, readme = downloaded_results
+    return ["sonuc-al", "--kaynak", str(source), "--results", str(results), "--readme", str(readme)]
+
+
+@pytest.mark.parametrize("with_blocks", [False, True])
+def test_cli_sonuc_al_copies_compares_and_updates_readme(downloaded_results, with_blocks, monkeypatch, capsys):
+    from hasar.eval import bootstrap
+
+    source, results, readme = downloaded_results
+    blocks = results / "arastirma" / "turkiye_bloklar.json"
+    if with_blocks:
+        blocks.parent.mkdir(parents=True)
+        blocks.write_text(
+            json.dumps({
+                "tile_centers": [
+                    {"name": f"synthetic_{i}", "lat": 37.0 + (i // 2) * 0.1, "lon": 36.0}
+                    for i in range(4)
+                ],
+                "clusters": [{"nearest_place": "sentetik", "center_lat": 37.0, "center_lon": 36.0}],
+            }),
+            encoding="utf-8",
+        )
+    load_blocks = Mock(wraps=bootstrap.turkey_blocks)
+    monkeypatch.setattr(bootstrap, "turkey_blocks", load_blocks)
+
+    assert main([*sonuc_al_args(downloaded_results), "--blocks", str(blocks)]) == 0
+
+    for name in ("ana", "varyant"):
+        expected = {path.name for path in (source / name).iterdir() if path.suffix in (".json", ".npz")}
+        assert {path.name for path in (results / name).iterdir()} == expected
+        for filename in expected:
+            assert (results / name / filename).read_bytes() == (source / name / filename).read_bytes()
+    output = capsys.readouterr()
+    assert output.err == ""
+    for filename, a, b in (
+        ("varyant_vs_ana.json", "ana", "varyant"),
+        ("ana_vs_referans.json", "referans", "ana"),
+        ("varyant_vs_referans.json", "referans", "varyant"),
+    ):
+        record = json.loads((results / "kiyas" / filename).read_text(encoding="utf-8"))
+        assert record["extra"]["model_a"] == a
+        assert record["extra"]["model_b"] == b
+        assert record["values"]["diff_pct"] > 0
+        line = next(line for line in output.out.splitlines() if line.startswith(f"{b} - {a}:"))
+        for key in ("diff_pct", "low_pct", "high_pct"):
+            assert f"{record['values'][key]:.2f}" in line
+        assert record["extra"]["verdict"] in line
+        assert "%95" in line
+        assert f"kiyas/{filename}" in readme.read_text(encoding="utf-8")
+    assert "ana: 6.25 [ZS-EVENT mIoU]" in output.out
+    assert "varyant: 100.00 [ZS-EVENT mIoU]" in output.out
+    assert "ana/turkiye.json" in readme.read_text(encoding="utf-8")
+    assert "varyant/turkiye.json" in readme.read_text(encoding="utf-8")
+    assert load_blocks.call_count == (3 if with_blocks else 0)
+
+
+@pytest.mark.parametrize("name", ["ana", "varyant"])
+def test_cli_sonuc_al_missing_headline_copies_nothing(downloaded_results, name, capsys):
+    source, results, readme = downloaded_results
+    original_readme = readme.read_bytes()
+    (source / name / "turkiye.json").unlink()
+
+    assert main(sonuc_al_args(downloaded_results)) == 1
+
+    assert not (results / "ana").exists()
+    assert not (results / "varyant").exists()
+    assert not (results / "kiyas").exists()
+    assert readme.read_bytes() == original_readme
+    error = capsys.readouterr().err
+    assert "bulunamadı" in error
+    assert str(source / name / "turkiye.json") in error
+
+
+@pytest.mark.parametrize("name", ["ana", "varyant"])
+def test_cli_sonuc_al_conflicting_headline_is_preserved(downloaded_results, name, capsys):
+    _, results, readme = downloaded_results
+    original_readme = readme.read_bytes()
+    headline = results / name / "turkiye.json"
+    headline.parent.mkdir()
+    headline.write_text('{"existing": true}\n', encoding="utf-8")
+    original = headline.read_bytes()
+
+    assert main(sonuc_al_args(downloaded_results)) == 1
+
+    assert headline.read_bytes() == original
+    assert list(headline.parent.iterdir()) == [headline]
+    assert not (results / ("varyant" if name == "ana" else "ana")).exists()
+    assert not (results / "kiyas").exists()
+    assert readme.read_bytes() == original_readme
+    error = capsys.readouterr().err
+    assert "farklı" in error
+    assert str(headline) in error
+
+
+def test_cli_sonuc_al_identical_rerun_succeeds(downloaded_results):
+    _, results, readme = downloaded_results
+    assert main(sonuc_al_args(downloaded_results)) == 0
+    headlines = {name: (results / name / "turkiye.json").read_bytes() for name in ("ana", "varyant")}
+    table = readme.read_bytes()
+
+    assert main(sonuc_al_args(downloaded_results)) == 0
+
+    assert readme.read_bytes() == table
+    for name, content in headlines.items():
+        assert (results / name / "turkiye.json").read_bytes() == content

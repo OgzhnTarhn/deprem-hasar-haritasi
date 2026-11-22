@@ -1,6 +1,6 @@
 """Command line interface of the ``hasar`` package.
 
-Twelve subcommands are wired here:
+Thirteen subcommands are wired here:
 
 ``indir``
     Download and extract the BRIGHT archives into a data root (resumable).
@@ -29,6 +29,8 @@ Twelve subcommands are wired here:
 ``readme``
     Regenerate the README result table from the JSON files under ``results/`` through
     :mod:`hasar.report`, or check with ``--check`` that it is current.
+``sonuc-al``
+    Import downloaded Colab results, compare the models and update the README table.
 ``demo``
     Build the static Faz 9 demo site from the Faz 6 cache through :mod:`hasar.demo`; the model
     is never rerun.
@@ -41,6 +43,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -211,6 +214,17 @@ def _build_parser() -> argparse.ArgumentParser:
     readme.add_argument("--readme", type=Path, default=Path("README.md"), help="Güncellenecek README dosyası.")
     readme.add_argument("--results", type=Path, default=Path("results"), help="Sonuç JSON dosyalarının kökü.")
     readme.add_argument("--check", action="store_true", help="Yazmadan yalnız güncel mi diye denetle.")
+
+    import_results = subparsers.add_parser("sonuc-al", help="Colab sonuçlarını al, kıyasla ve README'yi güncelle.")
+    import_results.add_argument("--kaynak", type=Path, required=True, help="İndirilen sonuclar/ klasörü.")
+    import_results.add_argument("--results", type=Path, default=Path("results"), help="Sonuçların hedef kökü.")
+    import_results.add_argument("--readme", type=Path, default=Path("README.md"), help="Güncellenecek README dosyası.")
+    import_results.add_argument(
+        "--blocks",
+        type=Path,
+        default=Path("results") / "arastirma" / "turkiye_bloklar.json",
+        help="Varsa kullanılacak bootstrap blok haritası JSON dosyası.",
+    )
 
     demo = subparsers.add_parser("demo", help="Faz 6 önbelleğinden statik demo sitesi üret.")
     demo.add_argument("--cache", type=Path, required=True, help="Faz 6 kare olasılık önbelleği.")
@@ -391,6 +405,56 @@ def _run_readme(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_sonuc_al(args: argparse.Namespace) -> int:
+    """Import both final runs after checking headlines, then compare and refresh the table."""
+    from hasar.results import read_result
+
+    names = ("ana", "varyant")
+    for name in names:
+        source = args.kaynak / name / "turkiye.json"
+        destination = args.results / name / "turkiye.json"
+        if not source.is_file():
+            print(f"Sonuç dosyası bulunamadı: {source}", file=sys.stderr)
+            return 1
+        if destination.exists() and destination.read_bytes() != source.read_bytes():
+            print(f"Mevcut headline sonucu farklı; üzerine yazılamaz: {destination}", file=sys.stderr)
+            return 1
+
+    for name in names:
+        destination = args.results / name
+        destination.mkdir(parents=True, exist_ok=True)
+        for source in sorted((args.kaynak / name).iterdir()):
+            if source.is_file() and source.suffix in (".json", ".npz"):
+                target = destination / source.name
+                if not target.exists() or target.read_bytes() != source.read_bytes():
+                    shutil.copy2(source, target)
+
+    matrices = {
+        name: args.results / name / "turkiye_kare_matrisleri_headline.npz" for name in names
+    }
+    matrices["referans"] = args.results / "yeniden-uretim" / "damageformer_test_matrices.npz"
+    blocks = args.blocks if args.blocks.is_file() else None
+    for name_a, name_b in (("ana", "varyant"), ("referans", "ana"), ("referans", "varyant")):
+        code = _run_kiyas(
+            argparse.Namespace(
+                a=matrices[name_a],
+                b=matrices[name_b],
+                name_a=name_a,
+                name_b=name_b,
+                out=args.results / "kiyas" / f"{name_b}_vs_{name_a}.json",
+                blocks=blocks,
+            )
+        )
+        if code:
+            return code
+
+    update_readme(args.readme, args.results)
+    for name in names:
+        record = read_result(args.results / name / "turkiye.json")
+        print(f"{name}: {record.values['miou_pct']:.2f} [ZS-EVENT mIoU]")
+    return 0
+
+
 def _run_demo(args: argparse.Namespace) -> int:
     """Build the static demo site from the Faz 6 cache and print the page path."""
     from hasar import demo
@@ -440,6 +504,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_kiyas(args)
     if args.command == "readme":
         return _run_readme(args)
+    if args.command == "sonuc-al":
+        return _run_sonuc_al(args)
     if args.command == "demo":
         return _run_demo(args)
     return _run_veri_ozet(args)
