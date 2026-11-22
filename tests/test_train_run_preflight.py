@@ -4,11 +4,12 @@ import json
 from unittest.mock import Mock
 
 import pytest
-import torch
 
-from hasar.config import Config
-from hasar.models import bright_baselines
-from hasar.preflight.gates import GateResult
+torch = pytest.importorskip("torch")
+
+from hasar.config import Config  # noqa: E402
+from hasar.models import bright_baselines  # noqa: E402
+from hasar.preflight.gates import GateResult  # noqa: E402
 
 run = pytest.importorskip("hasar.train.run")
 

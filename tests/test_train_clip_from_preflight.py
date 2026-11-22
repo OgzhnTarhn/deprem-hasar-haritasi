@@ -12,11 +12,12 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-import torch
 
-from hasar.config import config_hash, load_config, run_id
-from hasar.preflight.gates import GateResult, write_preflight
-from hasar.train.loop import TrainState
+torch = pytest.importorskip("torch")
+
+from hasar.config import config_hash, load_config, run_id  # noqa: E402
+from hasar.preflight.gates import GateResult, write_preflight  # noqa: E402
+from hasar.train.loop import TrainState  # noqa: E402
 
 run = pytest.importorskip("hasar.train.run")
 
