@@ -117,7 +117,15 @@ altına alınır. Her koşunun `val13.json` kaydı da ilgili sonuç klasörüne 
 
 ## 5. Üç kıyas
 
-`hasar kiyas` yalnız kare matrislerini okur; modeli veya Türkiye görüntülerini yeniden çalıştırmaz.
+Kısa yol: Drive'dan indirilen `sonuclar/` klasörünü tek komutla al. Komut `ana/` ve `varyant/` içindeki
+`*.json` ve `*.npz` dosyalarını `results/` altına kopyalar, aşağıdaki üç kıyası yazar ve README tablosunu günceller.
+Var olan farklı bir `turkiye.json` dosyasının üzerine yazmaz. `val13.json` kayıtları bu komutla gelmez, elle kopyalanır.
+
+```bash
+uv run hasar sonuc-al --kaynak <indirilen>/sonuclar
+```
+
+Aynı işi adım adım yapmak için: `hasar kiyas` yalnız kare matrislerini okur; modeli veya Türkiye görüntülerini yeniden çalıştırmaz.
 Farkın yönü **b − a**. `--blocks results/arastirma/turkiye_bloklar.json` açıkça verilmelidir; verilmezse her kare ayrı blok sayılır.
 
 ```bash
