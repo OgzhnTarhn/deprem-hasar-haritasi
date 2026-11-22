@@ -1,0 +1,29 @@
+{
+  "commit": "fa82cafcf79f4185f65a4b905ac632035b3e8027",
+  "config_hash": "750faaf27342",
+  "created_at": "2026-11-22T14:12:16.916855+00:00",
+  "extra": {
+    "access": {
+      "commit": "fa82cafcf79f4185f65a4b905ac632035b3e8027",
+      "tag": "varyant-kilidi"
+    },
+    "n_boot": 10000,
+    "row": "nodata-yok",
+    "seed": 0,
+    "tiles": 1114
+  },
+  "metric_tag": "[ZS-EVENT mIoU, nodata-yok]",
+  "model": "bright_damageformer",
+  "seed": 0,
+  "split": "zero_shot/test",
+  "values": {
+    "building_miou_pct": 23.601576458254474,
+    "ci_high_pct": 41.08435784020112,
+    "ci_low_pct": 39.144881185502065,
+    "iou_background_pct": 89.48911818418169,
+    "iou_damaged_pct": 3.1469849528908216,
+    "iou_destroyed_pct": 0.5105935577820033,
+    "iou_intact_pct": 67.1471508640906,
+    "miou_pct": 40.07346188973628
+  }
+}

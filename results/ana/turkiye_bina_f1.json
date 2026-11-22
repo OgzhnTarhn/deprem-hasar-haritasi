@@ -1,0 +1,27 @@
+{
+  "commit": "fa82cafcf79f4185f65a4b905ac632035b3e8027",
+  "config_hash": "708fdc1f5ecb",
+  "created_at": "2026-11-22T11:32:57.371303+00:00",
+  "extra": {
+    "access": {
+      "commit": "fa82cafcf79f4185f65a4b905ac632035b3e8027",
+      "tag": "varyant-kilidi"
+    },
+    "n_boot": 10000,
+    "seed": 0,
+    "tiles": 1114,
+    "tiles_with_instances": 1001
+  },
+  "metric_tag": "[ZS-EVENT bina-makro-F1]",
+  "model": "bright_damageformer",
+  "seed": 0,
+  "split": "zero_shot/test",
+  "values": {
+    "buildings": 118748.0,
+    "f1_damaged_pct": 3.8135100569701192,
+    "f1_destroyed_pct": 0.6144393241167435,
+    "f1_intact_pct": 87.84884827717495,
+    "macro_f1_pct": 30.758932552753937,
+    "missed": 16822.0
+  }
+}

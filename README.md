@@ -25,6 +25,27 @@ Bu tablo `hasar readme` ile results/ dosyalarından üretildi; elle düzenlemeyi
 
 | Model | Bölme | Metrik | Değer | Kaynak |
 | --- | --- | --- | --- | --- |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU] | 40,44 [39,54; 41,41] | `ana/turkiye.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU] | 40,35 [39,43; 41,35] | `varyant/turkiye.json` |
+| bright_damageformer | zero_shot/val | [VAL13 mIoU, sicaklik] | 74,55 | `ana/sicaklik.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, bina-maskeli] | 40,48 [39,59; 41,43] | `ana/turkiye_bina-maskeli.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, bina-oylama] | 40,67 [39,71; 41,71] | `ana/turkiye_bina-oylama.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT bina-makro-F1] | 30,76 | `ana/turkiye_bina_f1.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, flip-tta] | 40,76 [39,81; 41,81] | `ana/turkiye_flip-tta.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, kalibrasyon] | 40,44 | `ana/turkiye_kalibrasyon.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, nodata-yok] | 40,16 [39,25; 41,14] | `ana/turkiye_nodata-yok.json` |
+| BrightBaseline | zero_shot/val | [VAL13 mIoU, ema] | 74,55 | `ana/val13.json` |
+| referans | zero_shot/test | [ZS-EVENT mIoU, eslestirilmis-fark] | 3,24 | `kiyas/ana_vs_referans.json` |
+| ana | zero_shot/test | [ZS-EVENT mIoU, eslestirilmis-fark] | -0,09 | `kiyas/varyant_vs_ana.json` |
+| referans | zero_shot/test | [ZS-EVENT mIoU, eslestirilmis-fark] | 3,15 | `kiyas/varyant_vs_referans.json` |
+| bright_damageformer | zero_shot/val | [VAL13 mIoU, sicaklik] | 74,45 | `varyant/sicaklik.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, bina-maskeli] | 40,47 [39,57; 41,45] | `varyant/turkiye_bina-maskeli.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, bina-oylama] | 40,68 [39,68; 41,84] | `varyant/turkiye_bina-oylama.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT bina-makro-F1] | 30,88 | `varyant/turkiye_bina_f1.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, flip-tta] | 40,69 [39,73; 41,78] | `varyant/turkiye_flip-tta.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, kalibrasyon] | 40,35 | `varyant/turkiye_kalibrasyon.json` |
+| bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, nodata-yok] | 40,07 [39,14; 41,08] | `varyant/turkiye_nodata-yok.json` |
+| BrightBaseline | zero_shot/val | [VAL13 mIoU, ema] | 74,45 | `varyant/val13.json` |
 | bright_damageformer | zero_shot/test | [ZS-EVENT mIoU, repro] | 37,20 | `yeniden-uretim/damageformer_test.json` |
 | bright_damageformer | zero_shot/val | [VAL13 mIoU, repro] | 74,48 | `yeniden-uretim/damageformer_val.json` |
 | bright_deeplabv3plus | zero_shot/test | [ZS-EVENT mIoU, repro] | 65,16 | `yeniden-uretim/deeplabv3plus_test.json` |

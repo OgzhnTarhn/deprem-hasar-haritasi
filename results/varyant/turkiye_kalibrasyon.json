@@ -1,0 +1,24 @@
+{
+  "commit": "fa82cafcf79f4185f65a4b905ac632035b3e8027",
+  "config_hash": "750faaf27342",
+  "created_at": "2026-11-22T14:12:16.973875+00:00",
+  "extra": {
+    "access": {
+      "commit": "fa82cafcf79f4185f65a4b905ac632035b3e8027",
+      "tag": "varyant-kilidi"
+    },
+    "bins": 15,
+    "n_boot": 10000,
+    "seed": 0,
+    "tiles": 1114
+  },
+  "metric_tag": "[ZS-EVENT mIoU, kalibrasyon]",
+  "model": "bright_damageformer",
+  "seed": 0,
+  "split": "zero_shot/test",
+  "values": {
+    "ece_pct": 9.954055162335052,
+    "miou_pct": 40.351186811531456,
+    "temperature": 1.75
+  }
+}

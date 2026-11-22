@@ -1,0 +1,21 @@
+{
+  "commit": "c568c0fef171a6ae7c9bdd5a094c6c8123dd0d37",
+  "config_hash": "none",
+  "created_at": "2026-11-22T14:40:08.805260+00:00",
+  "extra": {
+    "model_a": "referans",
+    "model_b": "varyant",
+    "verdict": "farklı"
+  },
+  "metric_tag": "[ZS-EVENT mIoU, eslestirilmis-fark]",
+  "model": "referans",
+  "seed": null,
+  "split": "zero_shot/test",
+  "values": {
+    "a_miou_pct": 37.19861298760904,
+    "b_miou_pct": 40.351186811531456,
+    "diff_pct": 3.152573823922411,
+    "high_pct": 4.171380923337818,
+    "low_pct": 2.15135772340633
+  }
+}

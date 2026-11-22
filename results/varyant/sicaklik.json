@@ -1,0 +1,14 @@
+{
+  "commit": "fa82cafcf79f4185f65a4b905ac632035b3e8027",
+  "config_hash": "750faaf27342",
+  "created_at": "2026-11-22T13:38:24.430488+00:00",
+  "extra": {},
+  "metric_tag": "[VAL13 mIoU, sicaklik]",
+  "model": "bright_damageformer",
+  "seed": null,
+  "split": "zero_shot/val",
+  "values": {
+    "miou_pct": 74.45347303157615,
+    "temperature": 1.75
+  }
+}
