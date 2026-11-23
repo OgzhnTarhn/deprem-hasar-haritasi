@@ -241,3 +241,16 @@ def test_preflight_gate8_uses_config_budget(monkeypatch, tmp_path, legacy_config
 
     assert code == 0
     speed.assert_called_once_with([0.5, 0.5], 4000, 13.0, budget)
+
+
+def test_build_model_ana_run_without_pretrained_returns_raw_model(monkeypatch) -> None:
+    """Evaluation (final/fewshot-test) builds the bare model and loads its own best.pt."""
+    from hasar.config import load_config
+
+    model = torch.nn.Linear(1, 1)
+    build = Mock(return_value=model)
+    monkeypatch.setattr(run.registry, "build", build)
+
+    cfg = load_config("configs/fewshot_a.yaml")
+    assert run.build_model(cfg, None, "cpu") is model
+    build.assert_called_once_with("bright_damageformer")

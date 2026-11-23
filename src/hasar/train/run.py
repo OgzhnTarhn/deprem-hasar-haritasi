@@ -147,9 +147,11 @@ def build_model(cfg: Config, pretrained: Path | str | None, device: str) -> torc
     elif name == "bright_damageformer":
         from hasar.models import bright_baselines
 
-        if cfg.model.init == "ana_run":
-            if pretrained is None:
-                raise ValueError(ANA_PRETRAINED_REQUIRED)
+        if cfg.model.init == "ana_run" and pretrained is None:
+            # Evaluation paths load their own best.pt into the bare model; training and preflight
+            # require the start checkpoint separately (_require_pretrained).
+            model = registry.build(name)
+        elif cfg.model.init == "ana_run":
             checkpoint = Path(pretrained)
             with checkpoint.open("rb") as handle:
                 _verify_ana_sha256(handle, checkpoint, cfg.model.init_sha256)
