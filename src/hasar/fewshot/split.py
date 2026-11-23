@@ -37,7 +37,7 @@ def make_fewshot_split(
     blocks_path: Path | str,
     fraction: float = 0.2,
     seed: int = 2023,
-    buffer_km: float = 1.0,
+    buffer_km: float = 0.5,
 ) -> dict[str, Any]:
     """Build a deterministic ``adapt`` / ``buffer`` / ``test`` split from tile coordinates only."""
     if not (0.0 < fraction <= 1.0):

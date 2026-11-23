@@ -51,7 +51,7 @@ kilitlenir, Türkiye test bölgesinde her model bir kez değerlendirilir.
 | 3. Hazır zero-shot'tan başla, karışık | Tek fine-tune hikâyesi | Ana'nın +3,24 kazancını atar | Elendi |
 
 Bölme için şehir bazlı (A) ve blok bazlı (B) seçenekler tartışıldı; kullanıcı **blok bazlı**yı seçti (her şehirden
-özellik görülsün), iyimserliğe karşı 1 km tampon Claude'un önerisi olarak eklendi. Deney boyutu için tek koşu,
+özellik görülsün), iyimserliğe karşı tampon Claude'un önerisi olarak eklendi. Deney boyutu için tek koşu,
 A/B ve A/B + öğrenme eğrisi tartışıldı; kullanıcı **A/B**'yi seçti.
 
 ## 5. Kararlar
@@ -63,7 +63,7 @@ A/B ve A/B + öğrenme eğrisi tartışıldı; kullanıcı **A/B**'yi seçti.
   ızgarası, en yakın şehir; 64 blok). Yeni bir ızgara kurulmaz; bölme ve bootstrap aynı blok kimliğini kullanır.
 - Her şehirde bloklar sabit tohumla (`seed = 2023`) karıştırılır; bloklar sırayla uyarlamaya alınır, şehrin
   uyarlama karesi o şehrin karelerinin **%20**'sine ulaşınca durulur (son blok bütün olarak alınır).
-- **Tampon:** merkezi herhangi bir uyarlama karesinin merkezine **1,0 km**'den yakın olan, uyarlamada olmayan kareler
+- **Tampon:** merkezi herhangi bir uyarlama karesinin merkezine **0,5 km**'den yakın olan, uyarlamada olmayan kareler
   tampon olur; hiçbir yerde kullanılmaz. Kalanlar test bölgesidir.
 - Çıktı: `results/fewshot/bolme.json` — `adapt`, `buffer`, `test` listeleri, sayılar, şehir başına sayılar, kural
   parametreleri ve listelerin sha256'sı. Komut deterministik; aynı girdiyle aynı dosyayı üretir; testi sentetik
@@ -130,12 +130,15 @@ A/B ve A/B + öğrenme eğrisi tartışıldı; kullanıcı **A/B**'yi seçti.
 ## 6. Maliyet ve beklenti
 
 - GPU: eğitim başına ≈ 3,7 CU (kapı 8 projeksiyonu, ana koşu; ölçülmedi, kapı 8 ölçer) + iki test değerlendirmesi.
-- Uyarlama ≈ 220 kare, test ≈ 700–850 kare bekleniyor (tampona bağlı; bölme üretilince kesin sayı yazılır).
+- Bölme (23 Kasım 2026, `results/fewshot/bolme.json`): uyarlama 303, tampon 170, test 641 kare. Bütün bloklar alındığı
+  için uyarlama %20 hedefini aşıp %27 oldu. Tampon ilk 1,0 km idi; o değerde test yalnız 355 kare (en küçük şehir 28)
+  kalıyordu. Kullanıcı 23 Kasım'da 0,5 km'yi seçti: yan ve çapraz bütün komşular çıkar, test 641 (en küçük şehir 68).
+  Seçim yalnız kare sayılarına bakılarak, hiçbir sonuç görülmeden yapıldı.
 - Beklenti: sağlam ve hasar sınıflarında artış olası, garanti yok. Hangi sonuç çıkarsa yazılır.
 
 ## 7. Riskler
 
-- Blok bazlı bölmede uzamsal benzerlik: 1 km tampon azaltır, tamamen gidermez; raporda yazılır.
+- Blok bazlı bölmede uzamsal benzerlik: 0,5 km tampon azaltır, tamamen gidermez; raporda yazılır.
 - Uyarlama karelerinde yıkık piksel çok az olabilir; bölme yine değişmez.
 - Ağırlıklı kayıp hasar sınıflarında yanlış pozitif artırabilir; B − A sınıf farkları bunu gösterir.
 - Test bölgesi 1114 karenin alt kümesi; ana zero-shot sonucu bu karelerde toplu olarak zaten görüldü. Şehir/kare

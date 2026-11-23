@@ -194,7 +194,7 @@ Bağlayıcı ayrıntı: [tasarım](superpowers/specs/2026-11-23-turkiye-few-shot
 
 | Konu | Kural |
 |---|---|
-| Bölme | Yalnız koordinattan: `turkey_blocks` blokları; her şehirde `seed 2023` ile karıştırılan bütün bloklar, şehrin karelerinin %20'sine ulaşana dek uyarlama. Uyarlama merkezine 1,0 km'den yakın diğer kareler tampon (hiç kullanılmaz), kalanı test. `results/fewshot/bolme.json`, listelerin sha256'sıyla; yeniden çekilmez |
+| Bölme | Yalnız koordinattan: `turkey_blocks` blokları; her şehirde `seed 2023` ile karıştırılan bütün bloklar, şehrin karelerinin %20'sine ulaşana dek uyarlama. Uyarlama merkezine 0,5 km'den yakın diğer kareler tampon (hiç kullanılmaz), kalanı test. `results/fewshot/bolme.json`, listelerin sha256'sıyla; yeniden çekilmez |
 | Erişim | `fewshot-kilidi` HEAD'in atası, temiz ağaç, kilitli dosyalar (`docs/protokol.md`, `configs/fewshot_a.yaml`, `configs/fewshot_b.yaml`, `results/fewshot/bolme.json`) etiketten beri aynı. Eğitim yalnız `adapt`, test yolu yalnız `test` karelerini okur. Doğrulama, kayıt noktası, eşik 13 olaydan |
 | Başlangıç | Ana koşunun son EMA'sı (`ana-708fdc1f5ecb/best.pt`); sha256 yapılandırmada kilitli; kapı 4 74,55 ± 0,3 `[VAL13 mIoU]` (`results/ana/val13.json`) |
 | Tarif | Ana ile aynı (4000 adım, batch 8, lr 2e-5, EMA 0,999, son adım EMA); her partinin yarısı Türkiye uyarlama, yarısı 13 olay; SAR artırımı kapalı; `train.clip` 3,1627 (ana kapı 9) iki kolda aynı; `micro_batch` 4 sabit |

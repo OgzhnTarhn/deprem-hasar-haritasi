@@ -17,7 +17,7 @@ anlamını yitirir. Motivasyon Türkiye sonucundan geldiği için tarif önceden
 
 | Seçenek | Artı | Eksi | Maliyet |
 |---|---|---|---|
-| Few-shot, blok bazlı bölme + 1 km tampon, A/B | Her şehirden örnek; kayıp etkisi ölçülür; gerçek senaryoya yakın | Uzamsal benzerlik tamamen gitmez | 2 eğitim (≈ 3,7 CU tahmin, ölçülmedi) |
+| Few-shot, blok bazlı bölme + 0,5 km tampon, A/B | Her şehirden örnek; kayıp etkisi ölçülür; gerçek senaryoya yakın | Uzamsal benzerlik tamamen gitmez | 2 eğitim (≈ 3,7 CU tahmin, ölçülmedi) |
 | Few-shot, şehir bazlı bölme | Sızıntı riski en düşük | Uyarlama çeşitliliği az | Aynı |
 | `standard_ML` bölmesi | Hazır | Türkiye'nin çoğu eğitimde; ezber, az bilgi | Aynı |
 
