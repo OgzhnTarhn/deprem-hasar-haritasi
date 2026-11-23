@@ -30,6 +30,9 @@ BASE_TAGS: tuple[str, ...] = (
     "DFC-TEST mIoU",
     "CVPR-TEST segm_AP",
     "VAL13 mIoU",
+    "FS-EVENT mIoU",
+    "FS-EVENT bina-makro-F1",
+    "FS-EVENT IoU",
 )
 
 _QUALIFIER_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
