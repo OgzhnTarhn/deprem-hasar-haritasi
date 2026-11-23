@@ -51,6 +51,16 @@ def heterogeneous_blocks(tiles: dict[str, np.ndarray]) -> dict[str, tuple[str, s
     return blocks
 
 
+def shifted_tiles(tiles: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    """Return copies with a tile-dependent boost on the diagonal."""
+    shifted = {}
+    for name, matrix in tiles.items():
+        improved = matrix.copy()
+        np.fill_diagonal(improved, np.diag(improved) + 5 + int(name[-2:]) % 3)
+        shifted[name] = improved
+    return shifted
+
+
 def total_pixels(matrix: np.ndarray) -> float:
     """A trivial metric: the number of pixels in class 0."""
     return float(matrix[0, 0])
@@ -72,6 +82,27 @@ def test_bootstrap_result_is_frozen_dataclass() -> None:
 
 
 # ------------------------------------------------------------------------- block_bootstrap
+
+
+def test_block_bootstrap_preserves_reference_values() -> None:
+    tiles = heterogeneous_tiles()
+
+    result = block_bootstrap(tiles, heterogeneous_blocks(tiles), n=500, seed=7)
+
+    assert (result.estimate, result.low, result.high) == pytest.approx(
+        (0.3959099776336917, 0.376527475963312, 0.4224984131973849), rel=0, abs=1e-12
+    )
+
+
+def test_block_bootstrap_is_independent_of_tile_and_block_order() -> None:
+    tiles = heterogeneous_tiles()
+    blocks = heterogeneous_blocks(tiles)
+    reversed_tiles = dict(reversed(tiles.items()))
+    reversed_blocks = dict(reversed(blocks.items()))
+
+    assert block_bootstrap(reversed_tiles, reversed_blocks, n=500, seed=7) == block_bootstrap(
+        tiles, blocks, n=500, seed=7
+    )
 
 
 def test_estimate_is_metric_of_summed_matrices() -> None:
@@ -183,6 +214,16 @@ def test_empty_tiles_raise_value_error() -> None:
 # ----------------------------------------------------------------- paired_block_bootstrap
 
 
+def test_paired_bootstrap_preserves_reference_values() -> None:
+    tiles = heterogeneous_tiles()
+
+    result = paired_block_bootstrap(tiles, shifted_tiles(tiles), heterogeneous_blocks(tiles), n=500, seed=7)
+
+    assert (result.estimate, result.low, result.high) == pytest.approx(
+        (0.06862647997967691, 0.06210529373889623, 0.0763419678282626), rel=0, abs=1e-12
+    )
+
+
 def test_paired_identical_models_give_zero_difference() -> None:
     tiles = heterogeneous_tiles()
     blocks = heterogeneous_blocks(tiles)
@@ -192,6 +233,26 @@ def test_paired_identical_models_give_zero_difference() -> None:
     assert result.estimate == pytest.approx(0.0)
     assert result.low == pytest.approx(0.0)
     assert result.high == pytest.approx(0.0)
+
+
+def test_paired_identical_models_with_reordered_tiles_give_zero_interval() -> None:
+    tiles = heterogeneous_tiles()
+    reordered = dict(reversed(tiles.items()))
+
+    result = paired_block_bootstrap(tiles, reordered, heterogeneous_blocks(tiles), n=500, seed=7)
+
+    assert result.estimate == result.low == result.high == 0.0
+
+
+def test_paired_bootstrap_is_independent_of_candidate_tile_order() -> None:
+    tiles_a = heterogeneous_tiles()
+    tiles_b = shifted_tiles(tiles_a)
+    reordered_b = dict(reversed(tiles_b.items()))
+    blocks = heterogeneous_blocks(tiles_a)
+
+    assert paired_block_bootstrap(tiles_a, reordered_b, blocks, n=500, seed=7) == paired_block_bootstrap(
+        tiles_a, tiles_b, blocks, n=500, seed=7
+    )
 
 
 def test_paired_better_model_has_positive_difference() -> None:
@@ -218,6 +279,15 @@ def test_paired_mismatched_keys_raise_value_error() -> None:
 
     with pytest.raises(ValueError):
         paired_block_bootstrap(tiles_a, tiles_b, blocks, n=10, seed=0)
+
+
+def test_paired_different_tile_names_with_same_count_raise_value_error() -> None:
+    tiles_a = heterogeneous_tiles(4)
+    tiles_b = dict(tiles_a)
+    tiles_b["other"] = tiles_b.pop("A_00")
+
+    with pytest.raises(ValueError):
+        paired_block_bootstrap(tiles_a, tiles_b, heterogeneous_blocks(tiles_a), n=10, seed=0)
 
 
 # ------------------------------------------------------------------------------ verdicts

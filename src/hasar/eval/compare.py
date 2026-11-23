@@ -9,7 +9,8 @@ The difference is written with the protocol section 9 "eşit" rule: a difference
 point, or a paired 95% interval that contains 0, is reported as "eşit"; otherwise the difference
 and its interval are written. The interval comes from the paired block bootstrap of protocol
 section 8 (:func:`hasar.eval.bootstrap.paired_block_bootstrap`), which draws the same blocks for
-both models so the difference is measured on identical resamples.
+both models so the difference is measured on identical resamples. The canonical block layout and
+point estimates use sorted tile names, independent of dictionary insertion order.
 
 The ensemble row is reported only if KN1 locked it. Its weight is chosen on the 13 validation
 events, never on Turkey, and the row averages the two single-inference caches
@@ -50,15 +51,16 @@ def compare_models(
     95% percentile interval of that difference. The verdict follows protocol section 9.
     """
     if set(per_tile_a) != set(per_tile_b):
-        raise ValueError("compare_models needs identical tile keys for both models")
+        raise ValueError("Her iki model de aynı kare adlarını içermelidir.")
     if not per_tile_a:
         raise ValueError("compare_models needs at least one tile")
 
+    tile_names = sorted(per_tile_a)
     if blocks is None:
-        blocks = {name: ("all", name) for name in per_tile_a}
+        blocks = {name: ("all", name) for name in tile_names}
 
-    a_miou_pct = miou(sum(per_tile_a.values())) * 100.0
-    b_miou_pct = miou(sum(per_tile_b.values())) * 100.0
+    a_miou_pct = miou(sum(per_tile_a[name] for name in tile_names)) * 100.0
+    b_miou_pct = miou(sum(per_tile_b[name] for name in tile_names)) * 100.0
 
     paired = paired_block_bootstrap(per_tile_a, per_tile_b, blocks, metric=miou, n=n, seed=seed)
     diff_pct = paired.estimate * 100.0

@@ -45,6 +45,26 @@ def better_tiles(base: dict[str, np.ndarray], boost: int = 20) -> dict[str, np.n
 # ------------------------------------------------------------------------- compare_models
 
 
+def test_compare_models_preserves_reference_values() -> None:
+    per_tile = tiles()
+    shifted = {}
+    for name, matrix in per_tile.items():
+        improved = matrix.copy()
+        np.fill_diagonal(improved, np.diag(improved) + 5 + int(name[-2:]) % 3)
+        shifted[name] = improved
+
+    result = compare_models(per_tile, shifted, n=300, seed=3)
+
+    assert result == {
+        "a_miou_pct": pytest.approx(39.59099776336917, rel=0, abs=1e-12),
+        "b_miou_pct": pytest.approx(46.45364576133686, rel=0, abs=1e-12),
+        "diff_pct": pytest.approx(6.8626479979676915, rel=0, abs=1e-12),
+        "low_pct": pytest.approx(6.193720520665844, rel=0, abs=1e-12),
+        "high_pct": pytest.approx(7.662817593459799, rel=0, abs=1e-12),
+        "verdict": "farklı",
+    }
+
+
 def test_compare_models_returns_the_declared_keys() -> None:
     per_tile = tiles()
 
@@ -62,6 +82,17 @@ def test_identical_models_have_zero_difference_and_are_equal() -> None:
     assert result["a_miou_pct"] == pytest.approx(result["b_miou_pct"])
     assert result["low_pct"] == pytest.approx(0.0)
     assert result["high_pct"] == pytest.approx(0.0)
+    assert result["verdict"] == "eşit"
+
+
+def test_reordered_identical_models_have_zero_interval_with_explicit_blocks() -> None:
+    per_tile = tiles()
+    reordered = dict(reversed(per_tile.items()))
+    blocks = {name: ("all", f"block-{i // 2}") for i, name in enumerate(per_tile)}
+
+    result = compare_models(per_tile, reordered, blocks=blocks, n=N, seed=3)
+
+    assert result["diff_pct"] == result["low_pct"] == result["high_pct"] == 0.0
     assert result["verdict"] == "eşit"
 
 

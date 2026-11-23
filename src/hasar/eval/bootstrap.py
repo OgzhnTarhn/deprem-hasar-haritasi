@@ -5,7 +5,8 @@ Protocol section 8
 The confidence interval of the headline metric is built with a *city-stratified 2 km block
 bootstrap*: 10.000 resamples, a 95% percentile interval and a fixed seed that is written to the
 results file. Two models are compared with a *paired* bootstrap that draws the same blocks for
-both models, so the difference is measured on identical resamples.
+both models, so the difference is measured on identical resamples. Sorted tile names determine
+the canonical block layout, independent of dictionary insertion order.
 
 Protocol section 9 ("eşit" rule)
 --------------------------------
@@ -25,7 +26,7 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -69,28 +70,31 @@ def _metric_rows(matrices: np.ndarray, metric: Metric) -> np.ndarray:
 
 
 def _block_layout(
-    tiles: dict[str, np.ndarray], blocks: dict[str, tuple[str, str]]
-) -> tuple[np.ndarray, dict[str, np.ndarray]]:
-    """Return the ``(B, 4, 4)`` block matrices and the block indices of every stratum.
+    tile_names: Iterable[str], blocks: dict[str, tuple[str, str]]
+) -> tuple[int, dict[str, np.ndarray], dict[str, int]]:
+    """Return the block count, per-stratum indices and block index of each tile.
 
-    Tiles that share a ``(stratum, block_id)`` pair are summed into one block matrix. A tile
-    without a block entry raises ``KeyError``.
+    Blocks and strata follow their first appearance among sorted tile names. A tile without
+    a block entry raises ``KeyError``.
     """
-    grouped: dict[tuple[str, str], np.ndarray] = {}
-    for name, matrix in tiles.items():
-        stratum, block_id = blocks[name]
-        key = (stratum, block_id)
-        matrix = np.asarray(matrix, dtype=np.int64)
-        grouped[key] = grouped[key] + matrix if key in grouped else matrix.copy()
-
-    keys = list(grouped)
-    block_matrices = np.stack([grouped[key] for key in keys])
+    block_indices: dict[tuple[str, str], int] = {}
+    tile_indices = {}
+    for name in sorted(tile_names):
+        tile_indices[name] = block_indices.setdefault(blocks[name], len(block_indices))
 
     strata: dict[str, list[int]] = {}
-    for index, (stratum, _block_id) in enumerate(keys):
+    for (stratum, _block_id), index in block_indices.items():
         strata.setdefault(stratum, []).append(index)
     stratum_indices = {stratum: np.array(idx, dtype=np.int64) for stratum, idx in strata.items()}
-    return block_matrices, stratum_indices
+    return len(block_indices), stratum_indices, tile_indices
+
+
+def _sum_blocks(tiles: dict[str, np.ndarray], n_blocks: int, tile_indices: dict[str, int]) -> np.ndarray:
+    """Sum the tile matrices into the canonical block layout."""
+    matrices = np.zeros((n_blocks, 4, 4), dtype=np.int64)
+    for name, index in tile_indices.items():
+        matrices[index] += np.asarray(tiles[name], dtype=np.int64)
+    return matrices
 
 
 def _draw_weights(stratum_indices: dict[str, np.ndarray], n: int, rng: np.random.Generator) -> np.ndarray:
@@ -139,7 +143,8 @@ def block_bootstrap(
     if not tiles:
         raise ValueError("block_bootstrap needs at least one tile")
 
-    block_matrices, stratum_indices = _block_layout(tiles, blocks)
+    n_blocks, stratum_indices, tile_indices = _block_layout(tiles, blocks)
+    block_matrices = _sum_blocks(tiles, n_blocks, tile_indices)
     estimate = float(metric(np.sum(block_matrices, axis=0)))
 
     rng = np.random.default_rng(seed)
@@ -163,12 +168,13 @@ def paired_block_bootstrap(
     and applies it to both models, which keeps the comparison paired.
     """
     if set(tiles_a) != set(tiles_b):
-        raise ValueError("paired_block_bootstrap needs identical tile keys for both models")
+        raise ValueError("Her iki model de aynı kare adlarını içermelidir.")
     if not tiles_a:
         raise ValueError("paired_block_bootstrap needs at least one tile")
 
-    blocks_a, stratum_indices = _block_layout(tiles_a, blocks)
-    blocks_b, _ = _block_layout(tiles_b, blocks)
+    n_blocks, stratum_indices, tile_indices = _block_layout(tiles_a, blocks)
+    blocks_a = _sum_blocks(tiles_a, n_blocks, tile_indices)
+    blocks_b = _sum_blocks(tiles_b, n_blocks, tile_indices)
     estimate = float(metric(np.sum(blocks_b, axis=0)) - metric(np.sum(blocks_a, axis=0)))
 
     rng = np.random.default_rng(seed)
