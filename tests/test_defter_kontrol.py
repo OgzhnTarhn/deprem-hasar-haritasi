@@ -29,6 +29,14 @@ def test_repo_fewshot_notebook_passes_check():
     assert checker.check(ROOT / "notebooks" / "fewshot.ipynb") == []
 
 
+def test_ana_egitim_starts_with_historical_note():
+    notebook = json.loads((ROOT / "notebooks" / "ana_egitim.ipynb").read_text(encoding="utf-8"))
+    first = notebook["cells"][0]
+    assert first["cell_type"] == "markdown"
+    assert first["id"] == "tarihi"
+    assert "Tarihî defter" in "".join(first["source"])
+
+
 def test_missing_variant_config_is_reported(tmp_path):
     path = write_notebook(tmp_path, 'command = "hasar agirlik --config configs/ana.yaml --preflight"\n')
     assert checker.check(path) == ["eksik: configs/varyant.yaml"]
