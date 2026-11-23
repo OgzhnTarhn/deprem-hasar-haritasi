@@ -17,3 +17,4 @@ Her ADR tek bir kararı, bağlamını, değerlendirilen seçenekleri ve sonuçla
 | [0005](0005-baslik-metrigi.md) | Başlık metriği: resmî kod yolu | Kabul |
 | [0006](0006-moduler-kod-yapisi.md) | Modüler kod yapısı | Kabul |
 | [0007](0007-ana-model-hazir-damageformer-fine-tune.md) | Ana model: hazır DamageFormer ile kontrollü fine-tune | Kabul |
+| [0008](0008-turkiye-few-shot-ek-deneyi.md) | Türkiye few-shot ek deneyi (blok bölmesi, A/B) | Kabul |
