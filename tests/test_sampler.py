@@ -12,7 +12,7 @@ import itertools
 import numpy as np
 import pytest
 
-from hasar.data.sampler import StepSampler, rng_for
+from hasar.data.sampler import MixedStepSampler, StepSampler, rng_for
 
 # --- rng_for ----------------------------------------------------------------
 
@@ -190,3 +190,99 @@ def test_resume_at_epoch_boundary() -> None:
 def test_invalid_arguments_raise_value_error(kwargs: dict) -> None:
     with pytest.raises(ValueError):
         StepSampler(seed=42, **kwargs)
+
+
+# --- MixedStepSampler -------------------------------------------------------
+
+
+def test_mixed_sampler_balances_each_batch_by_sample_parity() -> None:
+    n_primary, n_secondary, batch, total_steps = 29, 3, 8, 10
+    items = list(MixedStepSampler(n_primary, n_secondary, batch, seed=42, total_steps=total_steps))
+
+    assert [sample_no for _, sample_no in items] == list(range(total_steps * batch))
+    for start in range(0, len(items), batch):
+        step = items[start : start + batch]
+        assert sum(index < n_primary for index, _ in step) == batch // 2
+        assert sum(index >= n_primary for index, _ in step) == batch // 2
+        for index, sample_no in step:
+            if sample_no % 2 == 0:
+                assert n_primary <= index < n_primary + n_secondary
+            else:
+                assert 0 <= index < n_primary
+
+
+def test_mixed_sampler_is_deterministic_and_seeded() -> None:
+    first = list(MixedStepSampler(29, 3, 8, seed=42, total_steps=10))
+    same_seed = list(MixedStepSampler(29, 3, 8, seed=42, total_steps=10))
+    different_seed = list(MixedStepSampler(29, 3, 8, seed=43, total_steps=10))
+
+    assert first == same_seed
+    assert first != different_seed
+
+
+def test_mixed_sampler_resume_matches_full_run_tail() -> None:
+    batch, start_step = 8, 4
+    full = list(MixedStepSampler(29, 3, batch, seed=42, total_steps=10))
+    resumed = list(MixedStepSampler(29, 3, batch, seed=42, total_steps=10, start_step=start_step))
+
+    assert resumed == full[start_step * batch :]
+
+
+@pytest.mark.parametrize("pool_id", [0, 1], ids=["primary", "secondary"])
+def test_mixed_sampler_pool_epochs_match_seeded_permutations(pool_id: int) -> None:
+    n_primary, n_secondary, seed = 29, 3, 42
+    sampler = MixedStepSampler(n_primary, n_secondary, 8, seed, total_steps=20)
+    pool_size = n_secondary if pool_id else n_primary
+    pool_start = n_primary if pool_id else 0
+    draws = [index for index, sample_no in sampler if sample_no % 2 == 1 - pool_id]
+
+    for epoch in range(len(draws) // pool_size):
+        expected = pool_start + np.random.default_rng([seed, pool_id, epoch]).permutation(pool_size)
+        epoch_draws = draws[epoch * pool_size : (epoch + 1) * pool_size]
+        assert sorted(epoch_draws) == list(range(pool_start, pool_start + pool_size))
+        assert epoch_draws == expected.tolist()
+
+
+def test_mixed_sampler_index_at_matches_iteration_in_reverse_order() -> None:
+    sampler = MixedStepSampler(29, 3, 8, seed=42, total_steps=10)
+
+    for index, sample_no in reversed(list(sampler)):
+        assert sampler.index_at(sample_no) == index
+
+
+@pytest.mark.parametrize("start_step", [0, 4, 10])
+def test_mixed_sampler_finite_length(start_step: int) -> None:
+    sampler = MixedStepSampler(29, 3, 8, seed=42, total_steps=10, start_step=start_step)
+
+    assert len(sampler) == (10 - start_step) * 8
+    assert len(list(sampler)) == len(sampler)
+
+
+def test_mixed_sampler_without_total_steps() -> None:
+    sampler = MixedStepSampler(29, 3, 8, seed=42, start_step=4)
+
+    with pytest.raises(TypeError):
+        len(sampler)
+    sample_nos = [sample_no for _, sample_no in itertools.islice(sampler, 1000)]
+    assert sample_nos == list(range(32, 1032))
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        pytest.param({"n_primary": 0}, id="primary_zero"),
+        pytest.param({"n_primary": -1}, id="primary_negative"),
+        pytest.param({"n_secondary": 0}, id="secondary_zero"),
+        pytest.param({"n_secondary": -1}, id="secondary_negative"),
+        pytest.param({"batch": 0}, id="batch_zero"),
+        pytest.param({"batch": -2}, id="batch_negative"),
+        pytest.param({"batch": 3}, id="batch_odd"),
+        pytest.param({"start_step": -1}, id="start_step_negative"),
+        pytest.param({"start_step": 11}, id="start_step_past_total"),
+    ],
+)
+def test_mixed_sampler_invalid_arguments_raise_value_error(overrides: dict[str, int]) -> None:
+    kwargs = {"n_primary": 29, "n_secondary": 3, "batch": 8, "seed": 42, "total_steps": 10}
+
+    with pytest.raises(ValueError):
+        MixedStepSampler(**(kwargs | overrides))

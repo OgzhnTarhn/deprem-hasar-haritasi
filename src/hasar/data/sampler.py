@@ -104,3 +104,68 @@ class StepSampler:
         if self.total_steps is None:
             raise TypeError("len() is undefined without total_steps; the sampler is infinite")
         return (self.total_steps - self.start_step) * self.batch
+
+
+class MixedStepSampler:
+    """Sample two concatenated pools with half of every batch from each pool.
+
+    In the few-shot experiment, the secondary pool contains the Turkey adaptation tiles.
+    Even sample numbers draw from that pool and odd numbers draw from the primary pool.
+    Each pool advances its own epoch permutation, seeded by ``[seed, pool_id, epoch]``.
+    A resumed run starts at ``start_step * batch`` and yields the exact tail of the full run.
+    """
+
+    def __init__(
+        self,
+        n_primary: int,
+        n_secondary: int,
+        batch: int,
+        seed: int,
+        total_steps: int | None = None,
+        start_step: int = 0,
+    ) -> None:
+        if n_primary <= 0:
+            raise ValueError(f"n_primary must be positive, got {n_primary}")
+        if n_secondary <= 0:
+            raise ValueError(f"n_secondary must be positive, got {n_secondary}")
+        if batch <= 0 or batch % 2:
+            raise ValueError(f"batch must be positive and even, got {batch}")
+        if start_step < 0:
+            raise ValueError(f"start_step must be non-negative, got {start_step}")
+        if total_steps is not None and start_step > total_steps:
+            raise ValueError(f"start_step ({start_step}) must not exceed total_steps ({total_steps})")
+
+        self.n_primary = n_primary
+        self.n_secondary = n_secondary
+        self.batch = batch
+        self.seed = seed
+        self.total_steps = total_steps
+        self.start_step = start_step
+        self._pool_permutations: dict[int, tuple[int, np.ndarray]] = {}
+
+    def index_at(self, sample_no: int) -> int:
+        """Return the concatenated dataset index for a global sample number."""
+        pool_id = 1 - sample_no % 2
+        pool_size = self.n_secondary if pool_id else self.n_primary
+        epoch, offset = divmod(sample_no // 2, pool_size)
+        cached = self._pool_permutations.get(pool_id)
+        if cached is None or cached[0] != epoch:
+            permutation = np.random.default_rng([self.seed, pool_id, epoch]).permutation(pool_size)
+            self._pool_permutations[pool_id] = (epoch, permutation)
+        else:
+            _, permutation = cached
+        return pool_id * self.n_primary + int(permutation[offset])
+
+    def __iter__(self) -> Iterator[tuple[int, int]]:
+        """Yield ``(index, sample_no)`` pairs starting at ``start_step * batch``."""
+        sample_no = self.start_step * self.batch
+        stop = None if self.total_steps is None else self.total_steps * self.batch
+        while stop is None or sample_no < stop:
+            yield self.index_at(sample_no), sample_no
+            sample_no += 1
+
+    def __len__(self) -> int:
+        """Return the number of samples to yield; requires ``total_steps``."""
+        if self.total_steps is None:
+            raise TypeError("len() is undefined without total_steps; the sampler is infinite")
+        return (self.total_steps - self.start_step) * self.batch
