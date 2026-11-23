@@ -13,10 +13,15 @@ from pathlib import Path
 import pytest
 
 from hasar.cli import main
-from hasar.report import END, START, collect, format_number, render_table, update_readme
+from hasar.report import END, START, check_readme, collect, format_number, render_table, update_readme
 from hasar.results import ResultRecord, write_result
 
 NOTE = "Bu tablo `hasar readme` ile results/ dosyalarından üretildi; elle düzenlemeyin."
+FEWSHOT_START = "<!-- fewshot:basla -->"
+FEWSHOT_END = "<!-- fewshot:bitir -->"
+FEWSHOT_HEADING = (
+    "### Few-shot ek deneyi (Türkiye uyarlama etiketleri kullanılır; zero-shot ile ve 41,28 ile kıyaslanmaz)"
+)
 
 
 def make_record(**overrides: object) -> ResultRecord:
@@ -121,6 +126,16 @@ def test_collect_ignores_non_json_files(tmp_path: Path) -> None:
     assert [Path(path).as_posix() for path, _ in collect(tmp_path)] == ["ana/ok.json"]
 
 
+def test_collect_ignores_fewshot_split(tmp_path: Path) -> None:
+    write(tmp_path, "fewshot/a/test.json", make_record(metric_tag="[FS-EVENT mIoU]"))
+    (tmp_path / "fewshot/bolme.json").write_text(
+        json.dumps({"adapt": ["a"], "buffer": [], "test": ["b"], "sha256": {"test": "digest"}}),
+        encoding="utf-8",
+    )
+
+    assert [path.as_posix() for path, _ in collect(tmp_path)] == ["fewshot/a/test.json"]
+
+
 # --- render_table ----------------------------------------------------------
 
 
@@ -192,6 +207,61 @@ def test_render_table_empty_records_has_header_only() -> None:
 
 
 # --- update_readme ---------------------------------------------------------
+
+
+def test_fewshot_rows_render_in_separate_ordered_block(tmp_path: Path) -> None:
+    results = tmp_path / "results"
+    write(results, "ana/final.json", make_record())
+    readme = tmp_path / "README.md"
+    readme.write_text(
+        readme_with_block().replace(END, f"{END}\n\n{FEWSHOT_START}\n{FEWSHOT_END}"),
+        encoding="utf-8",
+    )
+    assert update_readme(readme, results)
+    before = readme.read_text(encoding="utf-8")
+    assert f"{FEWSHOT_START}\n{FEWSHOT_END}" in before
+    assert check_readme(readme, results)
+
+    write(results, "fewshot/a.json", make_record(metric_tag="[FS-EVENT mIoU, zs-ana]"))
+    write(results, "fewshot/b.json", make_record(metric_tag="[FS-EVENT bina-makro-F1]"))
+    write(results, "fewshot/z.json", make_record(metric_tag="[FS-EVENT mIoU]"))
+    assert not check_readme(readme, results)
+    assert readme.read_text(encoding="utf-8") == before
+    assert update_readme(readme, results)
+
+    text = readme.read_text(encoding="utf-8")
+    assert text.split(END)[0] == before.split(END)[0]
+    fewshot = text.split(FEWSHOT_START)[1].split(FEWSHOT_END)[0].splitlines()
+    assert fewshot[1:6] == [FEWSHOT_HEADING, "", NOTE, "", "| Model | Bölme | Metrik | Değer | Kaynak |"]
+    rows = fewshot[7:]
+    assert [row.split("`")[1] for row in rows] == ["fewshot/z.json", "fewshot/a.json", "fewshot/b.json"]
+    assert check_readme(readme, results)
+
+    readme.write_text(text.replace("`ana/final.json`", "`eski.json`"), encoding="utf-8")
+    assert not check_readme(readme, results)
+    assert update_readme(readme, results)
+    for path in (results / "fewshot").glob("*.json"):
+        path.unlink()
+    assert update_readme(readme, results)
+    assert readme.read_text(encoding="utf-8") == before
+
+
+def test_missing_fewshot_markers_are_allowed_only_without_fewshot_rows(tmp_path: Path) -> None:
+    results = tmp_path / "results"
+    readme = tmp_path / "README.md"
+    readme.write_text(readme_with_block(), encoding="utf-8")
+
+    assert update_readme(readme, results)
+    original = readme.read_text(encoding="utf-8")
+    assert FEWSHOT_START not in original
+    assert FEWSHOT_END not in original
+    assert check_readme(readme, results)
+
+    write(results, "fewshot/a.json", make_record(metric_tag="[FS-EVENT mIoU]"))
+    for operation in (update_readme, check_readme):
+        with pytest.raises(ValueError, match="fewshot:basla"):
+            operation(readme, results)
+    assert readme.read_text(encoding="utf-8") == original
 
 
 def test_update_readme_replaces_block_and_keeps_markers(tmp_path: Path) -> None:
@@ -288,3 +358,21 @@ def test_cli_readme_check_detects_new_result(tmp_path: Path) -> None:
     write(results, "ana/yeni.json", make_record(metric_tag="[VAL13 mIoU]", values={"miou_pct": 50.0}))
 
     assert main(["readme", "--readme", str(readme), "--results", str(results), "--check"]) == 1
+
+
+def test_value_cell_formats_class_wise_paired_differences() -> None:
+    from hasar.report import _value_cell
+
+    values = {
+        "damaged_a_pct": 3.0,
+        "damaged_diff_pct": 1.25,
+        "damaged_low_pct": 0.5,
+        "damaged_high_pct": 2.0,
+        "destroyed_a_pct": 0.3,
+        "destroyed_diff_pct": -0.1,
+        "destroyed_low_pct": -0.4,
+        "destroyed_high_pct": 0.2,
+    }
+    cell = _value_cell(values)
+    assert cell.startswith("hasarlı 1,25 [0,50; 2,00]")
+    assert "yıkık -0,10 [-0,40; 0,20]" in cell

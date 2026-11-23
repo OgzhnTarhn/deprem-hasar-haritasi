@@ -55,6 +55,9 @@ Bu tablo `hasar readme` ile results/ dosyalarından üretildi; elle düzenlemeyi
 | bright_unet | zero_shot/val | [VAL13 mIoU, repro] | 70,69 | `yeniden-uretim/unet_val.json` |
 <!-- sonuclar:bitir -->
 
+<!-- fewshot:basla -->
+<!-- fewshot:bitir -->
+
 ## Hızlı başlangıç
 
 ```bash

@@ -1,10 +1,9 @@
-"""README result table generated from the JSON files under ``results/``.
+"""README result tables generated from the JSON files under ``results/``.
 
 Project rules 4 and 5: every number in the README comes from a ``results/**/*.json`` file
 written by :mod:`hasar.results`, and every number carries its metric type tag. This module
-collects those records, renders them as a Markdown table and replaces the block between the
-``<!-- sonuclar:basla -->`` and ``<!-- sonuclar:bitir -->`` markers of the README. Nothing is
-typed by hand: the table is a pure function of the result files.
+collects those records and renders separate Markdown tables in the README's result blocks.
+Each table is a pure function of the result files.
 """
 
 from __future__ import annotations
@@ -13,9 +12,14 @@ from pathlib import Path
 
 from hasar.results import ResultRecord, ResultSchemaError, read_result
 
-#: Markers that delimit the generated block inside the README.
+#: Markers that delimit the generated blocks inside the README.
 START = "<!-- sonuclar:basla -->"
 END = "<!-- sonuclar:bitir -->"
+FEWSHOT_START = "<!-- fewshot:basla -->"
+FEWSHOT_END = "<!-- fewshot:bitir -->"
+_FEWSHOT_HEADING = (
+    "### Few-shot ek deneyi (Türkiye uyarlama etiketleri kullanılır; zero-shot ile ve 41,28 ile kıyaslanmaz)"
+)
 
 #: Line placed above the table so readers know the block is generated.
 NOTE = "Bu tablo `hasar readme` ile results/ dosyalarından üretildi; elle düzenlemeyin."
@@ -52,6 +56,15 @@ def collect(results: Path | str) -> list[tuple[Path, ResultRecord]]:
 
 def _value_cell(values: dict[str, float]) -> str:
     """Render the value cell, preferring the headline metric and appending a CI when present."""
+    if "damaged_diff_pct" in values and "destroyed_diff_pct" in values:
+        parts = []
+        for label, prefix in (("hasarlı", "damaged"), ("yıkık", "destroyed")):
+            cell = f"{label} {format_number(values[f'{prefix}_diff_pct'])}"
+            if f"{prefix}_low_pct" in values and f"{prefix}_high_pct" in values:
+                low, high = values[f"{prefix}_low_pct"], values[f"{prefix}_high_pct"]
+                cell += f" [{format_number(low)}; {format_number(high)}]"
+            parts.append(cell)
+        return " · ".join(parts)
     key = next((name for name in _VALUE_KEYS if name in values), None)
     if key is None:
         key = next(iter(values))
@@ -61,9 +74,9 @@ def _value_cell(values: dict[str, float]) -> str:
     return text
 
 
-def render_table(records: list[tuple[Path, ResultRecord]]) -> str:
-    """Render the Markdown table; the plain ``[ZS-EVENT mIoU]`` row comes first."""
-    ordered = sorted(records, key=lambda item: 0 if item[1].metric_tag == "[ZS-EVENT mIoU]" else 1)
+def render_table(records: list[tuple[Path, ResultRecord]], *, headline: str = "[ZS-EVENT mIoU]") -> str:
+    """Render the Markdown table with headline rows first."""
+    ordered = sorted(records, key=lambda item: item[1].metric_tag != headline)
     lines = [_HEADER, _SEPARATOR]
     for path, record in ordered:
         lines.append(
@@ -73,25 +86,39 @@ def render_table(records: list[tuple[Path, ResultRecord]]) -> str:
     return "\n".join(lines)
 
 
-def _render_block(results: Path | str) -> str:
-    """Return the full marker-delimited block for the current result files."""
-    return f"{START}\n{NOTE}\n\n{render_table(collect(results))}\n{END}"
-
-
-def _replace_block(text: str, block: str) -> str:
-    """Replace the text between the markers with ``block``; raise ``ValueError`` if they are missing."""
-    start = text.find(START)
-    end = text.find(END)
+def _replace_block(text: str, start_marker: str, end_marker: str, body: str) -> str:
+    """Replace the body between the markers, raising if the markers are invalid."""
+    start = text.find(start_marker)
+    end = text.find(end_marker)
     if start == -1 or end == -1 or end < start:
-        raise ValueError(f"README içinde {START} ve {END} işaretleri bulunamadı")
-    return text[:start] + block + text[end + len(END) :]
+        raise ValueError(f"README içinde {start_marker} ve {end_marker} işaretleri bulunamadı")
+    return text[: start + len(start_marker)] + "\n" + body + text[end:]
+
+
+def _render_readme(text: str, results: Path | str) -> str:
+    zero_shot: list[tuple[Path, ResultRecord]] = []
+    fewshot: list[tuple[Path, ResultRecord]] = []
+    for path, record in collect(results):
+        base_tag = record.metric_tag[1:-1].split(",", 1)[0].strip()
+        target = fewshot if base_tag.startswith("FS-EVENT") else zero_shot
+        target.append((path, record))
+
+    text = _replace_block(text, START, END, f"{NOTE}\n\n{render_table(zero_shot)}\n")
+    if not fewshot and (FEWSHOT_START not in text or FEWSHOT_END not in text):
+        return text
+
+    body = ""
+    if fewshot:
+        table = render_table(fewshot, headline="[FS-EVENT mIoU]")
+        body = f"{_FEWSHOT_HEADING}\n\n{NOTE}\n\n{table}\n"
+    return _replace_block(text, FEWSHOT_START, FEWSHOT_END, body)
 
 
 def update_readme(readme: Path | str, results: Path | str) -> bool:
-    """Rewrite the README result block from ``results``; return whether the file changed."""
+    """Rewrite the README result blocks from ``results``; return whether the file changed."""
     readme = Path(readme)
     text = readme.read_text(encoding="utf-8")
-    new_text = _replace_block(text, _render_block(results))
+    new_text = _render_readme(text, results)
     if new_text == text:
         return False
     readme.write_text(new_text, encoding="utf-8")
@@ -99,6 +126,6 @@ def update_readme(readme: Path | str, results: Path | str) -> bool:
 
 
 def check_readme(readme: Path | str, results: Path | str) -> bool:
-    """Return ``True`` when the README block is already current, without writing anything."""
+    """Return ``True`` when the README result blocks are current, without writing anything."""
     text = Path(readme).read_text(encoding="utf-8")
-    return _replace_block(text, _render_block(results)) == text
+    return _render_readme(text, results) == text
