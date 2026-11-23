@@ -37,13 +37,17 @@ hazır DamageFormer zero-shot 37,20 `[ZS-EVENT mIoU, repro]`. ChangeMamba 41,28 
    İki istisna, ikisi de başlık sonucunu etkilemez: Faz 3'te hazır zero-shot checkpoint'lerin yeniden üretimi ve
    Faz 7'de Türkiye'nin etiketsiz SAR istatistikleriyle yapılan, ayrı "transdüktif" tabloda raporlanan Y3 analizi.
    Fikir havuzundaki seçimler 13 olayın sonucuyla yapılır, Türkiye sonucuyla yapılmaz.
+   Üçüncü istisna (protokol 1.4 §15, ADR-0008): few-shot ek deneyinde kilitli bölmenin yalnız `adapt` kareleri
+   `fewshot-kilidi` altında eğitime girer; `test` kareleri model başına bir kez, `[FS-EVENT mIoU]` etiketiyle
+   değerlendirilir. Zero-shot sonuçları bundan etkilenmez.
 2. **Türkiye'yi görmüş ağırlık yok.** `*_standard_ML_split.pth` checkpoint'leri ve 2023 Türkiye sahnelerini
    ön eğitimde görmüş olabilecek modeller (ör. MaRS) başlangıç ağırlığı olamaz.
 3. **İki eğitim:** ana = kontrol fine-tune'u, varyant = SAR dayanıklılığı fine-tune'u, ikisi de hazır DamageFormer
    zero-shot checkpoint'inden; her biri bir kez.
+   Ek olarak few-shot A/B (düz ve hasar ağırlıklı kayıp), ana koşunun checkpoint'inden; her biri bir kez.
    GPU saati harcamadan önce ön kontrol kapılarının hepsi geçmeli. Yeni bir tam eğitim eklemek kullanıcının kararıdır.
 4. **Metrik etiketleri karışmaz.** Her sayının yanında türü yazılır: `[ZS-EVENT mIoU]`, `[STD-EVENT mIoU]`,
-   `[STD-SET mIoU]`, `[DFC-TEST mIoU]`, `[CVPR-TEST segm_AP]`. Yalnız `[ZS-EVENT mIoU]` 41,28 ile kıyaslanır.
+   `[STD-SET mIoU]`, `[DFC-TEST mIoU]`, `[CVPR-TEST segm_AP]`, `[FS-EVENT mIoU]` (few-shot test bölgesi). Yalnız `[ZS-EVENT mIoU]` 41,28 ile kıyaslanır.
 5. **Sayılar dosyadan gelir.** README ve raporlardaki her sayı `results/**/*.json` dosyasından üretilir; elle yazılmaz.
 6. **Olumsuz sonuç da yazılır.** Fark 1,0 puanın altındaysa veya eşleştirilmiş bootstrap farkının %95 aralığı 0'ı
    içeriyorsa "eşit" diye raporlanır ([protokol.md](docs/protokol.md) §9).
