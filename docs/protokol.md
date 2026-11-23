@@ -1,6 +1,6 @@
 # Değerlendirme Protokolü (önceden kayıt)
 
-- **Durum:** Son metin, sürüm 1.3 (21 Kasım 2026). `protokol-kilidi` etiketi bu sürümü içeren commit'e taşınır; aynı commit'e `varyant-kilidi` atılır.
+- **Durum:** Son metin, sürüm 1.4 (23 Kasım 2026). Zero-shot kuralları 1.3 ile aynı; 1.4 yalnız §15'teki few-shot ek deneyini ekler ve `fewshot-kilidi` etiketiyle kilitlenir. Sürüm 1.3 (21 Kasım 2026): `protokol-kilidi` etiketi bu sürümü içeren commit'e taşınır; aynı commit'e `varyant-kilidi` atılır.
   `train.clip` yapılandırmada boş kalır; eğitim eşiği aynı yapılandırmanın geçmiş ön kontrolünün 9. kapısından
   kendisi okur (tasarım §7–8). Bu yüzden kilit, ön kontrolden önce atılabilir. Kilitten sonra bu dosya değiştirilmez; değişiklik gerekirse yeni sürüm, gerekçesi ve
   tarihiyle §14'e yazılır ve başlık sonucunu etkileyen her değişiklik raporda belirtilir.
@@ -185,3 +185,21 @@ hesaplar). KN1 kapandı: A4 seçildi; topluluk 1.3 kapsamı dışında. Bu başl
 | 1.1 | 7 Kasım 2026 | Faz 6 kodu: adlar koddakiyle hizalandı (§3 kare matrisi dosyası satır başına, §6 satır etiketleri, §7 `[ZS-EVENT bina-makro-F1]`). `final` başlık dosyasını (`turkiye.json`) bütün öteki kayıtlardan sonra yazar; yarıda kalan koşu önbellekten devam eder, başlık yazıldıktan sonra ikinci koşu reddedilir. Hesap kuralı değişmedi |
 | 1.2 | 18 Kasım 2026 | Gradyan kırpma eşiği elle yazılmıyor: `train.clip: null` iken `hasar egit` eşiği, yapılandırma hash'i tutan, tamamlanmış ve bütün kapıları geçmiş `preflight.json`'ın 9. kapısından (2× lr'de 500 adım, p90 gradyan normu) okur; kayıt yoksa ya da tutmazsa eğitim başlamaz. Kural önceden sabit olduğu için kilit ön kontrolden önce atılır ve Colab defteri tek "Run All" ile ön kontrol + eğitim yapar. Eşik Türkiye'ye dokunmadan seçilir; hesap kuralı değişmedi |
 | 1.3 | 21 Kasım 2026 | Ana model hazır DamageFormer kontrol fine-tune'u; varyant SAR radyometrik artırımı (§4); son adımın EMA'sı, seçim yok (§5); topluluk kapsam dışı (§6); birincil varyant − ana, ikincil referans kıyasları (§9). Neden: Colab L4 kapı 8 ölçümünde ChangeMamba projeksiyonu 164,6 CU > 75 CU. Eğitim başlamadı; yeni eğitim ve `final` için Türkiye'ye dokunulmadı (Faz 3 yeniden üretimi istisnası saklı). Kullanıcı 21 Kasım 2026'da onayladı. Başlık sonucunu etkiler: **evet, model değişiyor** (ADR-0007). |
+| 1.4 | 23 Kasım 2026 | Few-shot ek deneyi (§15): Türkiye blok bazlı uyarlama/tampon/test bölmesi, kontrollü A/B (düz ve hasar ağırlıklı kayıp), ana checkpoint'inden başlangıç, yeni etiket `[FS-EVENT mIoU]`, `fewshot-kilidi`. Neden: kullanıcı 22–23 Kasım 2026'da az etiketle uyarlamayı ikinci deney olarak istedi; motivasyon zero-shot sonucundaki zayıf hasar sınıfları, açıkça yazılır. Zero-shot başlık sonucunu etkiler: **hayır** (ADR-0008). |
+
+## 15. Few-shot ek deneyi (1.4) ✅
+
+Bağlayıcı ayrıntı: [tasarım](superpowers/specs/2026-11-23-turkiye-few-shot-design.md) (§9 üstteki bölümlerin önüne geçer),
+[ADR-0008](adr/0008-turkiye-few-shot-ek-deneyi.md). Zero-shot sonuçları (`results/ana`, `results/varyant`) değişmez.
+
+| Konu | Kural |
+|---|---|
+| Bölme | Yalnız koordinattan: `turkey_blocks` blokları; her şehirde `seed 2023` ile karıştırılan bütün bloklar, şehrin karelerinin %20'sine ulaşana dek uyarlama. Uyarlama merkezine 1,0 km'den yakın diğer kareler tampon (hiç kullanılmaz), kalanı test. `results/fewshot/bolme.json`, listelerin sha256'sıyla; yeniden çekilmez |
+| Erişim | `fewshot-kilidi` HEAD'in atası, temiz ağaç, kilitli dosyalar (`docs/protokol.md`, `configs/fewshot_a.yaml`, `configs/fewshot_b.yaml`, `results/fewshot/bolme.json`) etiketten beri aynı. Eğitim yalnız `adapt`, test yolu yalnız `test` karelerini okur. Doğrulama, kayıt noktası, eşik 13 olaydan |
+| Başlangıç | Ana koşunun son EMA'sı (`ana-708fdc1f5ecb/best.pt`); sha256 yapılandırmada kilitli; kapı 4 74,55 ± 0,3 `[VAL13 mIoU]` (`results/ana/val13.json`) |
+| Tarif | Ana ile aynı (4000 adım, batch 8, lr 2e-5, EMA 0,999, son adım EMA); her partinin yarısı Türkiye uyarlama, yarısı 13 olay; SAR artırımı kapalı; `train.clip` 3,1627 (ana kapı 9) iki kolda aynı; `micro_batch` 4 sabit |
+| A/B | Tek fark `loss.class_weights`: A `(1, 1, 1, 1)`; B `(1, 1, 2,01, 2,70)` = karekök(f_sağlam / f_c), 13 olay eğitim pikselleri |
+| Sıra | İki eğitim de bitmeden Türkiye testi yok; her model test bölgesinde bir kez |
+| Metrik | `[FS-EVENT mIoU]` test karelerinde, §3 başlık yolu; şehir katmanlı blok bootstrap. Ek: `[FS-EVENT bina-makro-F1]` (örnek etiketli test kareleri). 41,28 ile ve `[ZS-EVENT mIoU]` ile kıyaslanmaz; sıcaklık, kalibrasyon, TTA yok |
+| Kıyaslar | Birincil B − A; ikincil A − zs-ana, B − zs-ana (zs-ana = ana zero-shot matrislerinin test karelerine süzülmesi, kilitten sonra kodla); ikincil sınıf bazlı B − A hasarlı ve yıkık IoU. Bloklar `(şehir, blok)` ile hizalanır. §9 "eşit" kuralı |
+| Raporlama | A − zs-ana "Türkiye uyarlama etiketleri + ek 4000 adım eğitim" diye yazılır. Motivasyonun zero-shot sonucundan geldiği ve blok bölmesinin uzamsal benzerlik riski raporda yazılır |
