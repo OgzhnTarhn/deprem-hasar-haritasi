@@ -34,3 +34,6 @@ Thumbs.db
 # Dışa aktarım ve demo çıktıları (Maxar CC BY-NC görüntü içerir; yayın kararı kullanıcıda)
 *.pt2
 /demo/
+
+# konsey ajan günlükleri
+.konsey/
