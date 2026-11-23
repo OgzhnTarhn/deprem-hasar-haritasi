@@ -1,6 +1,6 @@
 """Command line interface of the ``hasar`` package.
 
-Thirteen subcommands are wired here:
+Seventeen subcommands are wired here:
 
 ``indir``
     Download and extract the BRIGHT archives into a data root (resumable).
@@ -26,8 +26,16 @@ Thirteen subcommands are wired here:
     Run the single Turkey evaluation through :mod:`hasar.eval.final_run`.
 ``kiyas``
     Compare saved per-tile confusion matrices through :mod:`hasar.eval.compare`.
+``sha256``
+    Print a file's SHA-256 digest.
+``fewshot-bolme``
+    Write or check the canonical coordinate-only few-shot split.
+``fewshot-test``
+    Evaluate one few-shot arm after all arms have completed training.
+``fewshot-kiyas``
+    Compare the few-shot arms and the zero-shot main model on the same test tiles.
 ``readme``
-    Regenerate the README result table from the JSON files under ``results/`` through
+    Regenerate the README result tables from the JSON files under ``results/`` through
     :mod:`hasar.report`, or check with ``--check`` that it is current.
 ``sonuc-al``
     Import downloaded Colab results, compare the models and update the README table.
@@ -42,16 +50,25 @@ The entry point is :func:`main`, which returns an exit code instead of calling
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 
 from hasar.data.download import INSTANCE_SUFFIX, prepare_bright, prepare_instances
 from hasar.data.events import DEFAULT_LIST_DIR, list_digest, load_standard_lists, make_zero_shot_split
 from hasar.data.summary import build_split_report
+from hasar.guard import FEWSHOT_SPLIT_FILE
 from hasar.report import check_readme, update_readme
+
+_TURKEY_BLOCKS = Path("results/arastirma/turkiye_bloklar.json")
+_BUILDING_TILES = Path("results/arastirma/turkiye_bina_kareleri.json")
+_FEWSHOT_RESULTS = Path(FEWSHOT_SPLIT_FILE).parent
+_FEWSHOT_MATRICES = "turkiye_fewshot_kare_matrisleri.npz"
 
 #: Published checkpoint file of each baseline (kept here so parsing needs no torch).
 _REPRO_CHECKPOINTS: dict[str, str] = {
@@ -94,6 +111,33 @@ def _load_final() -> SimpleNamespace:
     from hasar.eval import final_run as module
 
     return SimpleNamespace(run_final_cli=module.run_final_cli, fit_temperature_cli=module.fit_temperature_cli)
+
+
+def _load_fewshot() -> SimpleNamespace:
+    """Load the few-shot evaluation entry points only when needed."""
+    from hasar.config import config_hash, load_config, run_id
+    from hasar.eval.bootstrap import turkey_blocks
+    from hasar.eval.fewshot_eval import compare_fewshot, require_runs_done, run_fewshot_test
+    from hasar.fewshot.split import load_split
+    from hasar.guard import require_fewshot_access
+
+    def load_model(cfg, runs: Path, device: str):
+        from hasar.eval.final_run import _load_model
+
+        return _load_model(cfg, runs, device)
+
+    return SimpleNamespace(
+        require_runs_done=require_runs_done,
+        run_fewshot_test=run_fewshot_test,
+        compare_fewshot=compare_fewshot,
+        require_fewshot_access=require_fewshot_access,
+        load_split=load_split,
+        load_model=load_model,
+        load_config=load_config,
+        run_id=run_id,
+        config_hash=config_hash,
+        turkey_blocks=turkey_blocks,
+    )
 
 
 def _parse_gates(raw: str) -> list[int]:
@@ -210,7 +254,45 @@ def _build_parser() -> argparse.ArgumentParser:
         "--blocks", type=Path, default=None, help="Bootstrap blok haritası JSON dosyası (isteğe bağlı)."
     )
 
-    readme = subparsers.add_parser("readme", help="README sonuç tablosunu results/ dosyalarından üret.")
+    sha256 = subparsers.add_parser("sha256", help="Dosyanın SHA-256 özetini yaz.")
+    sha256.add_argument("path", type=Path, metavar="DOSYA", help="Özeti hesaplanacak dosya.")
+
+    fewshot_split = subparsers.add_parser("fewshot-bolme", help="Few-shot bölmesini üret veya denetle.")
+    fewshot_split.add_argument("--blocks", type=Path, default=_TURKEY_BLOCKS, help="Türkiye blok haritası dosyası.")
+    fewshot_split.add_argument("--out", type=Path, default=Path(FEWSHOT_SPLIT_FILE), help="Bölme JSON dosyası.")
+    fewshot_split.add_argument("--check", action="store_true", help="Bölme dosyasını yazmadan güncelliğini denetle.")
+
+    fewshot_test = subparsers.add_parser("fewshot-test", help="Eğitimler bitince bir kolu test bölmesinde değerlendir.")
+    fewshot_test.add_argument("--config", type=Path, required=True, help="Test edilecek kolun YAML dosyası.")
+    fewshot_test.add_argument("--arms", type=Path, nargs="+", required=True, help="Tüm kolların YAML dosyaları.")
+    fewshot_test.add_argument("--data", type=Path, required=True, help="BRIGHT veri kökü.")
+    fewshot_test.add_argument("--runs", type=Path, required=True, help="Eğitim çıktılarının kök klasörü.")
+    fewshot_test.add_argument("--out", type=Path, required=True, help="Sonuçların yazılacağı klasör.")
+    fewshot_test.add_argument("--instances", type=Path, required=True, help="Bina örnek etiketlerinin klasörü.")
+    fewshot_test.add_argument("--building-tiles", type=Path, default=_BUILDING_TILES, help="Bina örnekli kare listesi.")
+    fewshot_test.add_argument("--blocks", type=Path, default=_TURKEY_BLOCKS, help="Türkiye blok haritası dosyası.")
+    fewshot_test.add_argument("--device", default="cuda", help="Çalıştırma aygıtı.")
+
+    fewshot_compare = subparsers.add_parser(
+        "fewshot-kiyas", help="Kayıtlı matrisleri few-shot test bölmesinde kıyasla.",
+    )
+    fewshot_compare.add_argument(
+        "--a", type=Path, default=_FEWSHOT_RESULTS / "a" / _FEWSHOT_MATRICES, help="A kolunun matris NPZ dosyası.",
+    )
+    fewshot_compare.add_argument(
+        "--b", type=Path, default=_FEWSHOT_RESULTS / "b" / _FEWSHOT_MATRICES, help="B kolunun matris NPZ dosyası.",
+    )
+    fewshot_compare.add_argument(
+        "--zs", type=Path, default=Path("results/ana/turkiye_kare_matrisleri_headline.npz"),
+        help="Zero-shot ana modelin matris NPZ dosyası.",
+    )
+    fewshot_compare.add_argument("--split", type=Path, default=Path(FEWSHOT_SPLIT_FILE), help="Bölme JSON dosyası.")
+    fewshot_compare.add_argument("--blocks", type=Path, default=_TURKEY_BLOCKS, help="Türkiye blok haritası dosyası.")
+    fewshot_compare.add_argument(
+        "--out", type=Path, default=_FEWSHOT_RESULTS / "kiyas", help="Kıyasların yazılacağı klasör.",
+    )
+
+    readme = subparsers.add_parser("readme", help="README sonuç tablolarını results/ dosyalarından üret.")
     readme.add_argument("--readme", type=Path, default=Path("README.md"), help="Güncellenecek README dosyası.")
     readme.add_argument("--results", type=Path, default=Path("results"), help="Sonuç JSON dosyalarının kökü.")
     readme.add_argument("--check", action="store_true", help="Yazmadan yalnız güncel mi diye denetle.")
@@ -397,6 +479,132 @@ def _run_kiyas(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_sha256(args: argparse.Namespace) -> int:
+    digest = hashlib.sha256()
+    try:
+        with args.path.open("rb") as source:
+            while chunk := source.read(1024 * 1024):
+                digest.update(chunk)
+    except OSError as error:
+        print(f"Dosya okunamadı ({args.path}): {error}", file=sys.stderr)
+        return 1
+    print(digest.hexdigest())
+    return 0
+
+
+def _run_fewshot_split(args: argparse.Namespace) -> int:
+    from hasar.fewshot.split import make_fewshot_split, write_split
+
+    try:
+        split = make_fewshot_split(args.blocks)
+        if args.check:
+            with TemporaryDirectory() as directory:
+                expected = Path(directory) / "bolme.json"
+                write_split(expected, split)
+                if not args.out.is_file() or args.out.read_bytes() != expected.read_bytes():
+                    print(f"Few-shot bölmesi eksik veya güncel değil: {args.out}", file=sys.stderr)
+                    return 1
+            print(f"Few-shot bölmesi güncel: {args.out}")
+        else:
+            write_split(args.out, split)
+            counts = split["counts"]
+            print(
+                f"Few-shot bölmesi yazıldı: {args.out} "
+                f"(adapt={counts['adapt']}, buffer={counts['buffer']}, test={counts['test']})"
+            )
+    except (OSError, ValueError, KeyError) as error:
+        print(f"Few-shot bölmesi hazırlanamadı: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _run_fewshot_test(args: argparse.Namespace) -> int:
+    if args.config.resolve() not in {arm.resolve() for arm in args.arms}:
+        print("--config dosyası --arms listesinde bulunmalıdır.", file=sys.stderr)
+        return 1
+
+    runner = _load_fewshot()
+    # Only the lock and preparation steps are reported as one-line errors; a failure inside the
+    # evaluation itself (e.g. CUDA out of memory) keeps its full traceback for debugging.
+    try:
+        runner.require_runs_done(args.runs, {arm.stem: arm for arm in args.arms})
+        repo_root = Path.cwd()
+        access = runner.require_fewshot_access(repo_root, "test")
+        split = runner.load_split(repo_root / FEWSHOT_SPLIT_FILE)
+        cfg = runner.load_config(args.config)
+    except (RuntimeError, ValueError) as error:
+        print(error, file=sys.stderr)
+        return 1
+    except (OSError, KeyError) as error:
+        print(f"Few-shot testi çalıştırılamadı: {error}", file=sys.stderr)
+        return 1
+
+    model = runner.load_model(cfg, args.runs, args.device)
+    records = runner.run_fewshot_test(
+        model,
+        args.data,
+        args.out,
+        run_id=runner.run_id(cfg),
+        split_sha256=split["sha256"]["test"],
+        model_name=args.config.stem,
+        config_hash=runner.config_hash(cfg),
+        access=access,
+        blocks=runner.turkey_blocks(args.blocks),
+        instances_dir=args.instances,
+        building_tiles=args.building_tiles,
+        device=args.device,
+    )
+
+    record = records["test"]
+    print(f"Türkiye few-shot {record.values['miou_pct']:.2f} {record.metric_tag}")
+    if "bina_f1" in records:
+        record = records["bina_f1"]
+        print(f"Türkiye few-shot bina F1 {record.values['macro_f1_pct']:.2f} {record.metric_tag}")
+    return 0
+
+
+def _git_head() -> str:
+    """Return the current commit without loading training code."""
+    try:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    return head.stdout.strip() or "unknown"
+
+
+def _run_fewshot_compare(args: argparse.Namespace) -> int:
+    runner = _load_fewshot()
+    try:
+        split = runner.load_split(args.split)
+        records = runner.compare_fewshot(
+            args.a, args.b, args.zs, test_names=split["test"], blocks=args.blocks, out_dir=args.out, commit=_git_head(),
+        )
+    except (OSError, ValueError, KeyError) as error:
+        print(f"Few-shot kıyası yapılamadı: {error}", file=sys.stderr)
+        return 1
+
+    for key in ("b_vs_a", "a_vs_zs-ana", "b_vs_zs-ana"):
+        record = records[key]
+        values, extra = record.values, record.extra
+        note = f" ({extra['note']})" if "note" in extra else ""
+        print(
+            f"{extra['direction']}: {values['diff_pct']:.2f} puan {record.metric_tag}; "
+            f"%95 aralık [{values['low_pct']:.2f}, {values['high_pct']:.2f}]; {extra['verdict']}{note}"
+        )
+
+    record = records["b_vs_a_siniflar"]
+    values, extra = record.values, record.extra
+    for key, label in (("damaged", "hasarlı"), ("destroyed", "yıkık")):
+        print(
+            f"{label}: {values[f'{key}_diff_pct']:.2f} puan {record.metric_tag}; "
+            f"%95 aralık [{values[f'{key}_low_pct']:.2f}, {values[f'{key}_high_pct']:.2f}]; {extra[f'verdict_{key}']}"
+        )
+
+    record = records["zs_ana"]
+    print(f"zs-ana (few-shot test bölmesi): {record.values['miou_pct']:.2f} {record.metric_tag}")
+    return 0
+
+
 def _run_readme(args: argparse.Namespace) -> int:
     """Regenerate the README result table, or check it with ``--check`` (exit 1 when stale)."""
     if args.check:
@@ -502,6 +710,14 @@ def main(argv: list[str] | None = None) -> int:
         return _run_final(args)
     if args.command == "kiyas":
         return _run_kiyas(args)
+    if args.command == "sha256":
+        return _run_sha256(args)
+    if args.command == "fewshot-bolme":
+        return _run_fewshot_split(args)
+    if args.command == "fewshot-test":
+        return _run_fewshot_test(args)
+    if args.command == "fewshot-kiyas":
+        return _run_fewshot_compare(args)
     if args.command == "readme":
         return _run_readme(args)
     if args.command == "sonuc-al":
