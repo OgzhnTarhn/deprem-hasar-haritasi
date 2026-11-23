@@ -5,8 +5,8 @@ The eleven gates of design section 8 are implemented here, one function each, pl
 
 1. ``gate_reproduction`` -- the published SiamCRNN, UNet and DamageFormer checkpoints reproduce
    their Turkey ``[ZS-EVENT mIoU, repro]`` values within tolerance.
-2. ``gate_split`` -- the tile counts and event lists match the expected split and no Turkey tile
-   leaks into train or validation.
+2. ``gate_split`` -- the tile counts and event lists match the expected split. Turkey tiles are
+   accepted only in the test inventory and the locked training adaptation pool.
 3. ``gate_sampler_length`` -- the loader length equals ``steps * batch`` (the ``max_iters`` trap).
 4. ``gate_initial_loss`` -- the initial losses are close to ln 4 (damage head) and ln 2 (building
    head).
@@ -36,7 +36,7 @@ import gc
 import json
 import math
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -45,7 +45,7 @@ import torch
 
 from hasar.config import Config
 from hasar.data.events import TEST_EVENT, Split, SplitLeakError, check_no_leak
-from hasar.data.sampler import StepSampler
+from hasar.data.sampler import MixedStepSampler, StepSampler
 from hasar.eval.metrics import always_background_miou, confusion_matrix, miou, summary
 from hasar.eval.predict import evaluate
 from hasar.train.loop import train
@@ -165,8 +165,9 @@ def gate_split(
     split: Split,
     expected: tuple[int, int, int] = EXPECTED_SPLIT,
     test_event: str = TEST_EVENT,
+    allowed_adapt: frozenset[str] = frozenset(),
 ) -> GateResult:
-    """Check the split sizes and that no test-event tile leaks into train or validation."""
+    """Check size and leakage, allowing locked adapt tiles to also appear in train."""
     counts = split.counts()
     actual = (counts["train"], counts["val"], counts["test"])
     value: dict[str, Any] = {"counts": counts, "expected": list(expected)}
@@ -175,6 +176,12 @@ def gate_split(
     if actual != tuple(expected):
         problems.append(f"sayılar {actual}, beklenen {tuple(expected)}")
     try:
+        if allowed_adapt:
+            # The test list remains the full zero-shot inventory. Validate the original split
+            # after removing only the authorized training copies.
+            if len(set(split.train)) != len(split.train):
+                raise SplitLeakError("'train' bölümünde tekrar eden kare var.")
+            split = replace(split, train=tuple(name for name in split.train if name not in allowed_adapt))
         check_no_leak(split, test_event=test_event)
     except SplitLeakError as exc:
         problems.append(str(exc))
@@ -187,9 +194,12 @@ def gate_split(
 # --- gate 3: sampler length -------------------------------------------------
 
 
-def gate_sampler_length(n_items: int, batch: int, steps: int, seed: int = 0) -> GateResult:
+def gate_sampler_length(n_items: int, batch: int, steps: int, seed: int = 0, n_secondary: int = 0) -> GateResult:
     """Check that the step-bounded sampler yields exactly ``steps * batch`` samples."""
-    sampler = StepSampler(n_items, batch, seed, total_steps=steps)
+    if n_secondary:
+        sampler = MixedStepSampler(n_items, n_secondary, batch, seed, total_steps=steps)
+    else:
+        sampler = StepSampler(n_items, batch, seed, total_steps=steps)
     length = len(sampler)
     expected = steps * batch
     value: dict[str, Any] = {"length": int(length), "expected": int(expected), "steps": int(steps)}
@@ -208,7 +218,7 @@ def gate_loaded_checkpoint(
     device: str,
     tolerance: float = 0.3,
 ) -> GateResult:
-    """Check loaded weights against the Phase 3 validation mIoU in fp32 without TTA."""
+    """Check loaded weights against their recorded validation mIoU in fp32 without TTA."""
     accumulator = evaluate(model, val_set, device=device, tta=False)
     miou_pct = summary(accumulator.total)["miou"] * 100
     value = {

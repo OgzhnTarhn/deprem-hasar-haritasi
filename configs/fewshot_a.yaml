@@ -1,0 +1,69 @@
+# DamageFormer Türkiye few-shot uyarlaması: A kolu, kilitli adapt kareleri ve 13 olay.
+
+experiment: fewshot_a  # deney adı; run_id'nin ön eki
+
+data:
+  protocol: zero_shot  # BRIGHT cross_event/zero_shot mantığı
+  test_event: turkey-earthquake  # tek seferlik test olayı
+  crop: 512  # fine-tune kırpma boyutu
+  workers: 8  # veri yükleyici süreç sayısı
+  nodata_ignore: true  # optik ve SAR'ın ikisi de 0 olan pikseller kayıpta yok sayılır
+  fewshot_split: results/fewshot/bolme.json  # kilitli Türkiye uyarlama bölmesi
+
+aug:
+  flips: true  # yatay/dikey çevirme
+  rot90: true  # 90 derecelik döndürmeler
+  photometric: false  # fotometrik artırım yok (resmî reçete)
+  sar_p: 0.0  # SAR artırımı olasılığı; kontrolde kapalı
+  sar_gamma: [1.0, 1.0]  # SAR gama aralığı; kontrolde etkisiz
+  sar_gain: [1.0, 1.0]  # SAR kazanç aralığı; varyant: 41,3/62,9 ve 104,2/62,9 (sar_olcek.json)
+
+norm:
+  optical: imagenet  # optik: ImageNet istatistikleri
+  sar: official  # SAR: resmî biçim, ADR-0004
+
+model:
+  name: bright_damageformer  # fine-tune modeli
+  init: ana_run  # ana koşunun son EMA ağırlığı, best.pt, adım 4000
+  init_sha256: "0000000000000000000000000000000000000000000000000000000000000000"  # kilitten önce Colab'da best.pt'nin sha256'sıyla değiştirilir
+  fallback: damageformer_swin_t  # çekirdek derlenmezse otomatik yedek
+
+optim:
+  name: adamw  # iyileştirici
+  lr: 2.0e-5  # fine-tune öğrenme oranı
+  weight_decay: 5.0e-3  # ağırlık sönümü
+
+sched:
+  type: cosine  # kosinüs zamanlama
+  warmup_steps: 200  # ısınma adımları
+  min_lr: 1.0e-7  # en düşük öğrenme oranı
+
+train:
+  batch: 8  # etkin parti boyutu
+  micro_batch: 4  # tek ileri-geri geçişteki en büyük parça
+  steps: 4000  # adım sayısı; örnek sayısı değil (max_iters tuzağı)
+  amp: bf16  # karışık hassasiyet
+  ema: 0.999  # EMA ağırlık katsayısı
+  clip: 3.1627  # ana kapı 9 ölçümü, iki kolda aynı
+  seed: 42  # iki koşunun ortak rastgelelik tohumu
+  budget_cu: 15.0  # fine-tune hesaplama birimi bütçesi
+  oom_halving: false  # bellek hatasında yarıya inmez, hata verir
+
+loss:
+  ce_loc: 1.0  # bina başlığı CE ağırlığı
+  ce_clf: 1.0  # hasar başlığı CE ağırlığı
+  lovasz_loc: 0.5  # bina başlığı Lovász ağırlığı
+  lovasz_clf: 0.75  # hasar başlığı Lovász ağırlığı
+  class_weights: [1.0, 1.0, 1.0, 1.0]  # sınıf ağırlığı yok
+  ignore_index: 255  # yok sayılan etiket değeri
+  lovasz_fp32: true  # Lovász kaybı fp32'de
+
+eval:
+  every: 500  # doğrulama sıklığı (adım); yalnız 13 olay, Türkiye eğitimde değerlendirilmez
+  select: last_ema  # son adımın EMA ağırlıkları
+
+ckpt:
+  every: 1000  # Drive'a kayıt sıklığı (adım)
+  keep_last: 2  # tutulan son kayıt sayısı
+  keep_best: 1  # tutulan en iyi kayıt sayısı
+  hub_every: 5000  # HF Hub'a kayıt sıklığı (adım)

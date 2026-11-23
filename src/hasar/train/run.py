@@ -17,12 +17,14 @@ from __future__ import annotations
 
 import dataclasses
 import gc
+import hashlib
 import json
+import math
 import subprocess
 import tempfile
 import traceback
 from pathlib import Path
-from typing import Any
+from typing import Any, BinaryIO
 
 import numpy as np
 import torch
@@ -32,12 +34,14 @@ from torch.utils.data.dataloader import default_collate
 from hasar.config import Config, config_hash, load_config, run_id
 from hasar.data import io
 from hasar.data.dataset import BrightDataset
-from hasar.data.events import check_no_leak, load_standard_lists, make_zero_shot_split
+from hasar.data.events import Split, check_no_leak, load_standard_lists, make_zero_shot_split
 from hasar.data.normalize import compute_sar_stats
-from hasar.data.sampler import StepSampler
 from hasar.data.summary import label_histogram
+from hasar.fewshot.split import load_split
+from hasar.guard import TurkeyLockError, require_fewshot_access
 from hasar.models import registry
 from hasar.preflight.gates import (
+    EXPECTED_SPLIT,
     _result,
     clip_from_preflight,
     failed_gate,
@@ -56,10 +60,13 @@ from hasar.preflight.gates import (
     preflight_is_current,
     write_preflight,
 )
-from hasar.train.loop import VAL_TAG, train
+from hasar.train.loop import VAL_TAG, _train_sampler, train
 
 #: Default folder of the Phase 3 reproduction records (gate 1).
 DEFAULT_REPRO_DIR = Path("results") / "yeniden-uretim"
+ANA_VAL13_RECORD = Path("results") / "ana" / "val13.json"
+ANA_FINAL_STEP = 4000
+ANA_PRETRAINED_REQUIRED = "Ana koşunun best.pt dosyasını --pretrained ile verin."
 
 #: Approximate Colab CU price per hour by GPU (gate 8); an unknown GPU uses the A100 price.
 CU_PER_HOUR = {"A100": 13.0, "L4": 5.0}
@@ -87,6 +94,39 @@ def _git_commit() -> str:
     return result.stdout.strip() or "unknown"
 
 
+def _git_root() -> Path:
+    """Find the current Git worktree root, falling back to the working directory."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return Path.cwd()
+    root = result.stdout.strip()
+    return Path(root) if root else Path.cwd()
+
+
+def _verify_ana_sha256(handle: BinaryIO, checkpoint: Path, expected: str | None) -> None:
+    digest = hashlib.sha256()
+    for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+        digest.update(chunk)
+    if digest.hexdigest() != expected:
+        raise ValueError(f"Checkpoint sha256 uyuşmazlığı: {checkpoint}; beklenen sha256: {expected}.")
+
+
+def _require_pretrained(cfg: Config, pretrained: Path | str | None) -> None:
+    if pretrained is None:
+        if cfg.model.init == "ana_run":
+            raise ValueError(ANA_PRETRAINED_REQUIRED)
+        if cfg.model.init == "bright_zero_shot":
+            raise ValueError(
+                "DamageFormer zero-shot checkpoint'ini `hasar agirlik --config ...` ile indirip --pretrained ile verin."
+            )
+
+
 def build_model(cfg: Config, pretrained: Path | str | None, device: str) -> torch.nn.Module:
     """Build the configured model on ``device``, applying the automatic fallback rule."""
     from hasar.models import changemamba  # registers the model factories
@@ -107,21 +147,39 @@ def build_model(cfg: Config, pretrained: Path | str | None, device: str) -> torc
     elif name == "bright_damageformer":
         from hasar.models import bright_baselines
 
-        model = registry.build(name)
-        if pretrained is not None:
-            baseline = bright_baselines.BASELINES["damageformer"]
-            if bright_baselines.file_md5(pretrained) != baseline.md5:
-                raise ValueError(
-                    f"Checkpoint md5 uyuşmazlığı: {Path(pretrained).name}; beklenen checkpoint: {baseline.checkpoint}"
-                )
-            bright_baselines.load_checkpoint(model, pretrained)
+        if cfg.model.init == "ana_run":
+            if pretrained is None:
+                raise ValueError(ANA_PRETRAINED_REQUIRED)
+            checkpoint = Path(pretrained)
+            with checkpoint.open("rb") as handle:
+                _verify_ana_sha256(handle, checkpoint, cfg.model.init_sha256)
+                handle.seek(0)
+                payload = torch.load(handle, map_location="cpu", weights_only=True)
+            step = payload.get("step") if isinstance(payload, dict) else None
+            if step != ANA_FINAL_STEP:
+                raise ValueError(f"Ana checkpoint adımı {ANA_FINAL_STEP} olmalı, okunan adım: {step}.")
+            model = registry.build(name)
+            model.load_state_dict(payload["model"])
+            print(f"Ana checkpoint sha256: {cfg.model.init_sha256}")
+        else:
+            model = registry.build(name)
+            if pretrained is not None:
+                baseline = bright_baselines.BASELINES["damageformer"]
+                if bright_baselines.file_md5(pretrained) != baseline.md5:
+                    raise ValueError(
+                        f"Checkpoint md5 uyuşmazlığı: {Path(pretrained).name}; "
+                        f"beklenen checkpoint: {baseline.checkpoint}"
+                    )
+                bright_baselines.load_checkpoint(model, pretrained)
     else:
         model = registry.build(name)
     return model.to(device)
 
 
-def build_datasets(cfg: Config, data_root: Path | str) -> tuple[Any, BrightDataset, BrightDataset]:
-    """Build the zero-shot split and its train and val datasets."""
+def build_datasets(
+    cfg: Config, data_root: Path | str, repo_root: Path | str | None = None
+) -> tuple[Split, BrightDataset, BrightDataset]:
+    """Build the 13-event datasets, appending the locked adapt pool for few-shot training."""
     split = make_zero_shot_split(*load_standard_lists())
     check_no_leak(split)
 
@@ -133,6 +191,17 @@ def build_datasets(cfg: Config, data_root: Path | str) -> tuple[Any, BrightDatas
             return post, ~io.nodata_mask(pre, post)
 
         stats = compute_sar_stats(list(split.train), load)
+
+    access = None
+    n_primary = len(split.train)
+    adapt = []
+    if cfg.data.fewshot_split is not None:
+        root = Path(repo_root) if repo_root is not None else _git_root()
+        access = require_fewshot_access(root, "adapt")
+        adapt = sorted(load_split(root / cfg.data.fewshot_split)["adapt"])
+        if not adapt or frozenset(adapt) != access.allowed:
+            raise TurkeyLockError("Few-shot uyarlama listesi boş veya kilitli izin listesiyle uyuşmuyor.")
+        split = dataclasses.replace(split, train=(*split.train, *adapt))
 
     train_set = BrightDataset(
         data_root,
@@ -148,7 +217,11 @@ def build_datasets(cfg: Config, data_root: Path | str) -> tuple[Any, BrightDatas
         sar_p=cfg.aug.sar_p,
         sar_gamma=cfg.aug.sar_gamma,
         sar_gain=cfg.aug.sar_gain,
+        access=access,
     )
+    if access is not None:
+        train_set.n_primary = n_primary
+        train_set.n_secondary = len(adapt)
     val_set = BrightDataset(
         data_root,
         split.val,
@@ -178,10 +251,7 @@ def run_training(
     folder as the full one.
     """
     cfg = load_config(config)
-    if cfg.model.init == "bright_zero_shot" and pretrained is None:
-        raise ValueError(
-            "DamageFormer zero-shot checkpoint'ini `hasar agirlik --config ...` ile indirip --pretrained ile verin."
-        )
+    _require_pretrained(cfg, pretrained)
     if cfg.train.clip is None:
         preflight_path = Path(preflight) if preflight is not None else Path(out) / "preflight.json"
         clip = clip_from_preflight(preflight_path, config_hash(cfg))
@@ -204,9 +274,10 @@ def run_training(
 
 
 def _train_batch(train_set: BrightDataset, cfg: Config) -> dict[str, torch.Tensor]:
-    """Return one collated batch of eight train samples from a DataLoader."""
-    sampler = StepSampler(len(train_set), 8, cfg.train.seed, total_steps=1)
-    loader = DataLoader(train_set, batch_size=8, sampler=sampler, num_workers=0)
+    """Return one collated train batch, mixing both pools in few-shot runs."""
+    batch = cfg.train.batch if getattr(train_set, "n_secondary", 0) else 8
+    sampler = _train_sampler(train_set, batch, cfg.train.seed, total_steps=1)
+    loader = DataLoader(train_set, batch_size=batch, sampler=sampler, num_workers=0)
     return next(iter(loader))
 
 
@@ -223,6 +294,7 @@ def _fixed_batch(train_set: BrightDataset, cfg: Config) -> dict[str, torch.Tenso
         sar_mode=cfg.norm.sar,
         sar_stats=train_set.sar_stats,
         seed=cfg.train.seed,
+        access=train_set.access,
     )
     return default_collate([noaug[(index, index)] for index in range(8)])
 
@@ -261,6 +333,7 @@ def run_preflight(
     pretrained: Path | str | None = None,
     gates: list[int] | None = None,
     repro_dir: Path | str | None = None,
+    repo_root: Path | str | None = None,
 ) -> int:
     """Run the selected pre-training gates and return 0 only if every one passed.
 
@@ -269,22 +342,29 @@ def run_preflight(
     log) and the run continues with the next gate.
     """
     cfg = load_config(config)
-    if cfg.model.init == "bright_zero_shot" and pretrained is None:
-        raise ValueError(
-            "DamageFormer zero-shot checkpoint'ini `hasar agirlik --config ...` ile indirip --pretrained ile verin."
-        )
+    _require_pretrained(cfg, pretrained)
     out_dir = Path(out)
     preflight_path = out_dir / "preflight.json"
     cfg_hash = config_hash(cfg)
+    from_ana = cfg.model.init == "ana_run"
+    fewshot = cfg.data.fewshot_split is not None
+    root = Path(repo_root) if repo_root is not None else _git_root() if from_ana else None
+    dataset_kwargs = {"repo_root": root} if fewshot else {}
 
     if gates is None and preflight_is_current(preflight_path, cfg_hash):
+        if from_ana:
+            checkpoint = Path(pretrained)
+            with checkpoint.open("rb") as handle:
+                _verify_ana_sha256(handle, checkpoint, cfg.model.init_sha256)
+        if fewshot:
+            require_fewshot_access(root, "adapt")
         print(f"Ön kontrol güncel ({cfg_hash}): kapılar atlandı.")
         return 0
 
     selected = list(range(1, 12)) if gates is None else list(gates)
     repro = Path(repro_dir) if repro_dir is not None else DEFAULT_REPRO_DIR
 
-    split, train_set, val_set = build_datasets(cfg, data)
+    split, train_set, val_set = build_datasets(cfg, data, **dataset_kwargs)
     results = []
     commit = _git_commit()
 
@@ -294,21 +374,35 @@ def run_preflight(
             if gate == 1:
                 result = gate_reproduction(repro)
             elif gate == 2:
-                result = gate_split(split)
+                if fewshot:
+                    n_train, n_val, n_test = EXPECTED_SPLIT
+                    result = gate_split(
+                        split,
+                        expected=(n_train + train_set.n_secondary, n_val, n_test),
+                        allowed_adapt=train_set.access.allowed,
+                    )
+                else:
+                    result = gate_split(split)
             elif gate == 3:
-                result = gate_sampler_length(len(train_set), cfg.train.batch, cfg.train.steps, seed=cfg.train.seed)
+                n_primary = train_set.n_primary if fewshot else len(train_set)
+                mixed = {"n_secondary": train_set.n_secondary} if fewshot else {}
+                result = gate_sampler_length(n_primary, cfg.train.batch, cfg.train.steps, seed=cfg.train.seed, **mixed)
             elif gate == 4:
-                if cfg.model.init == "bright_zero_shot":
-                    record_path = repro / "damageformer_val.json"
+                if from_ana or cfg.model.init == "bright_zero_shot":
+                    record_path = root / ANA_VAL13_RECORD if from_ana else repro / "damageformer_val.json"
+                    key = "best_miou_pct" if from_ana else "miou_pct"
+                    label = "Ana doğrulama kaydı" if from_ana else "Yeniden üretim kaydı"
                     try:
                         record = json.loads(record_path.read_text(encoding="utf-8"))
-                        expected = record["values"]["miou_pct"]
-                    except (OSError, json.JSONDecodeError, KeyError, TypeError):
+                        expected = record["values"][key]
+                        if from_ana and (type(expected) not in (int, float) or not math.isfinite(expected)):
+                            raise ValueError("Geçersiz mIoU değeri.")
+                    except (OSError, ValueError, KeyError, TypeError):
                         result = _result(
                             4,
                             False,
                             {"path": str(record_path)},
-                            f"Yeniden üretim kaydı eksik veya values.miou_pct okunamadı: {record_path}",
+                            f"{label} eksik veya values.{key} okunamadı: {record_path}",
                         )
                     else:
                         result = gate_loaded_checkpoint(build_model(cfg, pretrained, device), val_set, expected, device)
@@ -337,12 +431,16 @@ def run_preflight(
                 log = _short_train(doubled, build_model(cfg, pretrained, device), train_set, val_set, device, 500)
                 result = gate_grad_clip([float(entry["grad_norm"]) for entry in log])
             elif gate == 10:
+                # The resume test uses a two-sample batch, so its micro batch must fit it.
+                resume_train_kwargs = (
+                    {"micro_batch": min(cfg.train.micro_batch, 2)} if cfg.train.micro_batch is not None else {}
+                )
                 resume_cfg = dataclasses.replace(
                     cfg,
                     data=dataclasses.replace(cfg.data, crop=256),
-                    train=dataclasses.replace(cfg.train, steps=80, batch=2),
+                    train=dataclasses.replace(cfg.train, steps=80, batch=2, **resume_train_kwargs),
                 )
-                _, resume_train, resume_val = build_datasets(resume_cfg, data)
+                _, resume_train, resume_val = build_datasets(resume_cfg, data, **dataset_kwargs)
                 # Both runs validate once at their final step; eight tiles are enough to compare them.
                 resume_val = BrightDataset(
                     data,

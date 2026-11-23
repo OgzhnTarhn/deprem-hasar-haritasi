@@ -13,6 +13,66 @@ from hasar.config import Config, ConfigError, config_hash, load_config, run_id
 REPO_ROOT = Path(__file__).parents[1]
 
 
+def test_zero_shot_hashes_are_stable() -> None:
+    assert config_hash(Config()) == "708fdc1f5ecb"
+    for name, expected in {
+        "ana": "708fdc1f5ecb",
+        "varyant": "750faaf27342",
+        "a3_sar": "91116f313b0a",
+    }.items():
+        assert config_hash(load_config(REPO_ROOT / "configs" / f"{name}.yaml")) == expected
+
+
+@pytest.mark.parametrize("digest", [None, "f" * 63, "F" * 64, "g" * 64, "f" * 64 + "\n"])
+def test_ana_run_requires_lowercase_sha256(tmp_path, digest) -> None:
+    with pytest.raises(ConfigError, match="model.init_sha256.*64"):
+        load_payload(tmp_path, {"model": {"init": "ana_run", "init_sha256": digest}})
+
+
+def test_ana_run_allows_no_fewshot_split(tmp_path) -> None:
+    cfg = load_payload(tmp_path, {"model": {"init": "ana_run", "init_sha256": "ab" * 32}})
+    assert cfg.model.init_sha256 == "ab" * 32
+    assert cfg.data.fewshot_split is None
+    assert cfg.train.oom_halving is True
+
+
+@pytest.mark.parametrize("init", ["bright_zero_shot", "vssm_tiny_imagenet"])
+def test_other_initializations_forbid_sha256(tmp_path, init) -> None:
+    with pytest.raises(ConfigError, match="model.init_sha256.*ana_run"):
+        load_payload(tmp_path, {"model": {"init": init, "init_sha256": "f" * 64}})
+
+
+def test_fewshot_split_must_use_locked_path(tmp_path) -> None:
+    with pytest.raises(ConfigError, match="data.fewshot_split.*results/fewshot/bolme.json"):
+        load_payload(tmp_path, {"data": {"fewshot_split": "different.json"}})
+
+
+def test_fewshot_split_requires_ana_run(tmp_path) -> None:
+    with pytest.raises(ConfigError, match="data.fewshot_split.*ana_run"):
+        load_payload(tmp_path, {"data": {"fewshot_split": "results/fewshot/bolme.json"}})
+
+
+def test_fewshot_configs_differ_only_in_experiment_and_weights() -> None:
+    a, b = (load_config(REPO_ROOT / "configs" / f"fewshot_{arm}.yaml") for arm in ("a", "b"))
+    pixels = json.loads((REPO_ROOT / "results/veri/bolme.json").read_text(encoding="utf-8"))
+    counts = pixels["class_pixels"]["train"]["pixels"]
+    assert a.loss.class_weights == (1.0, 1.0, 1.0, 1.0)
+    assert b.loss.class_weights == (1.0, 1.0, *(round((counts["1"] / counts[c]) ** 0.5, 2) for c in "23"))
+    assert (a.experiment, b.experiment) == ("fewshot_a", "fewshot_b")
+    b_with_a_weights = dataclasses.replace(b.loss, class_weights=a.loss.class_weights)
+    assert a.to_dict() == dataclasses.replace(b, experiment=a.experiment, loss=b_with_a_weights).to_dict()
+    assert a.model.init_sha256 == "0" * 64
+    assert a.data.fewshot_split == "results/fewshot/bolme.json"
+    assert (a.train.clip, a.train.micro_batch, a.train.oom_halving) == (3.1627, 4, False)
+    assert len({config_hash(a), config_hash(b), config_hash(Config())}) == 3
+
+
+def test_oom_halving_false_changes_hash(tmp_path) -> None:
+    cfg = load_payload(tmp_path, {"train": {"oom_halving": False}})
+    assert cfg.train.oom_halving is False
+    assert config_hash(cfg) != config_hash(Config())
+
+
 def write_yaml(tmp_path: Path, payload: dict, name: str = "cfg.yaml") -> Path:
     """Write a YAML document to tmp_path and return its path."""
     path = tmp_path / name

@@ -20,7 +20,7 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from hasar.config import Config, config_hash  # noqa: E402
-from hasar.guard import TurkeyLockError  # noqa: E402
+from hasar.guard import FewshotAccess, TurkeyLockError  # noqa: E402
 from hasar.results import read_result  # noqa: E402
 from hasar.train import loop  # noqa: E402
 from hasar.train.loop import TrainState, train  # noqa: E402
@@ -125,6 +125,62 @@ def read_jsonl(path: Path) -> list[dict[str, object]]:
     """Return the JSON objects of a JSON-lines file, skipping blank lines."""
     lines = path.read_text(encoding="utf-8").splitlines()
     return [json.loads(line) for line in lines if line.strip()]
+
+
+class FakeMixedTrainSet(FakeTrainSet):
+    def __init__(self) -> None:
+        super().__init__([*TRAIN_NAMES, TURKEY_NAME])
+        self.n_primary, self.n_secondary = len(TRAIN_NAMES), 1
+        self.access = FewshotAccess("fewshot-kilidi", "test", "adapt", frozenset({TURKEY_NAME}))
+        self.seen: list[tuple[int, int]] = []
+
+    def __getitem__(self, key: tuple[int, int]) -> dict[str, object]:
+        self.seen.append(key)
+        return super().__getitem__(key)
+
+
+def test_mixed_training_resumes_the_same_samples(tmp_path: Path) -> None:
+    cfg = make_cfg()
+    full, first, resumed = (FakeMixedTrainSet() for _ in range(3))
+    val = FakeValSet()
+    train(cfg, make_model(0), full, val, tmp_path / "full", device="cpu")
+    train(cfg, make_model(0), first, val, tmp_path / "resumed", device="cpu", stop_at=3)
+    train(cfg, make_model(1), resumed, val, tmp_path / "resumed", device="cpu")
+    assert first.seen + resumed.seen == full.seen
+    assert [sample_no for _, sample_no in full.seen] == list(range(12))
+    assert [index >= full.n_primary for index, _ in full.seen] == [True, False] * 6
+
+
+@pytest.mark.parametrize("purpose", ["adapt", "test"])
+def test_fewshot_guard_rejects_unlisted_adapt_or_test_access(purpose) -> None:
+    mixed = FakeMixedTrainSet()
+    allowed = frozenset() if purpose == "adapt" else frozenset({TURKEY_NAME})
+    mixed.access = FewshotAccess("fewshot-kilidi", "test", purpose, allowed)
+    with pytest.raises(TurkeyLockError, match="train"):
+        loop._check_guard(mixed, FakeValSet())
+
+
+def test_fewshot_guard_rejects_turkey_in_validation_even_with_adapt_access() -> None:
+    mixed = FakeMixedTrainSet()
+    with pytest.raises(TurkeyLockError, match="val"):
+        loop._check_guard(mixed, FakeValSet([TURKEY_NAME]))
+
+
+def test_oom_without_halving_stops_after_first_attempt(tmp_path: Path, monkeypatch) -> None:
+    cfg = make_cfg()
+    cfg = dataclasses.replace(cfg, train=dataclasses.replace(cfg.train, oom_halving=False))
+    error = torch.OutOfMemoryError("synthetic OOM")
+    attempts = []
+
+    def oom(*args):
+        attempts.append(args[-1])
+        raise error
+
+    monkeypatch.setattr(loop, "_backward_chunks", oom)
+    with pytest.raises(RuntimeError, match="Bellek.*yarıya") as raised:
+        train(cfg, make_model(0), FakeTrainSet(), FakeValSet(), tmp_path, device="cpu")
+    assert raised.value.__cause__ is error
+    assert attempts == [2]
 
 
 # --- tests ------------------------------------------------------------------

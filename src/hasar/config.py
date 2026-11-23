@@ -17,12 +17,15 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import json
+import re
 import types
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Union, get_args, get_origin, get_type_hints
 
 import yaml
+
+from hasar.guard import FEWSHOT_SPLIT_FILE
 
 TEST_EVENT = "turkey-earthquake"
 PROTOCOL = "zero_shot"
@@ -44,6 +47,7 @@ class Data:
     crop: int = 512
     workers: int = 8
     nodata_ignore: bool = True
+    fewshot_split: str | None = None
 
     def __post_init__(self) -> None:
         if self.protocol != PROTOCOL:
@@ -54,6 +58,8 @@ class Data:
             raise ConfigError(f"data.crop: pozitif olmalı, {self.crop} verildi.")
         if self.workers < 0:
             raise ConfigError(f"data.workers: negatif olamaz, {self.workers} verildi.")
+        if self.fewshot_split is not None and self.fewshot_split != FEWSHOT_SPLIT_FILE:
+            raise ConfigError(f"data.fewshot_split: yalnız '{FEWSHOT_SPLIT_FILE}' olabilir.")
 
 
 @dataclass(frozen=True)
@@ -97,12 +103,18 @@ class Model:
     name: str = "bright_damageformer"
     init: str = "bright_zero_shot"
     fallback: str = "damageformer_swin_t"
+    init_sha256: str | None = None
 
     def __post_init__(self) -> None:
-        if self.init not in ("vssm_tiny_imagenet", "bright_zero_shot"):
+        if self.init not in ("vssm_tiny_imagenet", "bright_zero_shot", "ana_run"):
             raise ConfigError(
-                f"model.init: 'vssm_tiny_imagenet' veya 'bright_zero_shot' olmalı, '{self.init}' verildi."
+                f"model.init: 'vssm_tiny_imagenet', 'bright_zero_shot' veya 'ana_run' olmalı, '{self.init}' verildi."
             )
+        if self.init == "ana_run":
+            if not isinstance(self.init_sha256, str) or re.fullmatch(r"[0-9a-f]{64}", self.init_sha256) is None:
+                raise ConfigError("model.init_sha256: 'ana_run' için 64 küçük harfli onaltılık karakter gerekli.")
+        elif self.init_sha256 is not None:
+            raise ConfigError("model.init_sha256: yalnız model.init 'ana_run' olduğunda verilebilir.")
 
 
 @dataclass(frozen=True)
@@ -141,7 +153,7 @@ class Train:
 
     ``micro_batch`` is the largest chunk one forward/backward pass handles; the gradients of the
     chunks are accumulated into one optimizer step of ``batch`` samples. ``None`` means the whole
-    batch; on CUDA out-of-memory the loop halves it automatically.
+    batch. On CUDA out-of-memory the loop halves it if ``oom_halving`` is enabled.
     """
 
     batch: int = 8
@@ -152,6 +164,7 @@ class Train:
     clip: float | None = None
     seed: int = 42
     budget_cu: float = 15.0
+    oom_halving: bool = True
 
     def __post_init__(self) -> None:
         if not self.budget_cu > 0:
@@ -223,7 +236,7 @@ class Ckpt:
 
 @dataclass(frozen=True)
 class Config:
-    """Whole run configuration; one frozen section per YAML block."""
+    """Whole run configuration. The ``ana_run`` initializer can also be used without a few-shot split."""
 
     experiment: str = "ana"
     data: Data = field(default_factory=Data)
@@ -236,6 +249,12 @@ class Config:
     loss: Loss = field(default_factory=Loss)
     eval: Eval = field(default_factory=Eval)
     ckpt: Ckpt = field(default_factory=Ckpt)
+
+    def __post_init__(self) -> None:
+        if self.data.fewshot_split is not None and self.model.init != "ana_run":
+            raise ConfigError("data.fewshot_split: model.init 'ana_run' olmalı.")
+        if self.model.init == "ana_run" and self.model.name != "bright_damageformer":
+            raise ConfigError("model.init 'ana_run' yalnız model.name 'bright_damageformer' ile kullanılabilir.")
 
     def to_dict(self) -> dict[str, Any]:
         """Return a plain, JSON-serialisable nested dict (tuples become lists)."""
@@ -341,7 +360,16 @@ def load_config(path: Path | str) -> Config:
 
 def config_hash(cfg: Config) -> str:
     """Return the first 12 hex chars of the canonical JSON sha256 of ``cfg``."""
-    canonical = json.dumps(cfg.to_dict(), sort_keys=True, separators=(",", ":"))
+    payload = cfg.to_dict()
+    # Preserve the existing run IDs and checkpoint/preflight hashes at the new fields' defaults.
+    for section, name, default in (
+        ("model", "init_sha256", None),
+        ("data", "fewshot_split", None),
+        ("train", "oom_halving", True),
+    ):
+        if payload[section][name] is default:
+            del payload[section][name]
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:12]
 
 

@@ -51,10 +51,10 @@ import torch
 from torch.utils.data import DataLoader
 
 from hasar.config import Config, config_hash
-from hasar.data.sampler import StepSampler
+from hasar.data.sampler import MixedStepSampler, StepSampler
 from hasar.eval.metrics import summary
 from hasar.eval.predict import evaluate
-from hasar.guard import TurkeyLockError, is_turkey_tile
+from hasar.guard import FewshotAccess, TurkeyLockError, is_turkey_tile
 from hasar.results import ResultRecord, write_result
 from hasar.train.checkpoint import capture_rng, load_checkpoint, prune_checkpoints, restore_rng, save_checkpoint
 from hasar.train.ema import ModelEMA
@@ -82,13 +82,31 @@ class TrainState:
 
 
 def _check_guard(train_set: Any, val_set: Any) -> None:
-    """Raise :class:`TurkeyLockError` if either split holds a Turkey tile name."""
+    """Reject Turkey tiles outside the authorized adaptation subset of training."""
     for split_name, dataset in (("train", train_set), ("val", val_set)):
+        access = getattr(dataset, "access", None)
         for name in dataset.names:
             if is_turkey_tile(str(name)):
+                if (
+                    split_name == "train"
+                    and isinstance(access, FewshotAccess)
+                    and access.purpose == "adapt"
+                    and str(name) in access.allowed
+                ):
+                    continue
                 raise TurkeyLockError(
-                    f"{split_name} bölmesinde Türkiye karesi var ({name}): eğitim kodunun Türkiye'ye yolu yok."
+                    f"{split_name} bölmesinde izinsiz Türkiye karesi var ({name})."
                 )
+
+
+def _train_sampler(
+    train_set: Any, batch: int, seed: int, total_steps: int | None = None, start_step: int = 0
+) -> StepSampler | MixedStepSampler:
+    """Sample the concatenated few-shot pools or the single zero-shot pool."""
+    n_secondary = getattr(train_set, "n_secondary", 0)
+    if n_secondary > 0:
+        return MixedStepSampler(train_set.n_primary, n_secondary, batch, seed, total_steps, start_step)
+    return StepSampler(len(train_set), batch, seed, total_steps, start_step)
 
 
 def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
@@ -228,13 +246,7 @@ def train(
     else:
         torch.manual_seed(cfg.train.seed)
 
-    sampler = StepSampler(
-        len(train_set),
-        batch,
-        cfg.train.seed,
-        total_steps=None,
-        start_step=samples // batch,
-    )
+    sampler = _train_sampler(train_set, batch, cfg.train.seed, start_step=samples // batch)
     # A dedicated generator keeps the loader's base-seed draw out of the global torch RNG, so a
     # resumed run sees exactly the RNG state the checkpoint captured (dropout draws included).
     loader_generator = torch.Generator()
@@ -318,7 +330,11 @@ def train(
             try:
                 parts = _backward_chunks(model, cfg, device, pre, post, loc, clf, ignore, micro)
                 break
-            except torch.OutOfMemoryError:
+            except torch.OutOfMemoryError as exc:
+                if not cfg.train.oom_halving:
+                    raise RuntimeError(
+                        f"Bellek yetmedi: mikro parti {micro}, yarıya indirme kapalı (train.oom_halving)."
+                    ) from exc
                 if micro <= 1:
                     raise
             # Freed outside the except block: the exception's traceback keeps the activations alive.
@@ -398,7 +414,12 @@ def train(
                 "last_miou_pct": last_miou * 100.0,
                 "last_raw_miou_pct": raw_miou * 100.0,
             },
-            extra={"best_step": best_step, "steps": step, "skipped": skipped},
+            extra={
+                "best_step": best_step,
+                "steps": step,
+                "skipped": skipped,
+                **({"init_sha256": cfg.model.init_sha256} if cfg.model.init_sha256 is not None else {}),
+            },
         ),
     )
 
