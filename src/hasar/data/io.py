@@ -10,10 +10,13 @@ Every tile is stored as three files under a common root, named after the tile::
 
 Turkey guard
 ------------
-Project rule 1 allows a single evaluation on Turkey, in the ``final`` step only. Every reader in
-this module therefore asks :func:`hasar.guard.is_turkey_tile` first and raises
-:class:`hasar.guard.TurkeyLockError` unless a :class:`hasar.guard.TurkeyAccess` token is passed.
-The check runs before any path is opened, so a locked Turkey tile never touches the disk.
+Project rule 1 allows a single evaluation on Turkey, in the ``final`` step only, plus the
+narrow few-shot exception (protocol 1.4). Every reader in this module therefore asks
+:func:`hasar.guard.is_turkey_tile` first and raises :class:`hasar.guard.TurkeyLockError` unless
+a :class:`hasar.guard.TurkeyAccess` token is passed. When the token is a
+:class:`hasar.guard.FewshotAccess`, the tile name must also belong to ``access.allowed`` for that
+token's ``purpose``. The check runs before any path is opened, so a locked Turkey tile never
+touches the disk.
 
 Nodata
 ------
@@ -30,7 +33,7 @@ from pathlib import Path
 import numpy as np
 import tifffile
 
-from hasar.guard import TurkeyAccess, TurkeyLockError, is_turkey_tile
+from hasar.guard import FewshotAccess, TurkeyAccess, TurkeyLockError, is_turkey_tile
 
 PRE_DIR = "pre-event"
 POST_DIR = "post-event"
@@ -82,9 +85,15 @@ def tile_paths(root: Path | str, name: str) -> TilePaths:
 
 
 def _check_turkey(name: str, access: TurkeyAccess | None) -> None:
-    """Raise :class:`TurkeyLockError` for a Turkey tile without an access token."""
-    if is_turkey_tile(name) and access is None:
+    """Raise :class:`TurkeyLockError` for a Turkey tile without a valid access token."""
+    if not is_turkey_tile(name):
+        return
+    if access is None:
         raise TurkeyLockError(f"'{name}' Türkiye test olayına ait: protokol kilidi olmadan Türkiye verisi okunamaz.")
+    if isinstance(access, FewshotAccess) and name not in access.allowed:
+        raise TurkeyLockError(
+            f"'{name}' Türkiye karosu few-shot '{access.purpose}' izin listesinde değil: okuma reddedildi."
+        )
 
 
 def _read_array(path: Path) -> np.ndarray:

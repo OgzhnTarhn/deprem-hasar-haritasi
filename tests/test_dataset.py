@@ -21,7 +21,7 @@ from hasar.config import Config
 from hasar.data.dataset import BrightDataset
 from hasar.data.io import tile_paths
 from hasar.data.normalize import IMAGENET_MEAN, IMAGENET_STD, SarStats, sar_to_input
-from hasar.guard import TurkeyAccess, TurkeyLockError
+from hasar.guard import FewshotAccess, TurkeyAccess, TurkeyLockError
 
 SIZE = 32
 NODATA = 4
@@ -365,6 +365,60 @@ def test_turkey_eval_with_token_reads(tmp_path: Path) -> None:
     assert out["name"] == TURKEY_NAME
     assert out["pre"].shape == (3, SIZE, SIZE)
 
+
+def test_fewshot_train_allows_adapt_tiles_only(tmp_path: Path) -> None:
+    missing = tmp_path / "missing"
+    other_turkey = "turkey-earthquake_00000002"
+    adapt_access = FewshotAccess(
+        tag="fewshot-kilidi",
+        commit="abc",
+        purpose="adapt",
+        allowed=frozenset({TURKEY_NAME}),
+    )
+    test_access = FewshotAccess(
+        tag="fewshot-kilidi",
+        commit="abc",
+        purpose="test",
+        allowed=frozenset({TURKEY_NAME}),
+    )
+
+    ds = BrightDataset(missing, [TRAIN_NAME, TURKEY_NAME], mode="train", crop=16, access=adapt_access)
+    assert len(ds) == 2
+
+    with pytest.raises(TurkeyLockError):
+        BrightDataset(missing, [TURKEY_NAME, other_turkey], mode="train", crop=16, access=adapt_access)
+    with pytest.raises(TurkeyLockError):
+        BrightDataset(missing, [TURKEY_NAME], mode="train", crop=16, access=test_access)
+
+
+def test_fewshot_eval_enforces_allowed_tiles(tmp_path: Path) -> None:
+    missing = tmp_path / "missing"
+    other_turkey = "turkey-earthquake_00000002"
+    test_access = FewshotAccess(
+        tag="fewshot-kilidi",
+        commit="abc",
+        purpose="test",
+        allowed=frozenset({TURKEY_NAME}),
+    )
+
+    ds = BrightDataset(missing, [TRAIN_NAME, TURKEY_NAME], mode="eval", access=test_access)
+    assert len(ds) == 2
+
+    with pytest.raises(TurkeyLockError):
+        BrightDataset(missing, [other_turkey], mode="eval", access=test_access)
+
+
+
+def test_fewshot_eval_rejects_adapt_token(tmp_path: Path) -> None:
+    adapt_access = FewshotAccess(
+        tag="fewshot-kilidi",
+        commit="abc",
+        purpose="adapt",
+        allowed=frozenset({TURKEY_NAME}),
+    )
+
+    with pytest.raises(TurkeyLockError):
+        BrightDataset(tmp_path / "missing", [TURKEY_NAME], mode="eval", access=adapt_access)
 
 # --------------------------------------------------------------------------- validation
 

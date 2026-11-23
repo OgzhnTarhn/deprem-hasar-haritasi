@@ -14,9 +14,11 @@ One item is one tile (eval) or one augmented crop of a tile (train). The pipelin
    out-of-range).
 
 Project rule 1 (Turkey gate): every name is checked with :func:`hasar.guard.is_turkey_tile` at
-construction. A Turkey tile needs a :class:`hasar.guard.TurkeyAccess` token and is never allowed in
-``mode="train"``. The eval path leaves the label untouched (official evaluation path: no nodata
-handling); nodata ignoring is a train-only rule.
+construction. A Turkey tile needs a :class:`hasar.guard.TurkeyAccess` token; in ``mode="train"``
+it is rejected unless ``access`` is a :class:`hasar.guard.FewshotAccess` with ``purpose="adapt"``
+and the tile is in ``access.allowed``. In ``mode="eval"``, a :class:`hasar.guard.FewshotAccess`
+further restricts reads to tiles in ``access.allowed``. The eval path leaves the label untouched
+(official evaluation path: no nodata handling); nodata ignoring is a train-only rule.
 
 The module imports only numpy. A torch ``DataLoader`` can still consume it through ``__getitem__``
 and ``__len__``; collation is the trainer's job.
@@ -30,7 +32,7 @@ from pathlib import Path
 import numpy as np
 
 from hasar.data import io, normalize, sampler, transforms
-from hasar.guard import TurkeyAccess, TurkeyLockError, is_turkey_tile
+from hasar.guard import FewshotAccess, TurkeyAccess, TurkeyLockError, is_turkey_tile
 
 MODES: tuple[str, ...] = ("train", "eval")
 
@@ -63,7 +65,10 @@ class BrightDataset:
     seed:
         Run seed; part of the augmentation generator key.
     access:
-        Turkey access token; required to read a Turkey tile and never valid in training.
+        Turkey access token; required to read a Turkey tile. In ``mode="train"``, only a
+        :class:`hasar.guard.FewshotAccess` with ``purpose="adapt"`` whose ``allowed`` set contains
+        every Turkey tile is accepted; in ``mode="eval"``, a ``FewshotAccess`` restricts Turkey
+        tiles to ``access.allowed``.
     ignore_index:
         Label value used for ignored pixels.
     """
@@ -115,10 +120,22 @@ class BrightDataset:
             if not is_turkey_tile(name):
                 continue
             if mode == "train":
+                if isinstance(access, FewshotAccess) and access.purpose == "adapt" and name in access.allowed:
+                    continue
+                if isinstance(access, FewshotAccess):
+                    raise TurkeyLockError(
+                        f"'{name}' Türkiye karosu few-shot eğitimine giremez "
+                        f"(amaç={access.purpose!r}, 'adapt' izin listesinde değil)."
+                    )
                 raise TurkeyLockError(f"'{name}' Türkiye karosu: Türkiye eğitimde kullanılamaz (proje kuralı 1).")
             if access is None:
                 raise TurkeyLockError(
                     f"'{name}' Türkiye test olayına ait: protokol kilidi olmadan Türkiye verisi okunamaz."
+                )
+            if isinstance(access, FewshotAccess) and (access.purpose != "test" or name not in access.allowed):
+                raise TurkeyLockError(
+                    f"'{name}' Türkiye karosu few-shot değerlendirmesine giremez "
+                    f"(amaç={access.purpose!r}; yalnız 'test' izin listesi değerlendirilir)."
                 )
 
     def __len__(self) -> int:

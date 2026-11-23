@@ -16,6 +16,13 @@ The ``final`` step needs both locks. Rule 1 and the Phase 6 order (KN1 -> ``vary
 the main model's single Turkey run) mean the variant design is frozen before the headline result
 is seen, so :func:`require_final_access` requires the protocol tag and the variant tag to be
 ancestors of ``HEAD`` on a clean working tree.
+
+The few-shot adaptation experiment (protocol 1.4, design sections 5.4 and 9.5) adds a third,
+narrowly scoped path via :func:`require_fewshot_access`. ``HEAD`` must descend from
+``fewshot-kilidi`` on a clean working tree, the locked protocol, config and split files must be
+unchanged since that tag, and the split file's SHA-256 digests must verify. The returned
+:class:`FewshotAccess` token restricts reads to a single ``purpose`` (``"adapt"`` or ``"test"``)
+and its exact allowed tile set.
 """
 
 from __future__ import annotations
@@ -28,6 +35,16 @@ TEST_EVENT = "turkey-earthquake"
 PROTOCOL_TAG = "protokol-kilidi"
 VARIANT_TAG = "varyant-kilidi"
 REPRODUCTION_TAG = "faz3-yeniden-uretim"
+FEWSHOT_TAG = "fewshot-kilidi"
+FEWSHOT_LOCKED_FILES = (
+    "docs/protokol.md",
+    "configs/fewshot_a.yaml",
+    "configs/fewshot_b.yaml",
+    "results/fewshot/bolme.json",
+)
+FEWSHOT_PURPOSES = ("adapt", "test")
+#: The only split file few-shot access reads (it is also in :data:`FEWSHOT_LOCKED_FILES`).
+FEWSHOT_SPLIT_FILE = "results/fewshot/bolme.json"
 
 REPRODUCTION_CHECKPOINTS = frozenset(
     {
@@ -51,6 +68,14 @@ class TurkeyAccess:
 
     tag: str
     commit: str
+
+
+@dataclass(frozen=True)
+class FewshotAccess(TurkeyAccess):
+    """Proof that the few-shot lock and split file were verified for a single purpose."""
+
+    purpose: str
+    allowed: frozenset[str]
 
 
 def is_turkey_tile(name: str) -> bool:
@@ -173,3 +198,63 @@ def require_reproduction_access(repo_root: Path | str, checkpoint: str) -> Turke
     _require_clean_tree(repo_root, REPRODUCTION_TAG)
 
     return TurkeyAccess(tag=REPRODUCTION_TAG, commit=head_commit)
+
+
+def require_fewshot_access(
+    repo_root: Path | str,
+    purpose: str,
+) -> FewshotAccess:
+    """Verify the few-shot lock and return a purpose-scoped :class:`FewshotAccess` token.
+
+    ``purpose`` must be one of :data:`FEWSHOT_PURPOSES` (checked first, raising
+    :class:`ValueError` otherwise). The repository must have :data:`FEWSHOT_TAG` as an ancestor
+    of ``HEAD`` on a clean working tree, all files in :data:`FEWSHOT_LOCKED_FILES` must be
+    identical between the tag and ``HEAD``, ``results/fewshot/bolme.json`` must exist in the
+    tagged commit, and that locked split file must pass SHA-256 and disjointness verification. Any lock
+    or split verification failure raises :class:`TurkeyLockError`.
+    """
+    if purpose not in FEWSHOT_PURPOSES:
+        raise ValueError(f"Geçersiz few-shot amacı: {purpose!r} (izinli: {FEWSHOT_PURPOSES}).")
+
+    repo_root = Path(repo_root)
+
+    _require_ancestor(repo_root, FEWSHOT_TAG)
+    _require_clean_tree(repo_root, FEWSHOT_TAG)
+
+    diff = _git(repo_root, "diff", "--quiet", FEWSHOT_TAG, "HEAD", "--", *FEWSHOT_LOCKED_FILES)
+    if diff.returncode == 1:
+        raise TurkeyLockError(
+            f"'{FEWSHOT_TAG}' etiketinden sonra kilitli few-shot dosyaları değişmiş ({repo_root}): "
+            "Türkiye erişimi kapalı."
+        )
+    if diff.returncode != 0:
+        raise TurkeyLockError(f"'{FEWSHOT_TAG}' kilitli dosyaları doğrulanamadı ({repo_root}): Türkiye erişimi kapalı.")
+
+    for rel in FEWSHOT_LOCKED_FILES:
+        cat = _git(repo_root, "cat-file", "-e", f"{FEWSHOT_TAG}:{rel}")
+        if cat.returncode != 0:
+            raise TurkeyLockError(
+                f"'{FEWSHOT_TAG}' etiketindeki commit'te '{rel}' bulunamadı ({repo_root}): Türkiye erişimi kapalı."
+            )
+
+    # Only the locked split file is accepted; no caller-supplied path can widen access.
+    resolved_split = repo_root / FEWSHOT_SPLIT_FILE
+
+    from hasar.fewshot.split import load_split
+
+    try:
+        split = load_split(resolved_split)
+    except (ValueError, OSError) as err:
+        raise TurkeyLockError(f"Few-shot bölme dosyası doğrulanamadı ({resolved_split}): {err}") from err
+
+    head = _git(repo_root, "rev-parse", "HEAD")
+    if head.returncode != 0:
+        raise TurkeyLockError(f"'{FEWSHOT_TAG}' etiketi doğrulanamadı ({repo_root}): HEAD okunamadı.")
+    head_commit = head.stdout.strip()
+
+    return FewshotAccess(
+        tag=FEWSHOT_TAG,
+        commit=head_commit,
+        purpose=purpose,
+        allowed=frozenset(split[purpose]),
+    )
