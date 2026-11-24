@@ -15,6 +15,7 @@ Her faz sonunda güncellenir: ne bitti, ne ölçüldü, sıradaki faz ne.
 | 7. Analizler | Kod bitti (8 Kasım 2026); ölçüm `final` sonrası | `analysis/` (uncertainty Y2, agreement Y1, transductive Y3, gallery, runner); `docs/bulgular.md`. Y1 dış katmanları ve Y3 yeniden çıkarımı kullanıcıda |
 | 8. Varyant | Bitti (22 Kasım 2026) | `guard.require_final_access` (iki kilit), `eval/compare.py` (eşleştirilmiş kıyas, topluluk); A4 seçildi (KN1, 21 Kasım 2026); aynı defterde ana sonrası çalışır |
 | 9. Demo ve ürünleştirme | Kod bitti (8 Kasım 2026); demo `final` sonrası | `hasar readme` (README tablosu üretildi), `hasar demo` (Leaflet, önbellekten), `hasar ornekler`, `export.py` + `scripts/disa_aktar.py` (yedek model torch-export ve ONNX'e aktarılıyor, `results/arastirma/disa_aktarim_*.json`) |
+| 10. Few-shot ek deneyi | Kod bitti (23 Kasım 2026); Colab adımları kullanıcıda | Protokol 1.4 §15, ADR-0008; `fewshot/` (bölme, erişim), karışık örnekleyici, `configs/fewshot_{a,b}.yaml`, `eval/fewshot_eval.py`, `hasar fewshot-bolme/fewshot-test/fewshot-kiyas`, `notebooks/fewshot.ipynb`; 921 kısa test |
 
 ## Sonuçlar (22 Kasım 2026)
 
@@ -47,6 +48,21 @@ Yorum:
 - 13 olay doğrulaması üç modelde de ~74,5; dağılım içi ölçüm farkı göstermiyor, Türkiye'deki farkı öngörmedi.
 
 Sıradaki: isteğe bağlı Faz 7 analizleri (önbellek Drive'da `final_cache/`), demo (iki model + metrik paneli).
+
+## Few-shot ek deneyi (23 Kasım 2026)
+
+Zero-shot sonuçları kesinleşti; bu deney onların yerine geçmez, ayrı tabloda `[FS-EVENT mIoU]` etiketiyle raporlanır
+ve 41,28 ile kıyaslanmaz. Soru: Türkiye etiketlerinin küçük bir kısmı ve hasar sınıflarına ağırlık, hasarlı/yıkık
+sınıflarındaki açığı kapatır mı?
+
+- **Bölme** (`results/fewshot/bolme.json`): 7 şehirde 2 km bloklar, her şehirden karelerin ~%20'si uyarlamaya;
+  0,5 km tampon. Uyarlama 303, tampon 170, test 641 kare. Bölme yalnız koordinattan üretildi, etiket görülmedi.
+- **Kollar:** ikisi de ana koşunun `best.pt`'sinden (sha256 kilitli), 4000 adım, lr 2e-5, son adım EMA; her adımda
+  yarı Türkiye uyarlama, yarı 13 olay. Tek fark kayıp ağırlığı: A düz, B hasar ağırlıklı (sqrt ters frekans, 13 olay).
+- **Kıyaslar:** B − A (birincil), A ve B − zero-shot ana, hasarlı ve yıkık için sınıf bazlı B − A; eşleştirilmiş blok bootstrap.
+- **Kilit:** `fewshot-kilidi` etiketi; eğitim yalnız uyarlama, değerlendirme yalnız test karelerini okur; test model başına bir kez.
+
+Sıradaki (kullanıcı): defterle sha256'yı al → YAML'lara yazılsın → `fewshot-kilidi` etiketi → Run All → sonuçlar `results/fewshot/`.
 
 ## Önceki plan: kontrollü fine-tune (21 Kasım 2026)
 
@@ -166,7 +182,7 @@ Ayrıntı: [colab.md](colab.md), [protokol.md](protokol.md).
 
 - SAR `official` biçimde kalır; protokolün “eşit”, bina ve blok bootstrap kuralları sürer.
 - KN1 varyant kararı kapandı: A4 seçildi, topluluk 1.3 kapsamı dışında. Diğer fikirler ayrı karar ister.
-- Kullanıcı protokol 1.3 ve varyant kilitlerini günceller; ardından Colab'da iki fine-tune'u çalıştırır.
+- Zero-shot kilitleri (`protokol-kilidi`, `varyant-kilidi`) kapandı; iki final bitti. Sıradaki kilit `fewshot-kilidi`.
 - Fine-tune başına ≤ 15 CU hedefi ve aylık 100 CU toplam hedefi ölçüm bekliyor.
 
 ## Ölçülmemiş tahminler
