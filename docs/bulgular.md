@@ -31,11 +31,18 @@ adımından sonra eklenir.
 
 ## Faz 5–6: Ana model
 
-- ⏳ 13 olay doğrulaması: `results/ana/val13.json` (`[VAL13 mIoU]`, EMA ve son adım ham ağırlık).
-- ⏳ Sıcaklık: `results/ana/sicaklik.json` (yalnız 13 olay).
-- ⏳ Türkiye başlığı: `results/ana/turkiye.json` (`[ZS-EVENT mIoU]`, %95 blok bootstrap aralığı, 41,28 ile §9
-  hükmü). İkincil satırlar `results/ana/turkiye_<satır>.json`, bina düzeyi `turkiye_bina_f1.json`, kalibrasyon
-  `turkiye_kalibrasyon.json`.
+- ✅ **Fine-tune işe yaradı.** Ana model Türkiye'de hazır DamageFormer referansını geçti; eşleştirilmiş farkın %95
+  aralığı 0'ı içermiyor (`results/kiyas/ana_vs_referans.json`, `[ZS-EVENT mIoU, eslestirilmis-fark]`). Başlık
+  `results/ana/turkiye.json` (`[ZS-EVENT mIoU]`), referans `results/yeniden-uretim/damageformer_test.json`.
+- ✅ **Açık problem: hasar sınıfları.** Kazancın neredeyse tamamı sağlam sınıfından geldi; hasarlı ve yıkık IoU
+  çok düşük kaldı (`results/ana/turkiye.json` sınıf IoU'ları, bina düzeyi `turkiye_bina_f1.json`). Model
+  Türkiye'de hasarı hâlâ neredeyse ayıramıyor. Few-shot ek deneyi bu açığı hedefliyor.
+- ✅ **Bağlam.** ChangeMamba'nın yayımlanmış 41,28 `[ZS-EVENT mIoU]` değeri ananın aralığının içinde; eşleştirilmiş
+  kıyas yapılamadığı için yalnız bağlamdır.
+- ✅ 13 olay doğrulaması `results/ana/val13.json` (`[VAL13 mIoU, ema]`) referansla aynı düzeyde; dağılım içi ölçüm
+  Türkiye'deki farkı öngörmedi.
+- ✅ Sıcaklık `results/ana/sicaklik.json` (yalnız 13 olay); kalibrasyon `turkiye_kalibrasyon.json`; ikincil
+  satırlar `turkiye_<satır>.json` (bina-maskeli, bina-oylama, flip-tta, nodata-yok).
 
 ## Faz 7: Analizler (Türkiye önbelleğinden)
 
@@ -48,4 +55,18 @@ adımından sonra eklenir.
 
 ## Faz 8: Varyant
 
-- ⏳ İki model yan yana; fark eşleştirilmiş blok bootstrap ile, "eşit" kuralına göre (`hasar.eval.compare`).
+- ✅ **Olumsuz sonuç: SAR artırımı başlık metriğini değiştirmedi.** Varyant − ana "eşit"; aralık 0'ı içeriyor
+  (`results/kiyas/varyant_vs_ana.json`, protokol §9). Varyant da referansı geçti
+  (`results/kiyas/varyant_vs_referans.json`).
+- ✅ **Gözlem, bulgu değil.** Varyantta hasarlı ve yıkık sınıflarda küçük artış var (`results/varyant/turkiye.json`,
+  `turkiye_bina_f1.json`); bu sınıf farkları için anlamlılık testi yapılmadı.
+
+## Ek deney: Türkiye few-shot (protokol 1.4 §15)
+
+Zero-shot bulgularının yerine geçmez; ayrı tabloda `[FS-EVENT mIoU]` etiketiyle raporlanır, 41,28 ile kıyaslanmaz.
+
+- ✅ Bölme `results/fewshot/bolme.json`: yalnız koordinattan, 7 şehirde blok bazlı, 0,5 km tampon; SHA-256 özetli.
+- ⏳ A (düz kayıp) ve B (hasar ağırlıklı kayıp) test sonuçları: `results/fewshot/a/test.json`, `results/fewshot/b/test.json`,
+  bina düzeyi `test_bina_f1.json`.
+- ⏳ Kıyaslar `results/fewshot/kiyas/`: B − A (birincil), A ve B − zero-shot ana (`zs_ana.json`), hasarlı ve yıkık için sınıf bazlı B − A
+  (`b_vs_a_siniflar.json`).
