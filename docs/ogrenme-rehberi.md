@@ -1525,11 +1525,12 @@ yerine "bu aramada bulunamadı" denir.
 | **2. Veri katmanı** | Okuma, bölme, dönüşüm, örnekleyici; A1 fizibilitesi | Veri doğru değilse hiçbir şey doğru değil |
 | **3. Metrik ve yeniden üretim** | Metrik kodu; Zenodo modelleriyle 38,32 / 37,82 / 37,20 | Hattın doğru olduğunun eğitimsiz kanıtı |
 | **4. Model, eğitim motoru, ön kontrol** | Derleme kapısı, eğitim döngüsü, 11 kapı, ONNX denemesi → `protokol-kilidi` | GPU harcamadan önce bütün hataları yakala |
-| **5. Ana eğitim** | ChangeMamba, 40.000 adım | |
+| **5. Ana eğitim** | Hazır DamageFormer'ın kontrol fine-tune'u, 4.000 adım (önceki ChangeMamba planının yerine) | Hazır bilgiyi küçük adımlarla güncellemek, sıfırdan eğitimden ucuz |
 | **6. Karar noktası ve Türkiye** | KN1 → `varyant-kilidi` → Türkiye'de tek değerlendirme | Varyant, Türkiye sonucu görülmeden kilitlenmeli |
 | **7. Analizler** | Y1, Y2, Y3, seçilen N'ler, hata galerisi; KN2 | Hepsi önbellekten, eğitimsiz |
-| **8. Varyant eğitimi** | Tek fikirli varyant, bir kez | |
+| **8. Varyant eğitimi** | Aynı fine-tune + SAR radyometrik artırımı (A4), bir kez | Kontrolle kıyaslanınca fikrin etkisi ayrılır |
 | **9. Demo ve ürünleştirme** | Demo, dışa aktarım, model kartı, README | |
+| **Ek. Türkiye few-shot A/B** | Türkiye'nin küçük, kilitli bir bölgesiyle uyarlama; düz ve hasar ağırlıklı kayıp | Zero-shot sonucu kesinleştikten sonra, ayrı soru olarak |
 
 **Karar noktaları:**
 
@@ -1538,6 +1539,34 @@ yerine "bu aramada bulunamadı" denir.
 - **KN2 (Faz 7 sonu):** Türkiye sonucu ve analizler hazır. Yalnız raporlama derinliğine ve olası üçüncü bir eğitime
   (kullanıcı kararı; Türkiye sonucu ayrı "keşif" tablosunda) karar verilir.
 - **KN3 (Faz 8 sonu):** README'ye ve demoya hangi bulguların gireceği.
+
+### 17.1 Sonuç ve sıradaki soru: few-shot uyarlama
+
+İki zero-shot fine-tune'u 22 Kasım 2026'da bitti. Ana model hazır referansı geçti, SAR varyantı ana ile "eşit" çıktı
+(sayılar [durum.md](durum.md) ve `results/`). Ama kazancın neredeyse tamamı **sağlam** sınıfından geldi; hasarlı ve
+yıkık binalar hâlâ neredeyse hiç ayrılamıyor. Zero-shot sorusu ("Türkiye'yi hiç görmeden ne kadar iyi?") cevaplandı;
+sıradaki soru başka: **"Türkiye'den birkaç etiketli örnek görse hasarı ayırmayı öğrenir mi?"** Buna few-shot
+(az örnekle) uyarlama denir. Zero-shot sonucunun yerine geçmez; ayrı etiketle (`[FS-EVENT mIoU]`) raporlanır.
+
+Bu deneyde kullanılan teknikler:
+
+- **Mekânsal bölme ve tampon.** Kareleri rastgele bölmek hile olur: komşu kareler aynı mahalleyi, hatta aynı binayı
+  paylaşır, model test bölgesini "ezberleyerek" yüksek puan alır. Bu yüzden Türkiye 2 km'lik bloklara ayrılır,
+  bütün bloklar ya uyarlamaya ya teste gider. Her şehirden karelerin ~%20'si uyarlamaya alınır ki model yedi şehrin
+  hepsinden biraz görsün. Uyarlama bloklarına 0,5 km'den yakın test kareleri **tampon** olarak atılır; sınırdaki
+  sızıntı da kesilir. Bölme yalnız koordinattan üretilir, etiketlere bakılmaz.
+- **Karışık örnekleme.** Yalnız 303 Türkiye karesiyle 4.000 adım eğitmek ezbere götürür ve 13 olaydan öğrenileni
+  unutturur (*catastrophic forgetting*). Her adımda örneklerin yarısı Türkiye uyarlama havuzundan, yarısı 13
+  olaydan gelir. Türkiye sinyali güçlü, eski bilgi korunur.
+- **Sınıf ağırlığı.** Hasarlı ve yıkık pikseller çok azdır; düz kayıpta model onları görmezden gelip yine düşük kayıp
+  alır. B kolunda kayıp, nadir sınıfın hatasını daha pahalı sayar: ağırlık `w_c = √(f_sağlam / f_c)`. Karekök,
+  ağırlığı tam ters frekanstan yumuşak tutar; aşırı ağırlık modeli her yere "yıkık" demeye iter. Frekanslar yalnız
+  13 olaydan hesaplanır.
+- **Kontrollü A/B.** İki kol her şeyde aynıdır (başlangıç, adım, örnek sırası), tek fark kayıp ağırlığıdır. Böylece
+  B − A farkı yalnız ağırlığın etkisini ölçer. A − zero-shot ana farkı ise Türkiye örneklerinin etkisini gösterir.
+- **Kilit ve tek test.** `fewshot-kilidi` bölmeyi, yapılandırmaları ve protokolü dondurur. Eğitim kodu yalnız
+  uyarlama karelerini, değerlendirme kodu yalnız test karelerini okuyabilir. Test her model için bir kez yapılır;
+  sonuca göre ayar değiştirilmez.
 
 ---
 
