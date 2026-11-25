@@ -468,12 +468,13 @@ iki kilitle başlayan tek Colab akışı aldı. Ayrıntılı plan: [fazlar.md](f
 |---|---|---|
 | 0–2 | Belgeler, iskelet, veri | Tamamlandı |
 | 3 | Metrik ve hazır checkpoint yeniden üretimi | Tamamlandı; DamageFormer referansı saklanır |
-| 4 | Eğitim motoru, ön kontrol, kilitler | Kod hazır; kullanıcı protokol 1.3 ve varyantı kilitler |
-| 5 | Ana kontrol fine-tune | Ön kontrol geçince 4.000 adım, son adım EMA |
-| 6 | Türkiye değerlendirmesi ve kıyas | Her koşuda `sicaklik` → tek `final`; KN1 eğitim öncesinde kapandı |
-| 8 | SAR varyantı fine-tune | Ana sonrası aynı “Run All”; ayrı ön kontrol, kayıt ve `final` |
+| 4 | Eğitim motoru, ön kontrol, kilitler | Tamamlandı; protokol 1.3 ve varyant kilitlendi |
+| 5 | Ana kontrol fine-tune | Bitti (22 Kasım 2026): 4.000 adım, son adım EMA |
+| 6 | Türkiye değerlendirmesi ve kıyas | Bitti: her koşuda `sicaklik` → tek `final` |
+| 8 | SAR varyantı fine-tune | Bitti: ana sonrası aynı “Run All” |
 | 7 | Analizler | Sonuçlar ve önbellekler hazır olunca |
 | 9 | Demo ve ürünleştirme | Önbellekten; README sayıları dosyadan |
+| Ek | Türkiye few-shot A/B (protokol 1.4) | Kod bitti; `fewshot-kilidi` ve Colab koşusu kullanıcıda |
 
 `hasar kiyas` ile varyant − ana birincil; ana − referans ve varyant − referans ikincildir.
 Üçü de saklanan kare matrislerinden, eşleştirilmiş blok bootstrap ile hesaplanır. “Eşit” kuralı
@@ -545,10 +546,14 @@ Hepsi 13 olaydan ya da Türkiye'nin yalnız dosya adı/koordinatından; Türkiye
 
 ### 12.2 Güncel karar ve sıradaki iş
 
-Kullanıcı 21 Kasım 2026'da kontrollü DamageFormer fine-tune'unu ve A4'ü onayladı.
-Eğitim başlamadı; yeni eğitim ve `final` için Türkiye'ye dokunulmadı. Faz 3 yeniden üretimi izinli istisnadır.
-Sırada kullanıcı tarafından protokol 1.3 ve varyant kilitlerinin konması, ardından Colab “Run All” var.
-Çalıştırma ayrıntıları [colab.md](colab.md)'de.
+İki zero-shot fine-tune'u bitti ve Türkiye'de birer kez değerlendirildi (22 Kasım 2026). Ana model hazır referansı
+geçti; SAR varyantı ana ile "eşit" çıktı. Kazanç sağlam sınıfından geldi, hasarlı ve yıkık sınıflar hâlâ çok zayıf.
+Sayılar [durum.md](durum.md)'de ve `results/` dosyalarında.
+
+Kullanıcı 23 Kasım 2026'da bu açığı hedefleyen few-shot ek deneyini onayladı (protokol 1.4 §15,
+[ADR-0008](adr/0008-turkiye-few-shot-ek-deneyi.md)): Türkiye'nin blok bazlı ~%20'lik uyarlama bölgesiyle iki kol,
+A düz kayıp, B hasar ağırlıklı kayıp. Zero-shot sonuçları bundan etkilenmez; few-shot sonuçları `[FS-EVENT mIoU]`
+etiketiyle ayrı tabloda raporlanır. Sırada kullanıcının `fewshot-kilidi` etiketi ve Colab koşusu var.
 
 ## 13. Sözlük
 
