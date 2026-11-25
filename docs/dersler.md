@@ -89,7 +89,8 @@ flowchart TB
 [Ders 24: Fazlar](#ders-24-fazlar-09-hikâye-olarak) ·
 [Ders 25: Yenilikler](#ders-25-yenilik-paketi-ve-fikir-havuzu) ·
 [Ders 26: Projeyi anlatmak](#ders-26-projeyi-anlatmak-ve-savunmak) ·
-[Ders 27: Fine-tune ve SAR dayanıklılığı](#ders-27-fine-tune-ve-sar-dayanıklılığı)
+[Ders 27: Fine-tune ve SAR dayanıklılığı](#ders-27-fine-tune-ve-sar-dayanıklılığı) ·
+[Ders 28: Few-shot uyarlama](#ders-28-few-shot-uyarlama-ve-sınıf-ağırlığı)
 
 ---
 
@@ -2215,6 +2216,75 @@ sonuçlar olduğu gibi raporlanır.
 <details><summary>Örnekte SAR değeri 80 ne olur? Nodata 0 aynı formüle girer mi?</summary>
 
 80 yaklaşık 95,17 olur; aralık içinde olduğu için kırpma değiştirmez. Nodata 0 ayrı korunur ve 0 kalır.
+</details>
+
+## Ders 28: Few-shot uyarlama ve sınıf ağırlığı
+
+**Bu derste:** Zero-shot ile few-shot farkını, ezbere karşı mekânsal bölmeyi, karışık örneklemeyi ve nadir
+sınıflara kayıp ağırlığı vermeyi. Elle sınıf ağırlığı hesabını.
+
+**Neden yeni bir deney?** Zero-shot fine-tune'ları Türkiye'yi hiç görmeden hazır modeli geçti, ama kazanç sağlam
+sınıfından geldi; hasarlı ve yıkık binalar neredeyse hiç ayrılamadı ([durum.md](durum.md)). Few-shot, modelin hedef
+bölgeden birkaç etiketli örnek görmesidir. Gerçek hayatta da afetten sonra birkaç mahalle hızla elle etiketlenebilir.
+Soru değişir: "hiç görmeden" yerine "biraz görünce". Bu yüzden sonuç ayrı etiket (`[FS-EVENT mIoU]`) ve ayrı tablo alır;
+zero-shot sonucuyla ve 41,28 ile kıyaslanmaz.
+
+**Ezber nereden gelir?** Kareleri rastgele bölersek komşu kareler aynı sokakları paylaşır; model test karelerinin
+yarısını eğitimde görmüş gibi olur. Çözüm mekânsal bölmedir: 2 km bloklar bütün olarak ya uyarlamaya ya teste
+gider. Her şehirden karelerin ~%20'si uyarlamaya alınır; yedi şehrin hepsi temsil edilir. Uyarlama bloklarına
+0,5 km'den yakın kareler tampon olarak atılır. Bölme yalnız koordinattan, sabit tohumla (2023) üretilir:
+uyarlama 303, tampon 170, test 641 kare (`results/fewshot/bolme.json`).
+
+**Unutmaya karşı karışık örnekleme.** 303 kareyle 4.000 adım eğitilen model o karelere aşırı uyar ve 13 olaydan
+öğrendiğini unutabilir. Her adımda örneklerin yarısı Türkiye uyarlama havuzundan, yarısı 13 olaydan gelir
+(`MixedStepSampler`). Öğrenme oranı düşük kalır (2e-5); son adımın EMA'sı kullanılır, Türkiye'ye bakarak adım seçilmez.
+
+**Sınıf ağırlığı.** Ağırlıklı çapraz entropide her pikselin kaybı sınıfının ağırlığıyla çarpılır: nadir sınıfta
+hata yapmak daha pahalı olur. Ağırlık `w_c = √(f_sağlam / f_c)`; arka plan ve sağlam 1'de kalır. Karekök, tam ters
+frekansın (`f_sağlam / f_c`) aşırı sonucunu yumuşatır: çok büyük ağırlık modeli her yere hasar demeye iter.
+
+**Elle hesap: ağırlıklar.** 13 olayın eğitim piksel sayıları (`results/veri/bolme.json`, `class_pixels.train`):
+
+| Sınıf | Piksel | Oran f_c |
+|---|---|---|
+| Arka plan | 2.660.089.123 | %90,76 |
+| Sağlam | 195.536.234 | %6,67 |
+| Hasarlı | 48.297.243 | %1,65 |
+| Yıkık | 26.847.320 | %0,92 |
+
+Hasarlı: `f_sağlam / f_hasarlı = 195.536.234 / 48.297.243 ≈ 4,05`, karekök `≈ 2,01`.
+Yıkık: `195.536.234 / 26.847.320 ≈ 7,28`, karekök `≈ 2,70`.
+B kolunun ağırlıkları `(1; 1; 2,01; 2,70)` olur (`configs/fewshot_b.yaml`). Tam ters frekans kullansaydık
+yıkık ağırlığı 7,28 olacaktı; karekök bunu 2,70'e indiriyor.
+
+**Kontrollü A/B.** A kolu düz kayıpla (`1; 1; 1; 1`), B kolu ağırlıklı kayıpla eğitilir; başka her şey aynıdır. B − A
+yalnız ağırlığın etkisini ölçer (birincil kıyas). A − zero-shot ana, Türkiye örneklerini görmenin etkisini gösterir.
+Hasarlı ve yıkık sınıflar için sınıf bazlı B − A da raporlanır. Hepsi eşleştirilmiş blok bootstrap ile.
+
+**Projede nerede?** Bölme `hasar fewshot-bolme`, erişim kilidi `guard.require_fewshot_access` (`fewshot-kilidi`),
+değerlendirme `hasar fewshot-test` ve `hasar fewshot-kiyas`. Karar [ADR-0008](adr/0008-turkiye-few-shot-ek-deneyi.md),
+kurallar [protokol §15](protokol.md).
+
+**Akılda kalsın:** Few-shot ayrı bir sorudur, zero-shot sonucunun yerine geçmez. Mekânsal bölme ve tampon ezberi
+keser; karışık örnekleme unutmayı önler; karekök ağırlık nadir sınıfı öne çıkarır ama aşırıya kaçmaz.
+Test her model için bir kez yapılır.
+
+**Kendini sına**
+
+<details><summary>Türkiye karelerini rastgele %20 / %80 bölseydik ne olurdu?</summary>
+
+Komşu kareler iki tarafa düşer; model test bölgesinin bir kısmını eğitimde görmüş olur ve puan şişer. Blok bazlı
+bölme ve tampon bunu önler.
+</details>
+
+<details><summary>Sağlam sınıfın oranı %6,67, bir sınıfınki %0,46 olsaydı karekök ağırlığı kaç olurdu?</summary>
+
+`6,67 / 0,46 ≈ 14,5`, karekök `≈ 3,81`. Tam ters frekans 14,5 olurdu.
+</details>
+
+<details><summary>B, A'dan 0,6 puan iyi çıktı ve aralık 0'ı içeriyor. Ne yazarız?</summary>
+
+"Eşit" yazarız: fark 1,0 puanın altında ve aralık 0'ı içeriyor (protokol §9). Olumsuz sonuç da raporlanır.
 </details>
 
 ---
