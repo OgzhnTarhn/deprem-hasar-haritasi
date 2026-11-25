@@ -25,7 +25,9 @@ Faz bitince: çıkış koşulları doğrulanır, değişiklikler atomik commit'l
 | 7 | Analizler | 7–10 | 2–5 | Kod (CPU ağırlıklı) | KN2 |
 | 8 | SAR varyantı fine-tune | Ana sonrası aynı akış | ≤ 15 hedef; ölçülmedi | Colab | KN3 |
 | 9 | Demo ve ürünleştirme | 14–16 | < 2 | Kod + belge | |
+| Ek | Türkiye few-shot A/B | Zero-shot sonrası | Ölçülmedi | Kod + Colab | `fewshot-kilidi` |
 
+Faz 5, 6 ve 8 bitti (22 Kasım 2026); sonuçlar [durum.md](durum.md) ve `results/` altında.
 İki fine-tune ve ön kontroller için aylık 100 CU içinde kalma hedefi var. Koşu başına ≤ 15 CU
 ölçülmedi; kapı 8 eğitim projeksiyonunu ölçer. Ön kontrol bu projeksiyonun dışındadır.
 
@@ -179,3 +181,20 @@ Türkiye sonucuna göre model veya ayar seçilmez.
 - CV ve LinkedIn metni.
 
 **Çıkış:** Yabancı biri depoyu tek komutla çalıştırabiliyor; demo yayında.
+
+## Ek deney: Türkiye few-shot A/B (protokol 1.4 §15)
+
+Zero-shot sonuçları kesinleştikten sonra eklendi ([ADR-0008](adr/0008-turkiye-few-shot-ek-deneyi.md),
+[tasarım](superpowers/specs/2026-11-23-turkiye-few-shot-design.md)). Soru: Türkiye etiketlerinin küçük bir kısmı ve
+hasar sınıflarına kayıp ağırlığı, hasarlı ve yıkık sınıflarındaki açığı kapatır mı?
+
+- **Bölme:** `hasar fewshot-bolme` yalnız koordinattan `results/fewshot/bolme.json`'u üretir. Her şehirden 2 km
+  bloklarla karelerin ~%20'si uyarlamaya, 0,5 km tampon atılır, kalanı test olur.
+- **Kilit:** `fewshot-kilidi` protokolü, iki yapılandırmayı ve bölmeyi dondurur. Eğitim yalnız uyarlama, değerlendirme
+  yalnız test karelerini okur (`FewshotAccess`).
+- **Kollar:** İkisi de ana koşunun `best.pt`'sinden (sha256 kilitli), 4.000 adım, lr 2e-5, son adımın EMA'sı; her
+  adımda yarı Türkiye uyarlama, yarı 13 olay (`MixedStepSampler`). Tek fark: A düz kayıp, B hasar ağırlıklı kayıp.
+- **Değerlendirme:** `hasar fewshot-test` iki kol da bitince her model için bir kez; `hasar fewshot-kiyas` B − A
+  (birincil), A ve B − zero-shot ana, sınıf bazlı B − A. Metrik etiketi `[FS-EVENT mIoU]`.
+
+**Çıkış:** `results/fewshot/{a,b}/test.json`, `results/fewshot/kiyas/`; README'de ayrı few-shot tablosu.
