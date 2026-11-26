@@ -5,20 +5,51 @@ Afet öncesi optik ve afet sonrası SAR uydu görüntülerinden bina hasarını 
 depreminde, eğitimde hiç görülmeden, **bir kez** test edilir. Referans: hazır DamageFormer 37,20 `[ZS-EVENT mIoU, repro]`;
 ChangeMamba 41,28 `[ZS-EVENT mIoU]` yalnız bağlamdır.
 
-- Tasarım: [docs/tasarim.md](docs/tasarim.md) · Protokol (önceden kayıt): [docs/protokol.md](docs/protokol.md)
-- Görsel genel bakış: [docs/proje-haritasi.md](docs/proje-haritasi.md) · Ders kitabı: [docs/dersler.md](docs/dersler.md)
-- Güncel durum: [docs/durum.md](docs/durum.md) · Colab'da çalıştırma: [docs/colab.md](docs/colab.md)
+## Kısaca sonuç
+
+- **Fine-tune işe yaradı.** Hazır DamageFormer'ı kısa, kontrollü bir fine-tune'la güncelledik; model Türkiye'yi hiç
+  görmeden referansı geçti ve eşleştirilmiş farkın %95 aralığı 0'ı içermiyor (aşağıdaki tabloda
+  `kiyas/ana_vs_referans.json` satırı).
+- **SAR dayanıklılığı fikri başlık metriğini değiştirmedi.** SAR artırımlı varyant ana modelle "eşit" çıktı
+  (`kiyas/varyant_vs_ana.json`). Olumsuz sonucu da olduğu gibi yazıyoruz.
+- **Açık problem: hasar sınıfları.** Kazancın neredeyse tamamı sağlam binalardan geldi; hasarlı ve yıkık binalar
+  Türkiye'de hâlâ çok zor ([docs/durum.md](docs/durum.md)). Bunu hedefleyen few-shot ek deneyi hazır, sonucu
+  aşağıdaki ayrı tabloya düşecek.
+
+## Bu projede neyi iyi yaptık
+
+- **Sızıntısız test.** Türkiye'ye erişim kodda kilitli: veri katmanı bir erişim belirteci olmadan Türkiye karesi
+  okumaz, belirteç yalnız git etiketli (`protokol-kilidi`, `varyant-kilidi`) temiz bir commit'te verilir. Her model
+  Türkiye'de bir kez değerlendirildi; Türkiye sonucuna göre ne ayar ne kayıt noktası seçildi.
+- **Önceden kayıtlı protokol.** Metrik yolu, kıyaslar ve "eşit" kuralı eğitimden önce
+  [docs/protokol.md](docs/protokol.md)'de yazıldı ve kilitlendi.
+- **Önce yeniden üretim.** Hazır BRIGHT checkpoint'lerinin yayımlanan değerlerini kendi değerlendirme hattımızla
+  tolerans içinde tutturduk; hat doğru olmadan model eğitilmedi. Bu sırada "zero-shot" diye yayımlanan DeepLabV3+
+  ağırlığının Türkiye'yi görmüş olduğunu yakaladık ve dışarıda bıraktık.
+- **Kontrollü deney.** Ana ve varyant aynı checkpoint'ten, aynı tohum ve örnek sırasıyla eğitildi; tek fark SAR
+  artırımı. Fark bu yüzden fikrin kendisine aittir.
+- **Dürüst istatistik.** Bütün farklar şehir bloklarına göre eşleştirilmiş bootstrap ile, %95 aralıklarıyla verilir;
+  her sayının yanında metrik türü yazar ve README'deki her sayı `results/` dosyasından üretilir.
+- **GPU yakmadan önce sigorta.** On bir ön kontrol kapısı (bellek, hız, maliyet projeksiyonu, devam testi) Colab
+  eğitiminden önce çalışır; defter kopmalara dayanıklıdır, yarıda kalan iş kaldığı yerden sürer.
+- **Mühendislik düzeni.** Mantık `src/hasar/` paketinde, defter ince; yapılandırma hash'i koşu kimliğinin parçası;
+  veri gerektirmeyen kısa testler CI'da CPU'da koşar.
+
+Ayrıntılar: tasarım [docs/tasarim.md](docs/tasarim.md) · görsel genel bakış [docs/proje-haritasi.md](docs/proje-haritasi.md) ·
+bulgular [docs/bulgular.md](docs/bulgular.md) · ders kitabı [docs/dersler.md](docs/dersler.md) ·
+güncel durum [docs/durum.md](docs/durum.md) · Colab'da çalıştırma [docs/colab.md](docs/colab.md)
 
 ## Sonuçlar
 
-Her sayı `results/**/*.json` dosyasından üretilir ve yanında metrik türünü taşır. `[ZS-EVENT mIoU]`
-için birincil kıyas varyant − ana, ikincil kıyaslar referansa karşıdır; fark protokol §9'daki "eşit" kuralıyla yazılır.
+Her sayı `results/**/*.json` dosyasından `hasar readme` ile üretilir ve yanında metrik türünü taşır. Tabloyu okumak için:
 
-Şimdilik tabloda yalnız Faz 3'ün yeniden üretim satırları (`repro`) var: hazır BRIGHT checkpoint'lerinin yayımlanan
-değerleri tutturup tutturmadığını gösterir, bu projenin modeli değildir. DeepLabV3+ satırı **olumsuz bulgudur**:
-"zero-shot" diye yayımlanan checkpoint yayımlanan değerin çok üstünde çıktı ve Türkiye'yi görmüş sayıldı
-([docs/bulgular.md](docs/bulgular.md)). Ana modelin satırları Colab'daki eğitim ve tek `final` adımından sonra
-`hasar readme` ile eklenir.
+- `ana/turkiye.json` ve `varyant/turkiye.json`: iki fine-tune'un Türkiye başlık sonucu `[ZS-EVENT mIoU]`, %95 aralıklı.
+  Aynı klasörlerdeki `turkiye_<satır>.json` dosyaları önceden ilan edilmiş ikincil satırlardır.
+- `kiyas/*.json`: eşleştirilmiş farklar. Birincil kıyas varyant − ana; ana − referans ve varyant − referans ikincildir.
+  Fark protokol §9'daki "eşit" kuralıyla yorumlanır.
+- `yeniden-uretim/*.json` (`repro`): hazır BRIGHT checkpoint'leri; bu projenin modeli değildir. DeepLabV3+ satırı
+  **olumsuz bulgudur**: Türkiye'yi görmüş sayıldı ([docs/bulgular.md](docs/bulgular.md)).
+- `[VAL13 mIoU]` satırları 13 olayın doğrulamasıdır; Türkiye başarısını ölçmez.
 
 <!-- sonuclar:basla -->
 Bu tablo `hasar readme` ile results/ dosyalarından üretildi; elle düzenlemeyin.
@@ -55,6 +86,15 @@ Bu tablo `hasar readme` ile results/ dosyalarından üretildi; elle düzenlemeyi
 | bright_unet | zero_shot/val | [VAL13 mIoU, repro] | 70,69 | `yeniden-uretim/unet_val.json` |
 <!-- sonuclar:bitir -->
 
+### Few-shot ek deneyi
+
+Zero-shot sonuçları kesinleştikten sonra eklenen ayrı bir soru: Türkiye'nin küçük, kilitli bir bölgesinin etiketleri
+ve hasar sınıflarına kayıp ağırlığı, hasarlı ve yıkık binalardaki açığı kapatır mı? Türkiye 2 km bloklarla bölünür;
+her şehirden karelerin bir kısmı uyarlamaya, 0,5 km tampondan sonrası teste gider. İki kol ana modelden başlar,
+her adımda yarı Türkiye yarı 13 olay görür; A düz, B hasar ağırlıklı kayıpla eğitilir. Sonuçlar `[FS-EVENT mIoU]`
+etiketiyle bu ayrı tabloda raporlanır ve zero-shot sonuçlarıyla ya da 41,28 ile kıyaslanmaz
+([protokol §15](docs/protokol.md), [ADR-0008](docs/adr/0008-turkiye-few-shot-ek-deneyi.md)).
+
 <!-- fewshot:basla -->
 <!-- fewshot:bitir -->
 
@@ -67,26 +107,24 @@ uv run hasar indir --root data/bright --cache data/cache   # BRIGHT'ı Hugging F
 uv run hasar veri-ozet --root data/bright                  # bölme özeti -> results/veri/bolme.json
 ```
 
-Kontrol ve SAR varyantı hazır DamageFormer zero-shot checkpoint’inden fine-tune edilir.
-Tek “Run All” önce ana, sonra varyant için ön kontrol → fine-tune → `sicaklik` → `final` çalıştırır
-(etiketlere göre). Eğitim Colab’da, ince defterle yapılır: [notebooks/ana_egitim.ipynb](notebooks/ana_egitim.ipynb). Adımlar
-[docs/colab.md](docs/colab.md)'de.
+Eğitim Colab'da, ince defterlerle yapılır; adımlar [docs/colab.md](docs/colab.md)'de.
 
+- **Zero-shot (bitti):** [notebooks/ana_egitim.ipynb](notebooks/ana_egitim.ipynb) önce ana, sonra varyant için ön kontrol →
+  fine-tune → `sicaklik` → `final` çalıştırdı. Artık tarihî defterdir.
+- **Few-shot:** [notebooks/fewshot.ipynb](notebooks/fewshot.ipynb) `fewshot-kilidi` etiketi olmadan eğitime geçmez;
+  iki kolu eğitir, sonra test bölgesini model başına bir kez değerlendirir. Kıyaslar `uv run hasar fewshot-kiyas` ile.
 - **GPU:** A100 hedeflenir; Colab L4 verirse defter onu da kabul eder ve kapı 8 maliyeti çalışan karta göre hesaplar.
-- **Bellek:** bir adım belleğe sığmazsa eğitim döngüsü mikro partiyi yarıya indirip gradyan biriktirir; etkin batch
-  değişmez (`train.micro_batch`).
-- **Kilitler:** protokol 1.3'ü içeren commit'te `protokol-kilidi` ve `varyant-kilidi` gerekir; kullanıcı yönetir.
-  Defter `origin/main` kullanır; dal değişiklikleri oraya alınmış olmalı.
-- **Bütçe:** fine-tune başına ≤ 15 CU hedefi; ölçülmedi, kapı 8 ölçer. Özel ChangeMamba çekirdeği artık gerekmiyor.
+- **Kilitler:** etiketleri kullanıcı yönetir; defter `origin/main` kullanır.
 
-Sonuç tablosu `uv run hasar readme` ile yenilenir (`--check` güncel olup olmadığını denetler).
+Sonuç tabloları `uv run hasar readme` ile yenilenir (`--check` güncel olup olmadığını denetler).
 
 ## Değişmez kurallar (özet)
 
-1. Türkiye'nin ne görüntüsü ne etiketi eğitimde, doğrulamada, seçimde veya ayarda kullanılır; Türkiye'ye tek yol
-   `protokol-kilidi` etiketli, temiz bir commit'teki `final` adımıdır.
+1. Türkiye'nin ne görüntüsü ne etiketi eğitimde, doğrulamada, seçimde veya ayarda kullanılır; zero-shot için Türkiye'ye
+   tek yol kilitli, temiz bir commit'teki `final` adımıdır. Tek istisna few-shot ek deneyi: yalnız kilitli uyarlama
+   kareleri eğitime girer, test kareleri model başına bir kez değerlendirilir.
 2. Türkiye'yi görmüş ağırlık (`*_standard_ML_split.pth`, MaRS) başlangıç olamaz.
-3. İki eğitim: aynı hazır DamageFormer zero-shot checkpoint’inden kontrol ve SAR varyantı; her biri bir kez.
+3. İki zero-shot eğitimi (kontrol ve SAR varyantı) ve iki few-shot kolu; her biri bir kez.
 4. Her sayının yanında metrik türü yazılır; sayılar dosyadan gelir; olumsuz sonuç da yazılır.
 
 ## Lisans ve atıf
