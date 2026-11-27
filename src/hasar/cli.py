@@ -272,6 +272,12 @@ def _build_parser() -> argparse.ArgumentParser:
     fewshot_test.add_argument("--building-tiles", type=Path, default=_BUILDING_TILES, help="Bina örnekli kare listesi.")
     fewshot_test.add_argument("--blocks", type=Path, default=_TURKEY_BLOCKS, help="Türkiye blok haritası dosyası.")
     fewshot_test.add_argument("--device", default="cuda", help="Çalıştırma aygıtı.")
+    fewshot_test.add_argument(
+        "--pred-dir",
+        type=Path,
+        default=None,
+        help="Demo için kare başına tahminlerin yazılacağı klasör (isteğe bağlı).",
+    )
 
     fewshot_compare = subparsers.add_parser(
         "fewshot-kiyas",
@@ -565,6 +571,7 @@ def _run_fewshot_test(args: argparse.Namespace) -> int:
         instances_dir=args.instances,
         building_tiles=args.building_tiles,
         device=args.device,
+        pred_dir=args.pred_dir,
     )
 
     record = records["test"]

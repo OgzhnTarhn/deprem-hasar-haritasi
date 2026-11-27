@@ -118,14 +118,22 @@ def runner(monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize(
-    ("options", "blocks", "building_tiles", "device"),
+    ("options", "blocks", "building_tiles", "device", "pred_dir"),
     [
-        ([], "results/arastirma/turkiye_bloklar.json", "results/arastirma/turkiye_bina_kareleri.json", "cuda"),
+        ([], "results/arastirma/turkiye_bloklar.json", "results/arastirma/turkiye_bina_kareleri.json", "cuda", None),
         (
             ["--blocks", "blocks.json", "--building-tiles", "tiles.json", "--device", "cpu"],
             "blocks.json",
             "tiles.json",
             "cpu",
+            None,
+        ),
+        (
+            ["--pred-dir", "preds"],
+            "results/arastirma/turkiye_bloklar.json",
+            "results/arastirma/turkiye_bina_kareleri.json",
+            "cuda",
+            Path("preds"),
         ),
     ],
 )
@@ -138,6 +146,7 @@ def test_fewshot_test_checks_all_arms_then_runs(
     blocks,
     building_tiles,
     device,
+    pred_dir,
 ):
     assert main([*fewshot_test_args, *options]) == 0
     assert runner.mock_calls[:4] == [
@@ -161,6 +170,7 @@ def test_fewshot_test_checks_all_arms_then_runs(
         instances_dir=Path("instances"),
         building_tiles=Path(building_tiles),
         device=device,
+        pred_dir=pred_dir,
     )
     output = capsys.readouterr().out
     assert "Türkiye few-shot 42.12 [FS-EVENT mIoU]" in output

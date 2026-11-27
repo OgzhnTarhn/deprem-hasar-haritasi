@@ -469,6 +469,129 @@ def test_run_fewshot_test_skips_building_file_when_intersection_empty(tmp_path: 
     assert (out_dir / DONE_FILE).is_file()
 
 
+def test_run_fewshot_test_writes_pred_dir_without_changing_metrics(tmp_path: Path) -> None:
+    data_root = tmp_path / "data"
+    write_tiles(data_root, TEST_NAMES)
+    instances_dir = tmp_path / "instances"
+    write_instances(instances_dir, TEST_NAMES[0])
+    sha = _list_sha256(sorted(TEST_NAMES))
+    access = make_test_access()
+
+    out_without = tmp_path / "out_without"
+    records_without = run_fewshot_test(
+        FakeModel(seed=3),
+        data_root,
+        out_without,
+        run_id="fewshot_a-123",
+        split_sha256=sha,
+        model_name="fewshot-a",
+        config_hash="cfg_a",
+        access=access,
+        blocks=BLOCKS,
+        instances_dir=instances_dir,
+        building_tiles=[TEST_NAMES[0]],
+        n_boot=N_BOOT,
+        seed=11,
+    )
+
+    assert {p.name for p in out_without.iterdir()} == {MATRICES_FILE, TEST_FILE, BUILDING_FILE, DONE_FILE}
+    assert list(tmp_path.rglob("*.npz")) == [out_without / MATRICES_FILE]
+
+    out_with = tmp_path / "out_with"
+    pred_dir = tmp_path / "preds"
+    records_with = run_fewshot_test(
+        FakeModel(seed=3),
+        data_root,
+        out_with,
+        run_id="fewshot_a-123",
+        split_sha256=sha,
+        model_name="fewshot-a",
+        config_hash="cfg_a",
+        access=access,
+        blocks=BLOCKS,
+        instances_dir=instances_dir,
+        building_tiles=[TEST_NAMES[0]],
+        n_boot=N_BOOT,
+        seed=11,
+        pred_dir=pred_dir,
+    )
+
+    assert records_with["test"].values == records_without["test"].values
+    assert records_with["bina_f1"].values == records_without["bina_f1"].values
+
+    with np.load(out_without / MATRICES_FILE) as m0, np.load(out_with / MATRICES_FILE) as m1:
+        assert set(m0.files) == set(m1.files)
+        for key in m0.files:
+            assert np.array_equal(m0[key], m1[key])
+
+    assert {p.name for p in pred_dir.iterdir()} == {f"{name}.npz" for name in TEST_NAMES}
+    assert not any(p.name.endswith(".tmp") for p in pred_dir.iterdir())
+    for name in TEST_NAMES:
+        with np.load(pred_dir / f"{name}.npz") as data:
+            assert set(data.files) == {"pred", "entropy", "bina"}
+            for key in ("pred", "entropy", "bina"):
+                assert data[key].dtype == np.uint8
+                assert data[key].shape == (SIZE, SIZE)
+            assert int(data["pred"].min()) >= 0
+            assert int(data["pred"].max()) <= 3
+
+
+def test_run_fewshot_test_pred_dir_matches_argmax_entropy_and_bina(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data_root = tmp_path / "data"
+    write_tiles(data_root, TEST_NAMES)
+    instances_dir = tmp_path / "instances"
+    pred_dir = tmp_path / "preds"
+    out_dir = tmp_path / "out"
+
+    clf_prob = torch.zeros((1, NUM_CLF, SIZE, SIZE), dtype=torch.float32)
+    clf_prob[:, :, :16, :] = 0.25
+    clf_prob[:, 2, 16:, :] = 1.0
+
+    loc_prob = torch.zeros((1, NUM_LOC, SIZE, SIZE), dtype=torch.float32)
+    loc_prob[:, 0, :16, :] = 1.0
+    loc_prob[:, 1, 16:, :] = 0.8
+    loc_prob[:, 0, 16:, :] = 0.2
+
+    monkeypatch.setattr(
+        "hasar.eval.fewshot_eval.predict",
+        lambda model, pre, post, tta=False: (clf_prob, loc_prob),
+    )
+
+    run_fewshot_test(
+        FakeModel(),
+        data_root,
+        out_dir,
+        run_id="fewshot_a-123",
+        split_sha256=_list_sha256(sorted(TEST_NAMES)),
+        model_name="fewshot-a",
+        config_hash="cfg_a",
+        access=make_test_access(),
+        blocks=BLOCKS,
+        instances_dir=instances_dir,
+        building_tiles=[],
+        n_boot=N_BOOT,
+        pred_dir=pred_dir,
+    )
+
+    expected_pred = clf_prob[0].numpy().argmax(axis=0).astype(np.uint8)
+    with np.load(out_dir / MATRICES_FILE) as matrices:
+        for name in TEST_NAMES:
+            with np.load(pred_dir / f"{name}.npz") as data:
+                assert np.array_equal(data["pred"], expected_pred)
+                assert np.all(data["entropy"][:16, :] == 255)
+                assert np.all(data["entropy"][16:, :] == 0)
+                assert np.all(data["bina"][:16, :] == 0)
+                assert np.all(data["bina"][16:, :] == 204)
+
+            label = tifffile.imread(tile_paths(data_root, name).target)
+            acc = ConfusionAccumulator()
+            acc.add(label, expected_pred, name)
+            assert np.array_equal(matrices[name], acc.per_tile[name])
+
+
 # --------------------------------------------------------------------------- slice_matrices & load_tile_matrices
 
 

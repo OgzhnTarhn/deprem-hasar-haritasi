@@ -13,8 +13,9 @@ without reusing :func:`hasar.eval.final.run_final` (design §9.8):
   verifies that every test tile has a bootstrap block, and verifies that every instance file in
   ``building_tiles ∩ test`` exists on disk—all before the model is called or any file is written.
 * **Headline-only float32 path (§9.8):** predictions come from ``argmax(clf)`` on float32
-  probabilities with ``tta=False``, no building mask, no temperature scaling, no cache files, and
-  no 41.28 zero-shot anchor.
+  probabilities with ``tta=False``, no building mask, no temperature scaling, no 41.28 zero-shot
+  anchor, and no cache files on the metric path (optional ``pred_dir`` writes per-tile
+  predictions for the demo only; metrics are never computed from them).
 * **Paired comparisons (§5.5, §9.7):** :func:`compare_fewshot` computes ``B - A`` (primary),
   ``A - zs-ana`` (annotated as adaptation labels + extra 4000 training steps), ``B - zs-ana``,
   per-class damaged/destroyed IoU differences for ``B - A``, and the sliced ``zs-ana`` record on
@@ -90,6 +91,33 @@ def _write_json_atomic(path: Path, payload: dict[str, object]) -> Path:
         ) as handle:
             tmp_name = handle.name
             handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp_name, path)
+        tmp_name = None
+    finally:
+        if tmp_name is not None:
+            try:
+                os.unlink(tmp_name)
+            except FileNotFoundError:
+                pass
+    return path
+
+
+def _write_pred_npz_atomic(path: Path, pred: np.ndarray, entropy: np.ndarray, bina: np.ndarray) -> Path:
+    """Write ``pred``, ``entropy`` and ``bina`` arrays to ``path`` atomically via temp file + replace."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_name: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="wb",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            tmp_name = handle.name
+            np.savez_compressed(handle, pred=pred, entropy=entropy, bina=bina)
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(tmp_name, path)
@@ -199,12 +227,15 @@ def run_fewshot_test(
     n_boot: int = DEFAULT_N,
     seed: int = DEFAULT_SEED,
     sar_mode: str = "official",
+    pred_dir: Path | str | None = None,
 ) -> dict[str, ResultRecord]:
     """Run the single Turkey few-shot test evaluation on ``access.allowed`` tiles.
 
     All guard, lock, split digest, block-map and instance-file checks run before the model is
     called or any output file is written. If the intersection of ``building_tiles`` and the test
-    split is empty, ``test_bina_f1.json`` is skipped and omitted from the returned mapping.
+    split is empty, ``test_bina_f1.json`` is skipped and omitted from the returned mapping. When
+    ``pred_dir`` is given, per-tile ``pred``, ``entropy`` and ``bina`` ``uint8`` arrays are saved
+    as compressed ``.npz`` files for the demo without affecting any metric.
     """
     if not isinstance(access, FewshotAccess):
         raise TypeError(f"Few-shot testi için FewshotAccess gereklidir, alınan: {type(access).__name__}.")
@@ -240,6 +271,10 @@ def run_fewshot_test(
             f"klasör: {instances_path}). Few-shot testi başlatılmadı."
         )
 
+    pred_path = Path(pred_dir) if pred_dir is not None else None
+    if pred_path is not None:
+        pred_path.mkdir(parents=True, exist_ok=True)
+
     dataset = BrightDataset(data_root, names, mode="eval", sar_mode=sar_mode, access=access)
     model.to(device)
     model.eval()
@@ -255,7 +290,7 @@ def run_fewshot_test(
         pre = torch.from_numpy(np.asarray(item["pre"])).unsqueeze(0).to(device)
         post = torch.from_numpy(np.asarray(item["post"])).unsqueeze(0).to(device)
 
-        clf_prob, _loc_prob = predict(model, pre, post, tta=False)
+        clf_prob, loc_prob = predict(model, pre, post, tta=False)
         clf = clf_prob[0].float().cpu().numpy()
         pred = clf.argmax(axis=0)
         accumulator.add(label, pred, name)
@@ -266,6 +301,19 @@ def run_fewshot_test(
             true_cls, pred_cls = building_classes(label, instance_map, pred)
             true_classes.append(true_cls)
             pred_classes.append(pred_cls)
+
+        if pred_path is not None:
+            clipped_p = np.clip(clf, 1e-12, 1.0)
+            norm_entropy = -np.sum(clipped_p * np.log(clipped_p), axis=0) / np.log(NUM_CLASSES)
+            entropy_u8 = np.rint(np.clip(norm_entropy, 0.0, 1.0) * 255.0).astype(np.uint8)
+            bina_prob = loc_prob[0, 1].float().cpu().numpy()
+            bina_u8 = np.clip(np.rint(bina_prob * 255.0), 0, 255).astype(np.uint8)
+            _write_pred_npz_atomic(
+                pred_path / f"{name}.npz",
+                pred.astype(np.uint8),
+                entropy_u8,
+                bina_u8,
+            )
 
     out_path.mkdir(parents=True, exist_ok=True)
     accumulator.save_npz(out_path / MATRICES_FILE)
