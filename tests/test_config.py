@@ -61,7 +61,7 @@ def test_fewshot_configs_differ_only_in_experiment_and_weights() -> None:
     assert (a.experiment, b.experiment) == ("fewshot_a", "fewshot_b")
     b_with_a_weights = dataclasses.replace(b.loss, class_weights=a.loss.class_weights)
     assert a.to_dict() == dataclasses.replace(b, experiment=a.experiment, loss=b_with_a_weights).to_dict()
-    assert a.model.init_sha256 == "0" * 64
+    assert a.model.init_sha256 == "0d9b9e37556ef4835fe4c1684c1f58580f433ed056e941bdc82546b27441e95e"
     assert a.data.fewshot_split == "results/fewshot/bolme.json"
     assert (a.train.clip, a.train.micro_batch, a.train.oom_halving) == (3.1627, 4, False)
     assert len({config_hash(a), config_hash(b), config_hash(Config())}) == 3

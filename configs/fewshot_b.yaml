@@ -25,7 +25,7 @@ norm:
 model:
   name: bright_damageformer  # fine-tune modeli
   init: ana_run  # ana koşunun son EMA ağırlığı, best.pt, adım 4000
-  init_sha256: "0000000000000000000000000000000000000000000000000000000000000000"  # kilitten önce Colab'da best.pt'nin sha256'sıyla değiştirilir
+  init_sha256: "0d9b9e37556ef4835fe4c1684c1f58580f433ed056e941bdc82546b27441e95e"  # ana-708fdc1f5ecb/best.pt, Colab'da hesaplandı (27 Kasım 2026)
   fallback: damageformer_swin_t  # çekirdek derlenmezse otomatik yedek
 
 optim:
