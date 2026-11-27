@@ -274,22 +274,34 @@ def _build_parser() -> argparse.ArgumentParser:
     fewshot_test.add_argument("--device", default="cuda", help="Çalıştırma aygıtı.")
 
     fewshot_compare = subparsers.add_parser(
-        "fewshot-kiyas", help="Kayıtlı matrisleri few-shot test bölmesinde kıyasla.",
+        "fewshot-kiyas",
+        help="Kayıtlı matrisleri few-shot test bölmesinde kıyasla.",
     )
     fewshot_compare.add_argument(
-        "--a", type=Path, default=_FEWSHOT_RESULTS / "a" / _FEWSHOT_MATRICES, help="A kolunun matris NPZ dosyası.",
+        "--a",
+        type=Path,
+        default=_FEWSHOT_RESULTS / "a" / _FEWSHOT_MATRICES,
+        help="A kolunun matris NPZ dosyası.",
     )
     fewshot_compare.add_argument(
-        "--b", type=Path, default=_FEWSHOT_RESULTS / "b" / _FEWSHOT_MATRICES, help="B kolunun matris NPZ dosyası.",
+        "--b",
+        type=Path,
+        default=_FEWSHOT_RESULTS / "b" / _FEWSHOT_MATRICES,
+        help="B kolunun matris NPZ dosyası.",
     )
     fewshot_compare.add_argument(
-        "--zs", type=Path, default=Path("results/ana/turkiye_kare_matrisleri_headline.npz"),
+        "--zs",
+        type=Path,
+        default=Path("results/ana/turkiye_kare_matrisleri_headline.npz"),
         help="Zero-shot ana modelin matris NPZ dosyası.",
     )
     fewshot_compare.add_argument("--split", type=Path, default=Path(FEWSHOT_SPLIT_FILE), help="Bölme JSON dosyası.")
     fewshot_compare.add_argument("--blocks", type=Path, default=_TURKEY_BLOCKS, help="Türkiye blok haritası dosyası.")
     fewshot_compare.add_argument(
-        "--out", type=Path, default=_FEWSHOT_RESULTS / "kiyas", help="Kıyasların yazılacağı klasör.",
+        "--out",
+        type=Path,
+        default=_FEWSHOT_RESULTS / "kiyas",
+        help="Kıyasların yazılacağı klasör.",
     )
 
     readme = subparsers.add_parser("readme", help="README sonuç tablolarını results/ dosyalarından üret.")
@@ -577,7 +589,13 @@ def _run_fewshot_compare(args: argparse.Namespace) -> int:
     try:
         split = runner.load_split(args.split)
         records = runner.compare_fewshot(
-            args.a, args.b, args.zs, test_names=split["test"], blocks=args.blocks, out_dir=args.out, commit=_git_head(),
+            args.a,
+            args.b,
+            args.zs,
+            test_names=split["test"],
+            blocks=args.blocks,
+            out_dir=args.out,
+            commit=_git_head(),
         )
     except (OSError, ValueError, KeyError) as error:
         print(f"Few-shot kıyası yapılamadı: {error}", file=sys.stderr)
@@ -637,9 +655,7 @@ def _run_sonuc_al(args: argparse.Namespace) -> int:
                 if not target.exists() or target.read_bytes() != source.read_bytes():
                     shutil.copy2(source, target)
 
-    matrices = {
-        name: args.results / name / "turkiye_kare_matrisleri_headline.npz" for name in names
-    }
+    matrices = {name: args.results / name / "turkiye_kare_matrisleri_headline.npz" for name in names}
     matrices["referans"] = args.results / "yeniden-uretim" / "damageformer_test_matrices.npz"
     blocks = args.blocks if args.blocks.is_file() else None
     for name_a, name_b in (("ana", "varyant"), ("referans", "ana"), ("referans", "varyant")):
